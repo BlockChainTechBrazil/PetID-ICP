@@ -1,13 +1,13 @@
 {
   "navbar": {
-    "connectWallet": "Conectar Carteira",
-    "walletConnected": "Carteira Conectada",
-    "metamaskNotFound": "MetaMask não encontrado! Instale a extensão MetaMask."
+    "connectWallet": "Conectar Identity",
+    "walletConnected": "Identity Conectada",
+    "internetIdentityNotFound": "Internet Identity não encontrada! Configure sua identidade digital."
   },
   "hero": {
     "title": "Identidade Digital",
     "titleHighlight": "para seus Pets",
-    "subtitle": "PetID é uma plataforma descentralizada que cria identidades digitais únicas e seguras para animais de estimação usando blockchain",
+    "subtitle": "PetID é uma plataforma descentralizada que cria identidades digitais únicas e seguras para animais de estimação usando Internet Computer Protocol (ICP)",
     "features": {
       "secure": {
         "title": "Seguro & Imutável",

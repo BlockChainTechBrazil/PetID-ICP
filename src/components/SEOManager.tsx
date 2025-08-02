@@ -3,19 +3,19 @@ import { useEffect } from 'react';
 
 const SEO_TRANSLATIONS = {
   pt: {
-    title: 'PetID - Identidade Digital para seus Pets',
-    description: 'PetID é uma plataforma descentralizada que cria identidades digitais únicas e seguras para animais usando tecnologia blockchain. Registre, gerencie e proteja seus pets com tecnologia NFT.',
-    keywords: 'pet, blockchain, NFT, identidade digital, animais, descentralizado, crypto, ethereum, metamask, brasil'
+    title: 'PetID - Identidade Digital para seus Pets no ICP',
+    description: 'PetID é uma plataforma descentralizada que cria identidades digitais únicas e seguras para animais usando Internet Computer Protocol (ICP). Registre, gerencie e proteja seus pets com autenticação Internet Identity.',
+    keywords: 'pet, blockchain, ICP, Internet Computer, identidade digital, animais, descentralizado, crypto, internet identity, motoko, brasil'
   },
   en: {
-    title: 'PetID - Digital Identity for Your Pets',
-    description: 'PetID is a decentralized platform that creates unique and secure digital identities for pets using blockchain technology. Register, manage and protect your pets with NFT technology.',
-    keywords: 'pet, blockchain, NFT, digital identity, pets, decentralized, crypto, ethereum, metamask'
+    title: 'PetID - Digital Identity for Your Pets on ICP',
+    description: 'PetID is a decentralized platform that creates unique and secure digital identities for pets using Internet Computer Protocol (ICP). Register, manage and protect your pets with Internet Identity authentication.',
+    keywords: 'pet, blockchain, ICP, Internet Computer, digital identity, pets, decentralized, crypto, internet identity, motoko'
   },
   es: {
-    title: 'PetID - Identidad Digital para tus Mascotas',
-    description: 'PetID es una plataforma descentralizada que crea identidades digitales únicas y seguras para mascotas usando tecnología blockchain. Registra, gestiona y protege tus mascotas con tecnología NFT.',
-    keywords: 'mascota, blockchain, NFT, identidad digital, mascotas, descentralizado, crypto, ethereum, metamask, españa'
+    title: 'PetID - Identidad Digital para tus Mascotas en ICP',
+    description: 'PetID es una plataforma descentralizada que crea identidades digitales únicas y seguras para mascotas usando Internet Computer Protocol (ICP). Registra, gestiona y protege tus mascotas con autenticación Internet Identity.',
+    keywords: 'mascota, blockchain, ICP, Internet Computer, identidad digital, mascotas, descentralizado, crypto, internet identity, motoko, españa'
   }
 };
 

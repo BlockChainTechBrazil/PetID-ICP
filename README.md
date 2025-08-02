@@ -1,84 +1,77 @@
-# 🐾 Pet ID — Smart Identity for Pets on the Blockchain
+# PetID - ICP (Internet Computer Protocol)
 
-Pet ID is a decentralized identification and data management platform for pets, built on blockchain technology. It was created to solve a critical gap in pet care and animal rights: the lack of secure, accessible, and permanent records for animals throughout their lives — regardless of location, vet clinic, or ownership history.
+Um sistema descentralizado para registro e gestão de identificação de pets usando blockchain ICP com Internet Identity para autenticação.
 
-By leveraging blockchain's core properties — immutability, transparency, and decentralization — Pet ID enables each animal to receive a unique, lifelong digital identity that stores vital data such as health history, ownership changes, and optional location tracking.
+## 🚀 Características
 
-## 🌱 Why Pet ID Is Needed
+- **Blockchain ICP**: Utiliza o Internet Computer Protocol para armazenamento descentralizado
+- **Internet Identity**: Sistema de autenticação descentralizado do ICP
+- **Backend Motoko**: Smart contracts escritos em Motoko
+- **React + TypeScript**: Interface moderna e type-safe
+- **IPFS**: Armazenamento de metadados dos pets
+- **Multilíngue**: Suporte para português, inglês e espanhol
 
-Millions of animals lack traceable records, leading to problems in emergency treatment, legal ownership, and public health monitoring. Abandonment, loss, and mismanagement are worsened by fragmented, inaccessible data. Today's systems are centralized, vulnerable to loss, and regionally limited — Pet ID changes that.
+## �️ Tecnologias
 
-## 🔗 What Makes Pet ID Revolutionary
+### Backend
+- **Motoko**: Linguagem de programação para ICP
+- **Candid**: Interface definition language para ICP
+- **Internet Identity**: Sistema de autenticação descentralizado
 
-### 🧬 Digital DNA for Every Pet
-Each animal receives a "Digital CPF" — a blockchain-based identity that includes physical features, medical records, and legal ownership, creating a tamper-proof and portable pet passport.
+### Frontend
+- **React 19**: Framework para interface do usuário
+- **TypeScript**: Linguagem tipada
+- **Vite**: Build tool rápido
+- **Tailwind CSS**: Framework CSS utilitário
+- **i18next**: Internacionalização
+- **@dfinity/agent**: Cliente JavaScript para ICP
 
-### 🔐 Decentralized and Auditable Records
-All health, property, and event data are recorded on-chain, accessible only through authorized channels, and protected by smart contracts for full traceability and data integrity.
+## � Pré-requisitos
 
-### 📲 Universal Access and Real-Time Syncing
-Tied to a mobile and web-based interface, Pet ID allows veterinarians, NGOs, and pet owners to access and update records securely, with support for biometric login and 2FA.
+- Node.js 18+
+- DFX (DFINITY SDK) 0.15.0+
+- Git
 
-### 🛠️ Smart Ownership Transfers
-Adoptions and changes in ownership are handled via smart contracts — secure, auditable, and instant — encouraging responsible pet guardianship and reducing fraud.
+### Instalação do DFX
 
-### 🏛 Public Infrastructure Support
-Pet ID empowers municipalities, animal control, and shelters with actionable data for vaccination campaigns, population control, and public policy.
-
-## 👥 Who Pet ID Is For
-
-- 🐕 **Pet owners** seeking protection and continuity for their animals' history
-- 🏥 **Veterinary clinics** needing fast, secure access to reliable medical data
-- 🐾 **NGOs and shelters** managing rescues, adoptions, and animal records
-- 🏛 **Governments** implementing modern, data-driven animal care policies
-
-## 🧩 Scalable Web3 Infrastructure
-
-- 🌐 Built on scalable public blockchains (Polygon, Avalanche, Ethereum L2)
-- 🔐 Smart contracts manage permissions, validation, and record updates
-- 🔄 Open APIs allow integration with public and private systems
-- 📱 Secure mobile/web UI with biometric login and decentralized IDs
-- 🗳️ Community-driven governance enabled by proof-of-authority or token voting
-
-
-## 🚀 Key Use Cases
-
-- 🏥 **Emergency care**: Instant access to medical history at any clinic
-- 📍 **Lost pet recovery**: Location and ownership verification via Pet ID
-- ✈️ **Travel**: Validated digital documents for cross-border transport
-- 🤝 **Adoption**: Trustless ownership transfers between parties
-- 🧬 **Public health**: Sanitary and genetic control through audit-ready data
-- 💉 **Vaccination records**: All vaccine doses and dates are registered on-chain, accessible by authorized parties
-- 🩺 **Medical records**: Consultations, treatments, and exams are stored securely and permanently for each pet
-
-## 💡 Social Impact
-
-- 🐾 Reduction in pet abandonment through universal traceability
-- 💉 Improved animal health via real-time medical record sharing
-- 🌐 Easier implementation of pet-related public health policies
-- 🤝 Stronger collaboration between owners, NGOs, and governments
-- 📊 Generation of structured data for research, breeding, and epidemiology
-
-
-### Installation
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/davimqz/PetID.git
-cd PetID
+# No Windows (usando WSL) ou macOS/Linux
+sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 ```
 
-2. Install dependencies:
+## 🔧 Instalação
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/BlockChainTechBrazil/PetID-ICP.git
+cd PetID-ICP
+```
+
+2. Instale as dependências:
 ```bash
 npm install
 ```
 
-3. Start the development server:
+3. Configure as variáveis de ambiente:
+```bash
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+```
+
+4. Inicie a rede local do ICP:
+```bash
+dfx start --background
+```
+
+5. Deploy dos canisters:
+```bash
+dfx deploy
+```
+
+6. Inicie o servidor de desenvolvimento:
 ```bash
 npm run dev
 ```
-
-4. Open your browser and navigate to `http://localhost:5173`
 
 
 ## 🩺 Medical & Vaccine Records (Planned/Experimental)

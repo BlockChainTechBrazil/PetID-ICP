@@ -1,5 +1,5 @@
 {
-  "name": "petid",
+  "name": "petid-icp",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,11 +7,20 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:local": "dfx deploy --network local",
+    "deploy:ic": "dfx deploy --network ic",
+    "start": "dfx start --background",
+    "stop": "dfx stop",
+    "generate": "dfx generate"
   },
   "dependencies": {
+    "@dfinity/agent": "^1.3.0",
+    "@dfinity/auth-client": "^1.3.0",
+    "@dfinity/candid": "^1.3.0",
+    "@dfinity/identity": "^1.3.0",
+    "@dfinity/principal": "^1.3.0",
     "@tailwindcss/vite": "^4.1.11",
-    "ethers": "^6.15.0",
     "i18next": "^25.3.2",
     "i18next-browser-languagedetector": "^8.2.0",
     "react": "^19.1.0",
