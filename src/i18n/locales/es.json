@@ -2,7 +2,7 @@
   "navbar": {
     "connectWallet": "Conectar Billetera",
     "walletConnected": "Billetera Conectada",
-    "metamaskNotFound": "¡MetaMask no encontrado! Instala la extensión MetaMask."
+    "internetIdentityNotFound": "¡Internet Identity no encontrada! Configura tu identidad digital."
   },
   "hero": {
     "title": "Identidad Digital",
@@ -100,7 +100,7 @@
       "nftId": "ID del NFT:",
       "network": "Red:",
       "networkValue": "Sepolia (o red de despliegue)",
-      "instructions": "En MetaMask, ve a NFTs > Importar NFT y completa los campos anteriores."
+      "instructions": "En tu billetera ICP, gestiona tus mascotas registradas a través de Internet Identity."
     },
     "messages": {
       "fillAllFields": "Por favor, completa todos los campos",
@@ -111,18 +111,25 @@
       "transactionHash": "Hash de transación:"
     },
     "notConnected": {
-      "title": "Conecta tu Billetera",
-      "description": "Para registrar una mascota, necesitas conectar tu billetera MetaMask primero."
+      "title": "Conecta tu Internet Identity",
+      "description": "Para registrar una mascota, necesitas conectar tu Internet Identity primero."
+    },
+    "info": {
+      "title": "Características del Registro:",
+      "blockchain": "🔗 Registro permanente en blockchain ICP",
+      "immutable": "🔒 Datos inmutables y seguros",
+      "ownership": "👤 Propiedad verificable",
+      "transfer": "🔄 Transferible entre billeteras"
     }
   },
   "walletConnect": {
     "title": "Conecta tu Billetera",
-    "subtitle": "Conecta tu billetera MetaMask para comenzar a usar PetID",
-    "connectButton": "Conectar MetaMask",
+    "subtitle": "Conecta tu Internet Identity para comenzar a usar PetID",
+    "connectButton": "Conectar Internet Identity",
     "connectedButton": "Billetera Conectada",
     "connectingButton": "Conectando...",
     "disconnectButton": "Desconectar",
-    "installButton": "Instalar MetaMask",
+    "installButton": "Crear Internet Identity",
     "account": "Cuenta",
     "network": "Red",
     "balance": "Saldo",
@@ -131,7 +138,7 @@
       "description": "Pet ID es una plataforma descentralizada para identificación y gestión de datos de mascotas en la blockchain. Conecta tu billetera para registrar, transferir y gestionar identidades digitales de mascotas."
     },
     "messages": {
-      "metamaskNotFound": "¡MetaMask no encontrado! Por favor, instala la extensión.",
+      "icpNotFound": "¡Internet Identity no encontrada! Por favor, configura tu identidad.",
       "connectionError": "Error al conectar billetera:"
     }
   },

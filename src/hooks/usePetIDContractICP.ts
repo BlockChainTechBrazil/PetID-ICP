@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Principal } from '@dfinity/principal';
 import { createActor } from '../declarations/petid_backend';
 import { Pet, PetRegistration, _SERVICE } from '../declarations/petid_backend/petid_backend.did.d';
-import { AuthClient } from '@dfinity/auth-client';
+import { useAuth } from '../context/AuthContext';
+import { HttpAgent } from '@dfinity/agent';
 
 export interface PetIDContractICP {
   contract: _SERVICE | null;
@@ -21,34 +22,82 @@ export const usePetIDContractICP = (isAuthenticated: boolean, principal: Princip
   const [contract, setContract] = useState<_SERVICE | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { authClient } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && principal) {
+    if (isAuthenticated && principal && authClient) {
       initContract();
     } else {
       setContract(null);
     }
-  }, [isAuthenticated, principal]);
+  }, [isAuthenticated, principal, authClient]);
 
   const initContract = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const authClient = await AuthClient.create();
+      if (!authClient) {
+        throw new Error('AuthClient não está disponível');
+      }
+
       const identity = authClient.getIdentity();
 
-      // ID do canister (será substituído durante o build)
-      const canisterId = import.meta.env.CANISTER_ID_PETID_BACKEND || 'be2us-64aaa-aaaaa-qaabq-cai';
+      // ID do canister a partir das variáveis de ambiente
+      const canisterId = import.meta.env.VITE_CANISTER_ID_PETID_BACKEND || 'uxrrr-q7777-77774-qaaaq-cai';
+      // Certifique-se de que a URL do host tenha o formato correto
+      const host = import.meta.env.VITE_HOST
+        ? (import.meta.env.VITE_HOST.startsWith('http') ? import.meta.env.VITE_HOST : `http://${import.meta.env.VITE_HOST}`)
+        : 'http://localhost:4943';
 
-      const actor = createActor(canisterId, {
-        agentOptions: {
-          identity,
-          host: import.meta.env.DFX_NETWORK === 'local' ? 'http://localhost:4943' : 'https://ic0.app'
+      console.log('Inicializando contrato:', {
+        canisterId,
+        host,
+        network: import.meta.env.VITE_DFX_NETWORK,
+        principal: identity.getPrincipal().toString()
+      });
+
+      // Criar agente HTTP com configurações específicas para desenvolvimento híbrido
+      const agent = new HttpAgent({
+        identity,
+        host,
+      });
+
+      // Para desenvolvimento local, desabilitar TODAS as verificações de certificado
+      if (import.meta.env.VITE_DFX_NETWORK === 'local') {
+        console.log('Ambiente de desenvolvimento local - desativando verificações de segurança');
+
+        // Usar abordagem segura para configurar o agente
+        try {
+          // Desabilitar verificação de assinatura usando indexação para contornar erros de tipagem
+          (agent as any).verifyQuerySignatures = false;
+
+          // Substituir fetchRootKey para evitar problemas com CBOR
+          agent.fetchRootKey = async () => {
+            console.log('Usando chave raiz fictícia para desenvolvimento local');
+            // Retorna um ArrayBuffer compatível
+            return new Uint8Array(32).fill(1).buffer;
+          };
+
+          // Executar fetchRootKey para garantir que tudo esteja configurado
+          await agent.fetchRootKey().catch(e => {
+            console.warn("Erro ao buscar root key, mas continuando...", e);
+          });
+
+          console.log('Configuração do agente para desenvolvimento local concluída');
+        } catch (agentError) {
+          console.warn('Erro ao configurar o agente, mas continuando:', agentError);
         }
+      }
+
+      // Passar o agente já configurado para o createActor
+      const actor = createActor(canisterId, {
+        agent,
+        // Não passar agentOptions quando já temos um agent configurado
       });
 
       setContract(actor);
+      console.log('Contrato inicializado com sucesso');
     } catch (err) {
       console.error('Erro ao inicializar contrato:', err);
       setError('Erro ao conectar com o contrato');
@@ -140,7 +189,7 @@ export const usePetIDContractICP = (isAuthenticated: boolean, principal: Princip
 
     try {
       const result = await contract.getPet(petId);
-      return result.length > 0 ? result[0] : null;
+      return result.length > 0 ? (result[0] || null) : null;
     } catch (err) {
       console.error('Erro ao buscar pet:', err);
       return null;

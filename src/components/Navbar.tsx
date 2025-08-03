@@ -1,24 +1,18 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 // @ts-ignore
 import logo from '../assets/logo/petID-logo.png'
 import LanguageSelector from './LanguageSelector'
+import { useAuth } from '../context/AuthContext'
 
 function Navbar() {
   const { t } = useTranslation()
-  const [isConnected, setIsConnected] = useState(false)
+  const { isAuthenticated, login, logout, loading } = useAuth()
 
-  const connectWallet = async () => {
-    const { ethereum } = window as typeof window & { ethereum?: any }
-    if (ethereum) {
-      try {
-        await ethereum.request({ method: 'eth_requestAccounts' })
-        setIsConnected(true)
-      } catch (error) {
-        console.error('Erro ao conectar carteira:', error)
-      }
+  const handleWalletAction = async () => {
+    if (isAuthenticated) {
+      await logout()
     } else {
-      alert(t('navbar.metamaskNotFound'))
+      await login()
     }
   }
 
@@ -32,10 +26,16 @@ function Navbar() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={connectWallet}
-              className="px-5 py-2 rounded-2xl bg-blue-400 hover:bg-accent text-black font-semibold shadow-lg transition-all duration-200"
+              onClick={handleWalletAction}
+              disabled={loading}
+              className="px-5 py-2 rounded-2xl bg-blue-400 hover:bg-accent text-black font-semibold shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isConnected ? t('navbar.walletConnected') : t('navbar.connectWallet')}
+              {loading
+                ? t('walletConnect.connectingButton')
+                : isAuthenticated
+                  ? t('navbar.walletConnected')
+                  : t('navbar.connectWallet')
+              }
             </button>
             <LanguageSelector />
           </div>

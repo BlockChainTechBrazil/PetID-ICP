@@ -1,13 +1,12 @@
 import React from 'react';
-import { useICPAuth } from '../hooks/useICPAuth';
-import './WalletConnect.css';
+import { useAuth } from '../context/AuthContext';
 
 interface WalletConnectICPProps {
   onConnectionChange?: (isConnected: boolean) => void;
 }
 
 const WalletConnectICP: React.FC<WalletConnectICPProps> = ({ onConnectionChange }) => {
-  const { isAuthenticated, principal, login, logout, loading, error } = useICPAuth();
+  const { isAuthenticated, principal, login, logout, loading, error } = useAuth();
 
   React.useEffect(() => {
     if (onConnectionChange) {

@@ -5,10 +5,6 @@
       "type": "motoko",
       "main": "src/petid_backend/main.mo"
     },
-    "internet_identity": {
-      "type": "pull",
-      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
-    },
     "petid_frontend": {
       "type": "assets",
       "source": [
@@ -17,12 +13,22 @@
       "dependencies": [
         "petid_backend"
       ]
+    },
+    "internet_identity": {
+      "type": "pull",
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
     }
   },
   "networks": {
     "local": {
       "bind": "127.0.0.1:4943",
       "type": "ephemeral"
+    }
+  },
+  "pullable": {
+    "internet_identity": {
+      "dependencies": [],
+      "init_guide": "A new version of the Internet Identity canister is available. Update with `dfx deps pull && dfx deps init internet_identity && dfx deps deploy`"
     }
   }
 }

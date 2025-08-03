@@ -11,7 +11,7 @@ import { idlFactory } from './petid_backend.did.js';
  */
 export const createActor = (canisterId, options = {}) => {
   const agent = options.agent || new HttpAgent({ ...options.agentOptions });
-
+  
   // Desabilitar verificações de certificado para desenvolvimento local
   if (process.env.NODE_ENV !== "production" || options.agentOptions?.host?.includes("localhost")) {
     console.log("Desenvolvimento local - desabilitando verificações de segurança no createActor");

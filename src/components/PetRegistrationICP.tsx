@@ -1,14 +1,14 @@
 import { generatePetHash } from '../context/ipfsHashUtil';
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useICPAuth } from '../hooks/useICPAuth';
+import { useAuth } from '../context/AuthContext';
 import { usePetIDContractICP } from '../hooks/usePetIDContractICP';
 import { PetRegistration as PetRegistrationData } from '../declarations/petid_backend/petid_backend.did.d';
 import './PetRegistration.css';
 
 const PetRegistrationICP = () => {
   const { t } = useTranslation();
-  const { isAuthenticated, principal } = useICPAuth();
+  const { isAuthenticated, principal } = useAuth();
   const { registerPet, loading, error } = usePetIDContractICP(isAuthenticated, principal);
 
   const [formData, setFormData] = useState({
@@ -20,6 +20,27 @@ const PetRegistrationICP = () => {
 
   const [registrationResult, setRegistrationResult] = useState<{ success: boolean; petId?: bigint; error?: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Escutar mudanças no estado de autenticação
+  useEffect(() => {
+    const handleAuthChange = () => {
+      console.log('Estado de autenticação mudou - forçando atualização');
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('auth-state-changed', handleAuthChange);
+    return () => window.removeEventListener('auth-state-changed', handleAuthChange);
+  }, []);
+
+  // Log do estado atual para debug
+  useEffect(() => {
+    console.log('PetRegistrationICP - Estado atual:', {
+      isAuthenticated,
+      hasPrincipal: !!principal,
+      principal: principal?.toString()
+    });
+  }, [isAuthenticated, principal, forceUpdate]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -55,7 +76,7 @@ const PetRegistrationICP = () => {
         owner: principal.toString()
       };
 
-      const ipfsHash = generatePetHash(petData);
+      const ipfsHash = await generatePetHash(petData);
 
       // Converte a data para timestamp em nanosegundos (formato esperado pelo Motoko)
       const birthDateTimestamp = formData.birthDate
@@ -103,7 +124,7 @@ const PetRegistrationICP = () => {
       <form onSubmit={handleSubmit} className="registration-form">
         <div className="form-group">
           <label htmlFor="name">
-            {t('petRegistration.form.name')} *
+            {t('petRegistration.form.petName')} *
           </label>
           <input
             type="text"
@@ -111,7 +132,7 @@ const PetRegistrationICP = () => {
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder={t('petRegistration.form.namePlaceholder')}
+            placeholder={t('petRegistration.form.placeholders.petName')}
             required
             disabled={isSubmitting || loading}
           />
@@ -119,7 +140,7 @@ const PetRegistrationICP = () => {
 
         <div className="form-group">
           <label htmlFor="species">
-            {t('petRegistration.form.species')} *
+            {t('petRegistration.form.petSpecies')} *
           </label>
           <select
             id="species"
@@ -130,18 +151,18 @@ const PetRegistrationICP = () => {
             disabled={isSubmitting || loading}
           >
             <option value="">{t('petRegistration.form.selectSpecies')}</option>
-            <option value="dog">{t('petRegistration.form.dog')}</option>
-            <option value="cat">{t('petRegistration.form.cat')}</option>
-            <option value="bird">{t('petRegistration.form.bird')}</option>
-            <option value="fish">{t('petRegistration.form.fish')}</option>
-            <option value="rabbit">{t('petRegistration.form.rabbit')}</option>
-            <option value="other">{t('petRegistration.form.other')}</option>
+            <option value="dog">{t('petRegistration.form.species.dog')}</option>
+            <option value="cat">{t('petRegistration.form.species.cat')}</option>
+            <option value="bird">{t('petRegistration.form.species.bird')}</option>
+            <option value="fish">{t('petRegistration.form.species.fish')}</option>
+            <option value="rabbit">{t('petRegistration.form.species.rabbit')}</option>
+            <option value="other">{t('petRegistration.form.species.other')}</option>
           </select>
         </div>
 
         <div className="form-group">
           <label htmlFor="breed">
-            {t('petRegistration.form.breed')}
+            {t('petRegistration.form.petBreed')}
           </label>
           <input
             type="text"
@@ -149,7 +170,7 @@ const PetRegistrationICP = () => {
             name="breed"
             value={formData.breed}
             onChange={handleInputChange}
-            placeholder={t('petRegistration.form.breedPlaceholder')}
+            placeholder={t('petRegistration.form.placeholders.petBreed')}
             disabled={isSubmitting || loading}
           />
         </div>
@@ -176,7 +197,7 @@ const PetRegistrationICP = () => {
           {isSubmitting || loading ? (
             <>
               <div className="spinner"></div>
-              {t('petRegistration.form.registering')}
+              {t('petRegistration.form.registeringButton')}
             </>
           ) : (
             t('petRegistration.form.registerButton')

@@ -1,0 +1,50 @@
+type UpdateResult = 
+ variant {
+   err: text;
+   ok: text;
+ };
+type TransferResult = 
+ variant {
+   err: text;
+   ok: text;
+ };
+type RegistrationResult = 
+ variant {
+   err: text;
+   ok: PetId;
+ };
+type PetRegistration = 
+ record {
+   birthDate: int;
+   breed: text;
+   ipfsHash: text;
+   name: text;
+   species: text;
+ };
+type PetId = nat;
+type Pet = 
+ record {
+   birthDate: int;
+   breed: text;
+   id: PetId;
+   ipfsHash: text;
+   isRegistered: bool;
+   name: text;
+   owner: principal;
+   registrationDate: int;
+   species: text;
+ };
+service : {
+  getAllPets: () -> (vec Pet) query;
+  getCaller: () -> (principal);
+  getContractInfo: () -> (record {
+                            nextPetId: nat;
+                            totalPets: nat;
+                          }) query;
+  getOwnerPets: (owner: principal) -> (vec Pet) query;
+  getPet: (petId: PetId) -> (opt Pet) query;
+  isPetOwner: (petId: PetId, owner: principal) -> (bool) query;
+  registerPet: (petData: PetRegistration) -> (RegistrationResult);
+  transferPet: (petId: PetId, newOwner: principal) -> (TransferResult);
+  updatePetData: (petId: PetId, ipfsHash: text) -> (UpdateResult);
+}

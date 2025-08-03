@@ -6,9 +6,9 @@ import Iter "mo:base/Iter";
 import Time "mo:base/Time";
 import Text "mo:base/Text";
 import Nat "mo:base/Nat";
-import Option "mo:base/Option";
+import Nat32 "mo:base/Nat32";
 
-actor PetID {
+persistent actor PetID {
 
   // Tipos de dados
   public type PetId = Nat;
@@ -38,16 +38,16 @@ actor PetID {
   public type UpdateResult = Result.Result<Text, Text>;
 
   // Variáveis de estado
-  private stable var nextPetId : PetId = 1;
-  private stable var totalPets : Nat = 0;
+  private var nextPetId : PetId = 1;
+  private var totalPets : Nat = 0;
 
   // Stable arrays para preservar dados durante upgrades
-  private stable var petsEntries : [(PetId, Pet)] = [];
-  private stable var ownerToPetsEntries : [(Principal, [PetId])] = [];
+  private var petsEntries : [(PetId, Pet)] = [];
+  private var ownerToPetsEntries : [(Principal, [PetId])] = [];
 
   // HashMaps para armazenamento em tempo de execução
-  private var pets = HashMap.HashMap<PetId, Pet>(10, Nat.equal, func(n : Nat) : Nat32 { Nat32.fromNat(n) });
-  private var ownerToPets = HashMap.HashMap<Principal, [PetId]>(10, Principal.equal, Principal.hash);
+  private transient var pets = HashMap.HashMap<PetId, Pet>(10, Nat.equal, func(n : Nat) : Nat32 { Nat32.fromNat(n) });
+  private transient var ownerToPets = HashMap.HashMap<Principal, [PetId]>(10, Principal.equal, Principal.hash);
 
   // Função de inicialização para restaurar dados após upgrade
   system func preupgrade() {

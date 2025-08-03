@@ -8,6 +8,13 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
     global: 'globalThis',
+    'process.env.DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK || 'local'),
+    'process.env.CANISTER_ID_PETID_BACKEND': JSON.stringify(process.env.CANISTER_ID_PETID_BACKEND || 'uxrrr-q7777-77774-qaaaq-cai'),
+    'process.env.CANISTER_ID_INTERNET_IDENTITY': JSON.stringify(process.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai'),
+    'import.meta.env.VITE_DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK || 'local'),
+    'import.meta.env.VITE_CANISTER_ID_PETID_BACKEND': JSON.stringify(process.env.CANISTER_ID_PETID_BACKEND || 'uxrrr-q7777-77774-qaaaq-cai'),
+    'import.meta.env.VITE_CANISTER_ID_INTERNET_IDENTITY': JSON.stringify(process.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai'),
+    'import.meta.env.VITE_HOST': JSON.stringify(process.env.HOST || 'http://localhost:4943'),
   },
   resolve: {
     alias: {

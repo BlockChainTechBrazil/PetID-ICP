@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useICPAuth } from '../hooks/useICPAuth';
+import { useAuth } from '../context/AuthContext';
 import { usePetIDContractICP } from '../hooks/usePetIDContractICP';
 import { Pet } from '../declarations/petid_backend/petid_backend.did.d';
 
@@ -10,7 +10,7 @@ interface MyPetNFTsICPProps {
 
 const MyPetNFTsICP: React.FC<MyPetNFTsICPProps> = ({ onPetSelect }) => {
   const { t } = useTranslation();
-  const { isAuthenticated, principal } = useICPAuth();
+  const { isAuthenticated, principal } = useAuth();
   const { getOwnerPets, loading } = usePetIDContractICP(isAuthenticated, principal);
 
   const [pets, setPets] = useState<Pet[]>([]);

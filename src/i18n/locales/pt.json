@@ -100,39 +100,46 @@
       "nftId": "ID do NFT:",
       "network": "Rede:",
       "networkValue": "Sepolia (ou a rede do deploy)",
-      "instructions": "No MetaMask, vá em NFTs > Importar NFT e preencha os campos acima."
+      "instructions": "Na carteira ICP, gerencie seus pets registrados através da Internet Identity."
     },
     "messages": {
       "fillAllFields": "Por favor, preencha todos os campos",
       "selectImage": "Por favor, selecione uma imagem",
-      "connectWallet": "Por favor, conecte sua carteira primeiro",
+      "connectWallet": "Por favor, conecte sua Internet Identity primeiro",
       "registrationSuccess": "Pet registrado com sucesso!",
       "registrationError": "Erro ao registrar pet:",
-      "transactionHash": "Hash da transação:"
+      "transactionHash": "ID da transação:"
     },
     "notConnected": {
-      "title": "Conecte sua carteira",
-      "description": "Para registrar um pet, você precisa conectar sua carteira MetaMask primeiro."
+      "title": "Conecte sua Internet Identity",
+      "description": "Para registrar um pet, você precisa conectar sua Internet Identity primeiro."
+    },
+    "info": {
+      "title": "Características do Registro:",
+      "blockchain": "🔗 Registro permanente na blockchain ICP",
+      "immutable": "🔒 Dados imutáveis e seguros",
+      "ownership": "👤 Propriedade verificável",
+      "transfer": "🔄 Transferível entre carteiras"
     }
   },
   "walletConnect": {
-    "title": "Conecte sua Carteira",
-    "subtitle": "Conecte sua carteira MetaMask para começar a usar o PetID",
-    "connectButton": "Conectar MetaMask",
-    "connectedButton": "Carteira Conectada",
+    "title": "Conecte sua Internet Identity",
+    "subtitle": "Conecte sua Internet Identity para começar a usar o PetID",
+    "connectButton": "Conectar Internet Identity",
+    "connectedButton": "Identity Conectada",
     "connectingButton": "Conectando...",
     "disconnectButton": "Desconectar",
-    "installButton": "Instalar MetaMask",
-    "account": "Conta",
-    "network": "Rede",
-    "balance": "Saldo",
+    "installButton": "Criar Internet Identity",
+    "account": "Principal ID",
+    "network": "Rede ICP",
+    "balance": "Cycles",
     "about": {
       "title": "Sobre o Pet ID",
-      "description": "O Pet ID é uma plataforma descentralizada para identificação e gerenciamento de dados de pets na blockchain. Conecte sua carteira para registrar, transferir e gerenciar identidades digitais de pets."
+      "description": "O Pet ID é uma plataforma descentralizada para identificação e gerenciamento de dados de pets no Internet Computer Protocol (ICP). Conecte sua Internet Identity para registrar, transferir e gerenciar identidades digitais de pets."
     },
     "messages": {
-      "metamaskNotFound": "MetaMask não encontrado! Por favor, instale a extensão.",
-      "connectionError": "Erro ao conectar carteira:"
+      "icpNotFound": "Internet Identity não encontrada! Por favor, configure sua identidade.",
+      "connectionError": "Erro ao conectar Identity:"
     }
   },
   "myPetNFTs": {

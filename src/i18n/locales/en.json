@@ -2,7 +2,7 @@
   "navbar": {
     "connectWallet": "Connect Wallet",
     "walletConnected": "Wallet Connected",
-    "metamaskNotFound": "MetaMask not found! Please install the MetaMask extension."
+    "internetIdentityNotFound": "Internet Identity not found! Please set up your digital identity."
   },
   "hero": {
     "title": "Digital Identity",
@@ -100,39 +100,46 @@
       "nftId": "NFT ID:",
       "network": "Network:",
       "networkValue": "Sepolia (or deployment network)",
-      "instructions": "In MetaMask, go to NFTs > Import NFT and fill in the fields above."
+      "instructions": "In your ICP wallet, manage your registered pets through Internet Identity."
     },
     "messages": {
       "fillAllFields": "Please fill in all fields",
       "selectImage": "Please select an image",
-      "connectWallet": "Please connect your wallet first",
+      "connectWallet": "Please connect your Internet Identity first",
       "registrationSuccess": "Pet registered successfully!",
       "registrationError": "Error registering pet:",
-      "transactionHash": "Transaction hash:"
+      "transactionHash": "Transaction ID:"
     },
     "notConnected": {
-      "title": "Connect Your Wallet",
-      "description": "To register a pet, you need to connect your MetaMask wallet first."
+      "title": "Connect Your Internet Identity",
+      "description": "To register a pet, you need to connect your Internet Identity first."
+    },
+    "info": {
+      "title": "Registration Features:",
+      "blockchain": "🔗 Permanent record on ICP blockchain",
+      "immutable": "🔒 Immutable and secure data",
+      "ownership": "👤 Verifiable ownership",
+      "transfer": "🔄 Transferable between wallets"
     }
   },
   "walletConnect": {
-    "title": "Connect Your Wallet",
-    "subtitle": "Connect your MetaMask wallet to start using PetID",
-    "connectButton": "Connect MetaMask",
-    "connectedButton": "Wallet Connected",
+    "title": "Connect Your Internet Identity",
+    "subtitle": "Connect your Internet Identity to start using PetID",
+    "connectButton": "Connect Internet Identity",
+    "connectedButton": "Identity Connected",
     "connectingButton": "Connecting...",
     "disconnectButton": "Disconnect",
-    "installButton": "Install MetaMask",
-    "account": "Account",
-    "network": "Network",
-    "balance": "Balance",
+    "installButton": "Create Internet Identity",
+    "account": "Principal ID",
+    "network": "ICP Network",
+    "balance": "Cycles",
     "about": {
       "title": "About Pet ID",
-      "description": "Pet ID is a decentralized platform for pet data identification and management on the blockchain. Connect your wallet to register, transfer and manage digital pet identities."
+      "description": "Pet ID is a decentralized platform for pet data identification and management on the Internet Computer Protocol (ICP). Connect your Internet Identity to register, transfer and manage digital pet identities."
     },
     "messages": {
-      "metamaskNotFound": "MetaMask not found! Please install the extension.",
-      "connectionError": "Error connecting wallet:"
+      "icpNotFound": "Internet Identity not found! Please set up your identity.",
+      "connectionError": "Error connecting Identity:"
     }
   },
   "myPetNFTs": {

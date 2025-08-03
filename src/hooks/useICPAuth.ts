@@ -54,10 +54,9 @@ export const useICPAuth = (): ICPAuth => {
       setLoading(true);
       setError(null);
 
-      // URL da Internet Identity (local ou produção)
-      const identityProvider = process.env.DFX_NETWORK === 'local'
-        ? `http://localhost:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai`
-        : 'https://identity.ic0.app';
+      // Sempre usar a Internet Identity oficial - é mais confiável para desenvolvimento e produção
+      const identityProvider = 'https://identity.ic0.app/#authorize';
+      console.log('Usando Internet Identity oficial:', identityProvider);
 
       await authClient.login({
         identityProvider,
