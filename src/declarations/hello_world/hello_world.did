@@ -1,0 +1,8 @@
+service : {
+  getCounter: () -> (nat);
+  getName: () -> (text);
+  greet: (name: text) -> (text);
+  hello: () -> (text);
+  increment: () -> (nat);
+  reset: () -> (nat);
+}
