@@ -7,7 +7,7 @@ import Iter "mo:base/Iter";
 import Types "types";
 import Utils "utils";
 
-actor HelloWorld {
+persistent actor HelloWorld {
     // Usando tipos da interface
     public type Pet = Types.Pet;
     public type Result<T, E> = Types.Result<T, E>;

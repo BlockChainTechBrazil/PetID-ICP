@@ -58,37 +58,25 @@ class PetIDApp {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const host = isDevelopment ? 'http://127.0.0.1:8000' : 'https://ic0.app';
     
-    this.agent = new HttpAgent({ host });
+    // Criando agent com configurações simples e corretas
+    this.agent = new HttpAgent({ 
+      host,
+      // Removendo propriedades que não existem na versão atual
+    });
     
     // Só usar fetchRootKey em desenvolvimento
     if (isDevelopment) {
       await this.agent.fetchRootKey();
+      console.log('🔑 Root key fetched successfully');
     }
     
     console.log(`🌐 Agent configurado para: ${host}`);
   }
 
   private async setupActor(): Promise<void> {
-    // ID do canister deployado
+    // ID do canister deployado (usar o ID que já funcionava)
     this.canisterId = 'uxrrr-q7777-77774-qaaaq-cai';
     
-    // Fallback para variáveis de ambiente
-    if (!this.canisterId) {
-      this.canisterId = process.env.CANISTER_ID_HELLO_WORLD || 
-                       process.env.HELLO_WORLD_CANISTER_ID || '';
-    }
-    
-    if (!this.canisterId) {
-      // Tentar carregar do arquivo local
-      try {
-        const response = await fetch('/.well-known/ic-domains');
-        const data = await response.json();
-        this.canisterId = data.hello_world || '';
-      } catch {
-        console.warn('⚠️ Não foi possível carregar canister ID automaticamente');
-      }
-    }
-
     if (!this.canisterId) {
       throw new Error('Canister ID não encontrado. Verifique se o deploy foi feito.');
     }

@@ -33,7 +33,7 @@ module.exports = {
   target: "web",
   mode: isDevelopment ? "development" : "production",
   entry: {
-    index: path.join(__dirname, frontend_entry),
+    main: path.join(__dirname, frontend_entry),
   },
   devtool: isDevelopment ? "source-map" : false,
   optimization: {
