@@ -1,8 +1,45 @@
+type Result_1 = 
+ variant {
+   err: Error;
+   ok: Pet;
+ };
+type Result = 
+ variant {
+   err: Error;
+   ok: nat;
+ };
+type Pet = 
+ record {
+   age: opt nat;
+   breed: opt text;
+   id: nat;
+   name: text;
+   owner: text;
+   registered_at: int;
+   species: text;
+ };
+type Error = 
+ variant {
+   AlreadyExists;
+   InvalidInput: text;
+   NotFound;
+   Unauthorized;
+ };
 service : {
   getCounter: () -> (nat);
   getName: () -> (text);
+  getPet: (id: nat) -> (Result_1);
+  getStats: () -> (record {
+                     counterValue: nat;
+                     nextId: nat;
+                     totalPets: nat;
+                   });
+  getTotalPets: () -> (nat);
   greet: (name: text) -> (text);
   hello: () -> (text);
   increment: () -> (nat);
+  listPets: () -> (vec Pet);
+  registerPet: (pet: Pet) -> (Result);
   reset: () -> (nat);
+  searchPetsByOwner: (owner: text) -> (vec Pet);
 }

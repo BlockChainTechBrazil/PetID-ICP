@@ -84,7 +84,6 @@ module.exports = {
       "process.env.NODE_ENV": JSON.stringify(
         isDevelopment ? "development" : "production"
       ),
-      "process.env.DFX_NETWORK": JSON.stringify(process.env.DFX_NETWORK),
       "process.env.CANISTER_ID_HELLO_WORLD": JSON.stringify(
         localCanisters?.hello_world?.local || prodCanisters?.hello_world?.ic
       ),
