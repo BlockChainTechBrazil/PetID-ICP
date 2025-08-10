@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "PetID_backend": {
+      "main": "src/PetID_backend/main.mo",
+      "type": "motoko"
+    },
+    "PetID_frontend": {
+      "dependencies": [
+        "PetID_backend"
+      ],
+      "source": [
+        "src/PetID_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "PetID_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
