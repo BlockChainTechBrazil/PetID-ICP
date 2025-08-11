@@ -1,26 +1,33 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const HowItWorks = () => {
+  const { t } = useTranslation();
+
   const steps = [
     {
       number: "01",
-      title: "Conecte sua carteira",
-      description: "Conecte sua carteira digital compatível com ICP para começar a usar os serviços PetID."
+      key: "connectWallet",
+      title: t('howItWorks.steps.connectWallet.title'),
+      description: t('howItWorks.steps.connectWallet.description')
     },
     {
       number: "02",
-      title: "Cadastre seu pet",
-      description: "Preencha as informações do seu pet, incluindo nome, espécie, raça, idade e foto."
+      key: "registerPet",
+      title: t('howItWorks.steps.registerPet.title'),
+      description: t('howItWorks.steps.registerPet.description')
     },
     {
       number: "03",
-      title: "Adicione histórico médico",
-      description: "Inclua informações sobre vacinas, medicações, consultas e outras informações de saúde."
+      key: "addMedicalHistory",
+      title: t('howItWorks.steps.addMedicalHistory.title'),
+      description: t('howItWorks.steps.addMedicalHistory.description')
     },
     {
       number: "04",
-      title: "Acesse quando precisar",
-      description: "As informações estarão sempre disponíveis quando você precisar, de forma segura e confiável."
+      key: "accessAnytime",
+      title: t('howItWorks.steps.accessAnytime.title'),
+      description: t('howItWorks.steps.accessAnytime.description')
     }
   ];
 
@@ -28,9 +35,9 @@ const HowItWorks = () => {
     <section className="py-16 bg-blue-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Como funciona</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('howItWorks.title')}</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Registrar e gerenciar as informações do seu pet nunca foi tão fácil e seguro.
+            {t('howItWorks.description')}
           </p>
         </div>
 

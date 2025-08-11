@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const FAQ = () => {
+  const { t } = useTranslation();
   const [openIndex, setOpenIndex] = useState(null);
 
   const toggleAccordion = (index) => {
@@ -9,24 +11,29 @@ const FAQ = () => {
 
   const faqs = [
     {
-      question: "O que é o PetID?",
-      answer: "PetID é uma plataforma descentralizada que utiliza a tecnologia blockchain para criar e gerenciar registros digitais de animais de estimação, garantindo autenticidade, segurança e imutabilidade das informações."
+      key: "whatIs",
+      question: t('faq.questions.whatIs.question'),
+      answer: t('faq.questions.whatIs.answer')
     },
     {
-      question: "Como posso registrar meu pet?",
-      answer: "Para registrar seu pet, conecte sua carteira digital, clique em 'Registrar Pet', preencha as informações solicitadas e envie o formulário. O registro será processado na blockchain do Internet Computer."
+      key: "howToRegister",
+      question: t('faq.questions.howToRegister.question'),
+      answer: t('faq.questions.howToRegister.answer')
     },
     {
-      question: "Quais informações posso armazenar?",
-      answer: "Você pode armazenar informações básicas como nome, espécie, raça, idade, data de nascimento, fotos, histórico médico, vacinas, medicações, informações de microchip e muito mais."
+      key: "whatInfo",
+      question: t('faq.questions.whatInfo.question'),
+      answer: t('faq.questions.whatInfo.answer')
     },
     {
-      question: "É possível transferir a propriedade do pet?",
-      answer: "Sim, o PetID permite a transferência de propriedade do pet para outro usuário de forma simples e transparente, registrando toda a transação na blockchain."
+      key: "transferOwnership",
+      question: t('faq.questions.transferOwnership.question'),
+      answer: t('faq.questions.transferOwnership.answer')
     },
     {
-      question: "Quanto custa usar o PetID?",
-      answer: "Durante o período de lançamento, o registro básico de pets é gratuito. Funcionalidades avançadas podem ter custos adicionais que serão claramente informados antes da utilização."
+      key: "howMuch",
+      question: t('faq.questions.howMuch.question'),
+      answer: t('faq.questions.howMuch.answer')
     }
   ];
 
@@ -34,9 +41,9 @@ const FAQ = () => {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Perguntas Frequentes</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('faq.title')}</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Encontre respostas para as perguntas mais comuns sobre o PetID e como ele pode ajudar você a cuidar melhor do seu pet.
+            {t('faq.description')}
           </p>
         </div>
 

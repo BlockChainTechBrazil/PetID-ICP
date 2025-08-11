@@ -1,0 +1,96 @@
+{
+  "navbar": {
+    "connectWallet": "Conectar Carteira"
+  },
+  "hero": {
+    "title": "Registro descentralizado para seus pets",
+    "description": "A PetID utiliza a tecnologia blockchain para criar registros imutáveis e seguros para seus animais de estimação, garantindo que suas informações estejam sempre acessíveis e protegidas.",
+    "registerButton": "Registre seu Pet",
+    "learnMoreButton": "Saiba mais"
+  },
+  "features": {
+    "title": "Por que escolher o PetID?",
+    "description": "Nossa plataforma oferece soluções inovadoras para o registro e gerenciamento das informações do seu pet com a segurança da tecnologia blockchain.",
+    "secureRegistry": {
+      "title": "Registro Seguro",
+      "description": "Informações armazenadas de forma segura na blockchain, garantindo autenticidade e imutabilidade."
+    },
+    "simpleTransfer": {
+      "title": "Transferência Simples",
+      "description": "Transferência de propriedade do pet de forma transparente e sem burocracia."
+    },
+    "universalAccess": {
+      "title": "Acesso Universal",
+      "description": "Acesse as informações do seu pet de qualquer dispositivo com conexão à internet."
+    },
+    "completeHistory": {
+      "title": "Histórico Completo",
+      "description": "Mantenha todo o histórico médico e de vacinação do seu pet em um único lugar."
+    }
+  },
+  "howItWorks": {
+    "title": "Como funciona",
+    "description": "Registrar e gerenciar as informações do seu pet nunca foi tão fácil e seguro.",
+    "steps": {
+      "connectWallet": {
+        "title": "Conecte sua carteira",
+        "description": "Conecte sua carteira digital compatível com ICP para começar a usar os serviços PetID."
+      },
+      "registerPet": {
+        "title": "Cadastre seu pet",
+        "description": "Preencha as informações do seu pet, incluindo nome, espécie, raça, idade e foto."
+      },
+      "addMedicalHistory": {
+        "title": "Adicione histórico médico",
+        "description": "Inclua informações sobre vacinas, medicações, consultas e outras informações de saúde."
+      },
+      "accessAnytime": {
+        "title": "Acesse quando precisar",
+        "description": "As informações estarão sempre disponíveis quando você precisar, de forma segura e confiável."
+      }
+    }
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "description": "Encontre respostas para as perguntas mais comuns sobre o PetID e como ele pode ajudar você a cuidar melhor do seu pet.",
+    "questions": {
+      "whatIs": {
+        "question": "O que é o PetID?",
+        "answer": "PetID é uma plataforma descentralizada que utiliza a tecnologia blockchain para criar e gerenciar registros digitais de animais de estimação, garantindo autenticidade, segurança e imutabilidade das informações."
+      },
+      "howToRegister": {
+        "question": "Como posso registrar meu pet?",
+        "answer": "Para registrar seu pet, conecte sua carteira digital, clique em 'Registrar Pet', preencha as informações solicitadas e envie o formulário. O registro será processado na blockchain do Internet Computer."
+      },
+      "whatInfo": {
+        "question": "Quais informações posso armazenar?",
+        "answer": "Você pode armazenar informações básicas como nome, espécie, raça, idade, data de nascimento, fotos, histórico médico, vacinas, medicações, informações de microchip e muito mais."
+      },
+      "transferOwnership": {
+        "question": "É possível transferir a propriedade do pet?",
+        "answer": "Sim, o PetID permite a transferência de propriedade do pet para outro usuário de forma simples e transparente, registrando toda a transação na blockchain."
+      },
+      "howMuch": {
+        "question": "Quanto custa usar o PetID?",
+        "answer": "Durante o período de lançamento, o registro básico de pets é gratuito. Funcionalidades avançadas podem ter custos adicionais que serão claramente informados antes da utilização."
+      }
+    }
+  },
+  "footer": {
+    "description": "Registro descentralizado de pets na blockchain do Internet Computer.",
+    "resources": "Recursos",
+    "registerPet": "Registrar Pet",
+    "searchPet": "Buscar Pet",
+    "transferOwnership": "Transferir Propriedade",
+    "medicalHistory": "Histórico Médico",
+    "about": "Sobre",
+    "mission": "Nossa Missão",
+    "team": "Equipe",
+    "partners": "Parceiros",
+    "terms": "Termos de Uso",
+    "contact": "Contato",
+    "support": "Suporte",
+    "partnerships": "Parcerias",
+    "rights": "Todos os direitos reservados."
+  }
+}

@@ -1,6 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation();
+  
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="container mx-auto px-4">
@@ -11,35 +14,35 @@ const Footer = () => {
               <span className="text-2xl font-bold text-white">PetID</span>
             </div>
             <p className="text-gray-400">
-              Registro descentralizado de pets na blockchain do Internet Computer.
+              {t('footer.description')}
             </p>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Recursos</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.resources')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Registrar Pet</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Buscar Pet</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Transferir Propriedade</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Histórico Médico</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.registerPet')}</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.searchPet')}</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.transferOwnership')}</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.medicalHistory')}</a></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Sobre</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.about')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Nossa Missão</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Equipe</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Parceiros</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Termos de Uso</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.mission')}</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.team')}</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.partners')}</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.terms')}</a></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contato</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.contact')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Suporte</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Parcerias</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.support')}</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('footer.partnerships')}</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
             </ul>
             <div className="flex space-x-4 mt-4">
@@ -60,7 +63,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} PetID. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} PetID. {t('footer.rights')}</p>
         </div>
       </div>
     </footer>

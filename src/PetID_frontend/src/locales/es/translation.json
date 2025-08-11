@@ -1,0 +1,96 @@
+{
+  "navbar": {
+    "connectWallet": "Conectar Billetera"
+  },
+  "hero": {
+    "title": "Registro descentralizado para tus mascotas",
+    "description": "PetID utiliza tecnología blockchain para crear registros inmutables y seguros para tus mascotas, asegurando que su información esté siempre accesible y protegida.",
+    "registerButton": "Registra tu Mascota",
+    "learnMoreButton": "Saber más"
+  },
+  "features": {
+    "title": "¿Por qué elegir PetID?",
+    "description": "Nuestra plataforma ofrece soluciones innovadoras para el registro y gestión de la información de tu mascota con la seguridad de la tecnología blockchain.",
+    "secureRegistry": {
+      "title": "Registro Seguro",
+      "description": "Información almacenada de forma segura en la blockchain, garantizando autenticidad e inmutabilidad."
+    },
+    "simpleTransfer": {
+      "title": "Transferencia Simple",
+      "description": "Transferencia de propiedad de la mascota de forma transparente y sin burocracia."
+    },
+    "universalAccess": {
+      "title": "Acceso Universal",
+      "description": "Accede a la información de tu mascota desde cualquier dispositivo con conexión a internet."
+    },
+    "completeHistory": {
+      "title": "Historial Completo",
+      "description": "Mantén todo el historial médico y de vacunación de tu mascota en un solo lugar."
+    }
+  },
+  "howItWorks": {
+    "title": "Cómo funciona",
+    "description": "Registrar y gestionar la información de tu mascota nunca ha sido tan fácil y seguro.",
+    "steps": {
+      "connectWallet": {
+        "title": "Conecta tu billetera",
+        "description": "Conecta tu billetera digital compatible con ICP para comenzar a usar los servicios de PetID."
+      },
+      "registerPet": {
+        "title": "Registra tu mascota",
+        "description": "Completa la información de tu mascota, incluyendo nombre, especie, raza, edad y foto."
+      },
+      "addMedicalHistory": {
+        "title": "Añade historial médico",
+        "description": "Incluye información sobre vacunas, medicamentos, consultas y otra información de salud."
+      },
+      "accessAnytime": {
+        "title": "Accede cuando lo necesites",
+        "description": "La información estará siempre disponible cuando la necesites, de forma segura y confiable."
+      }
+    }
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "description": "Encuentra respuestas a las preguntas más comunes sobre PetID y cómo puede ayudarte a cuidar mejor de tu mascota.",
+    "questions": {
+      "whatIs": {
+        "question": "¿Qué es PetID?",
+        "answer": "PetID es una plataforma descentralizada que utiliza tecnología blockchain para crear y gestionar registros digitales de mascotas, garantizando autenticidad, seguridad e inmutabilidad de la información."
+      },
+      "howToRegister": {
+        "question": "¿Cómo puedo registrar mi mascota?",
+        "answer": "Para registrar tu mascota, conecta tu billetera digital, haz clic en 'Registrar Mascota', completa la información solicitada y envía el formulario. El registro será procesado en la blockchain de Internet Computer."
+      },
+      "whatInfo": {
+        "question": "¿Qué información puedo almacenar?",
+        "answer": "Puedes almacenar información básica como nombre, especie, raza, edad, fecha de nacimiento, fotos, historial médico, vacunas, medicamentos, información de microchip y mucho más."
+      },
+      "transferOwnership": {
+        "question": "¿Es posible transferir la propiedad de la mascota?",
+        "answer": "Sí, PetID permite la transferencia de propiedad de la mascota a otro usuario de forma simple y transparente, registrando toda la transacción en la blockchain."
+      },
+      "howMuch": {
+        "question": "¿Cuánto cuesta usar PetID?",
+        "answer": "Durante el período de lanzamiento, el registro básico de mascotas es gratuito. Las funcionalidades avanzadas pueden tener costos adicionales que serán claramente informados antes de la utilización."
+      }
+    }
+  },
+  "footer": {
+    "description": "Registro descentralizado de mascotas en la blockchain de Internet Computer.",
+    "resources": "Recursos",
+    "registerPet": "Registrar Mascota",
+    "searchPet": "Buscar Mascota",
+    "transferOwnership": "Transferir Propiedad",
+    "medicalHistory": "Historial Médico",
+    "about": "Acerca de",
+    "mission": "Nuestra Misión",
+    "team": "Equipo",
+    "partners": "Socios",
+    "terms": "Términos de Uso",
+    "contact": "Contacto",
+    "support": "Soporte",
+    "partnerships": "Alianzas",
+    "rights": "Todos los derechos reservados."
+  }
+}

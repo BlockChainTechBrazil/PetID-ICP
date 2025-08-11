@@ -1,26 +1,33 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Features = () => {
+  const { t } = useTranslation();
+  
   const features = [
     {
       icon: "🔒",
-      title: "Registro Seguro",
-      description: "Informações armazenadas de forma segura na blockchain, garantindo autenticidade e imutabilidade."
+      key: "secureRegistry",
+      title: t('features.secureRegistry.title'),
+      description: t('features.secureRegistry.description')
     },
     {
       icon: "🔄",
-      title: "Transferência Simples",
-      description: "Transferência de propriedade do pet de forma transparente e sem burocracia."
+      key: "simpleTransfer",
+      title: t('features.simpleTransfer.title'),
+      description: t('features.simpleTransfer.description')
     },
     {
       icon: "📱",
-      title: "Acesso Universal",
-      description: "Acesse as informações do seu pet de qualquer dispositivo com conexão à internet."
+      key: "universalAccess",
+      title: t('features.universalAccess.title'),
+      description: t('features.universalAccess.description')
     },
     {
       icon: "📋",
-      title: "Histórico Completo",
-      description: "Mantenha todo o histórico médico e de vacinação do seu pet em um único lugar."
+      key: "completeHistory",
+      title: t('features.completeHistory.title'),
+      description: t('features.completeHistory.description')
     }
   ];
 
@@ -28,9 +35,9 @@ const Features = () => {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Por que escolher o PetID?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('features.title')}</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Nossa plataforma oferece soluções inovadoras para o registro e gerenciamento das informações do seu pet com a segurança da tecnologia blockchain.
+            {t('features.description')}
           </p>
         </div>
 
