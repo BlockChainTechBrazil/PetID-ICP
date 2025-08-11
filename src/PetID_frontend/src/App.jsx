@@ -5,6 +5,7 @@ import Hero from './componentes/Hero';
 import Features from './componentes/Features';
 import HowItWorks from './componentes/HowItWorks';
 import FAQ from './componentes/FAQ';
+import PetForm from './componentes/PetForm';
 import Footer from './componentes/Footer';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Hero />
         <Features />
         <HowItWorks />
+        <PetForm />
         <FAQ />
       </main>
       <Footer />

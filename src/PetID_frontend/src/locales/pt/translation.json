@@ -1,12 +1,31 @@
 {
   "navbar": {
-    "connectWallet": "Conectar Carteira"
+    "connectWallet": "Conectar",
+    "logout": "Sair",
+    "connecting": "Conectando..."
   },
   "hero": {
     "title": "Registro descentralizado para seus pets",
     "description": "A PetID utiliza a tecnologia blockchain para criar registros imutáveis e seguros para seus animais de estimação, garantindo que suas informações estejam sempre acessíveis e protegidas.",
     "registerButton": "Registre seu Pet",
     "learnMoreButton": "Saiba mais"
+  },
+  "petForm": {
+    "title": "Registre seu Pet",
+    "description": "Registre seu animal de estimação na blockchain do Internet Computer",
+    "loginPrompt": "Para registrar seu pet, é necessário conectar-se com sua Internet Identity",
+    "connectWithII": "Conectar com Internet Identity",
+    "connecting": "Conectando...",
+    "name": "Nome",
+    "namePlaceholder": "Nome do seu pet",
+    "nickname": "Apelido",
+    "nicknamePlaceholder": "Apelido do seu pet (opcional)",
+    "birthDate": "Data de Nascimento",
+    "register": "Registrar Pet",
+    "registering": "Registrando...",
+    "logout": "Desconectar",
+    "myPets": "Meus Pets",
+    "successMessage": "Pet registrado com sucesso!"
   },
   "features": {
     "title": "Por que escolher o PetID?",

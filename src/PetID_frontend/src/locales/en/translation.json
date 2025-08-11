@@ -1,12 +1,31 @@
 {
   "navbar": {
-    "connectWallet": "Connect Wallet"
+    "connectWallet": "Connect",
+    "logout": "Logout",
+    "connecting": "Connecting..."
   },
   "hero": {
     "title": "Decentralized registry for your pets",
     "description": "PetID uses blockchain technology to create immutable and secure records for your pets, ensuring that their information is always accessible and protected.",
     "registerButton": "Register your Pet",
     "learnMoreButton": "Learn More"
+  },
+  "petForm": {
+    "title": "Register your Pet",
+    "description": "Register your pet on the Internet Computer blockchain",
+    "loginPrompt": "To register your pet, you need to connect with your Internet Identity",
+    "connectWithII": "Connect with Internet Identity",
+    "connecting": "Connecting...",
+    "name": "Name",
+    "namePlaceholder": "Your pet's name",
+    "nickname": "Nickname",
+    "nicknamePlaceholder": "Your pet's nickname (optional)",
+    "birthDate": "Birth Date",
+    "register": "Register Pet",
+    "registering": "Registering...",
+    "logout": "Disconnect",
+    "myPets": "My Pets",
+    "successMessage": "Pet registered successfully!"
   },
   "features": {
     "title": "Why choose PetID?",
