@@ -1,14 +1,24 @@
-import { useState } from 'react';
+import React from 'react';
 import { PetID_backend } from 'declarations/PetID_backend';
 import NavBar from './componentes/NavBar';
+import Hero from './componentes/Hero';
+import Features from './componentes/Features';
+import HowItWorks from './componentes/HowItWorks';
+import FAQ from './componentes/FAQ';
+import Footer from './componentes/Footer';
 
 function App() {
-  
-
   return (
-    <>
-      <NavBar></NavBar>
-    </>
+    <div className="min-h-screen flex flex-col">
+      <NavBar />
+      <main className="flex-grow">
+        <Hero />
+        <Features />
+        <HowItWorks />
+        <FAQ />
+      </main>
+      <Footer />
+    </div>
   );
 }
 
