@@ -11,8 +11,11 @@
       "source": [
         "src/PetID_frontend/dist"
       ],
-      "type": "assets",
-      "workspace": "PetID_frontend"
+      "type": "assets"
+    },
+    "internet_identity": {
+      "type": "pull",
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
     }
   },
   "defaults": {
@@ -22,5 +25,9 @@
     }
   },
   "output_env_file": ".env",
-  "version": 1
+  "version": 1,
+  "canister_ids": {
+    "PetID_backend": "bkyz2-fmaaa-aaaaa-qaaaq-cai",
+    "PetID_frontend": "bd3sg-teaaa-aaaaa-qaaba-cai"
+  }
 }

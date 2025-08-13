@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PetID_backend } from 'declarations/PetID_backend';
+import { PetID_backend, createActor } from 'declarations/PetID_backend';
 import { AuthClient } from '@dfinity/auth-client';
 import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
 import { Actor, HttpAgent } from '@dfinity/agent';
@@ -10,6 +10,7 @@ const PetForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authClient, setAuthClient] = useState(null);
+  const [authenticatedActor, setAuthenticatedActor] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     nickname: '',
@@ -29,6 +30,7 @@ const PetForm = () => {
       setIsAuthenticated(authenticated);
       
       if (authenticated) {
+        await createAuthenticatedActor(client);
         loadPets();
       }
     };
@@ -36,10 +38,30 @@ const PetForm = () => {
     initAuth();
   }, []);
 
+  // Criar ator autenticado
+  const createAuthenticatedActor = async (client) => {
+    const identity = client.getIdentity();
+    const agent = new HttpAgent({
+      identity,
+      host: process.env.DFX_NETWORK === 'ic' ? 'https://ic0.app' : 'http://localhost:4943',
+    });
+
+    if (process.env.DFX_NETWORK !== 'ic') {
+      await agent.fetchRootKey();
+    }
+
+    const actor = createActor(backendCanisterId, {
+      agent,
+    });
+
+    setAuthenticatedActor(actor);
+  };
+
   // Função para carregar pets do usuário
   const loadPets = async () => {
     try {
-      const result = await PetID_backend.getMyPets();
+      const actor = authenticatedActor || PetID_backend;
+      const result = await actor.getMyPets();
       if ('ok' in result) {
         setMyPets(result.ok);
       }
@@ -48,18 +70,26 @@ const PetForm = () => {
     }
   };
 
+  // UseEffect para atualizar pets quando o ator autenticado muda
+  useEffect(() => {
+    if (isAuthenticated && authenticatedActor) {
+      loadPets();
+    }
+  }, [authenticatedActor]);
+
   // Função para login com Internet Identity
   const handleLogin = async () => {
     setIsLoading(true);
     
     const identityProvider = process.env.DFX_NETWORK === 'ic' 
       ? 'https://identity.ic0.app/#authorize'
-      : `http://${process.env.CANISTER_ID_INTERNET_IDENTITY || 'localhost:4943'}`;
+      : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943`;
     
     await authClient?.login({
       identityProvider,
-      onSuccess: () => {
+      onSuccess: async () => {
         setIsAuthenticated(true);
+        await createAuthenticatedActor(authClient);
         loadPets();
         setIsLoading(false);
       },
@@ -75,6 +105,7 @@ const PetForm = () => {
   const handleLogout = async () => {
     await authClient?.logout();
     setIsAuthenticated(false);
+    setAuthenticatedActor(null);
     setMyPets([]);
   };
 
@@ -110,8 +141,9 @@ const PetForm = () => {
     }
     
     try {
-      // Enviar dados para o backend
-      const result = await PetID_backend.createPet({
+      // Enviar dados para o backend usando o ator autenticado
+      const actor = authenticatedActor || PetID_backend;
+      const result = await actor.createPet({
         name: formData.name,
         nickname: formData.nickname,
         birthDate: formData.birthDate,

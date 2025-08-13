@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import { AuthClient } from '@dfinity/auth-client';
-import Logo from "../../dist/assets/logo/petid_logo_png.png"
+import Logo from "../assets/logo/PetID_logo.jpg"
 
 const NavBar = () => {
   const { t } = useTranslation();
