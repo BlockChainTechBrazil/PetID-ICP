@@ -1,23 +1,19 @@
 import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
-import Hash "mo:base/Hash";
 import Nat "mo:base/Nat";
-import Nat64 "mo:base/Nat64";
+import Nat32 "mo:base/Nat32";
 import Text "mo:base/Text";
 import Array "mo:base/Array";
 import Iter "mo:base/Iter";
 import Time "mo:base/Time";
-import Error "mo:base/Error";
-import Debug "mo:base/Debug";
 import Result "mo:base/Result";
 import Buffer "mo:base/Buffer";
-import Option "mo:base/Option";
 
 actor PetID {
     // Tipo para representar um Pet
     public type Pet = {
         id: Nat;
-        name: Text;
+        photo: Text; // CID da imagem no IPFS
         nickname: Text;
         birthDate: Text;
         owner: Principal;
@@ -26,7 +22,7 @@ actor PetID {
 
     // Tipo para entrada de dados do formulário
     public type PetPayload = {
-        name: Text;
+        photo: Text; // CID da imagem no IPFS
         nickname: Text;
         birthDate: Text;
     };
@@ -44,7 +40,7 @@ actor PetID {
     
     // Registro de pets (persistente)
     private stable var petsEntries : [(Nat, Pet)] = [];
-    private var pets = HashMap.HashMap<Nat, Pet>(0, Nat.equal, Hash.hash);
+    private var pets = HashMap.HashMap<Nat, Pet>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
     
     // Mapeamento de pets por proprietário (Principal do usuário)
     private stable var petsByOwnerEntries : [(Principal, [Nat])] = [];
@@ -65,8 +61,12 @@ actor PetID {
         };
         
         // Validar os dados do formulário
-        if (Text.size(payload.name) == 0) {
-            return #err("O nome do pet é obrigatório.");
+        if (Text.size(payload.photo) == 0) {
+            return #err("O CID da foto do pet é obrigatório.");
+        };
+        
+        if (Text.size(payload.nickname) == 0) {
+            return #err("O apelido do pet é obrigatório.");
         };
         
         if (Text.size(payload.birthDate) == 0) {
@@ -81,7 +81,7 @@ actor PetID {
         
         let newPet : Pet = {
             id = petId;
-            name = payload.name;
+            photo = payload.photo;
             nickname = payload.nickname;
             birthDate = payload.birthDate;
             owner = caller;
@@ -170,7 +170,7 @@ actor PetID {
 
     // Função system para restaurar o estado após atualização
     system func postupgrade() {
-        pets := HashMap.fromIter<Nat, Pet>(Iter.fromArray(petsEntries), petsEntries.size(), Nat.equal, Hash.hash);
+        pets := HashMap.fromIter<Nat, Pet>(Iter.fromArray(petsEntries), petsEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
         petsByOwner := HashMap.fromIter<Principal, [Nat]>(Iter.fromArray(petsByOwnerEntries), petsByOwnerEntries.size(), Principal.equal, Principal.hash);
         petsEntries := [];
         petsByOwnerEntries := [];
