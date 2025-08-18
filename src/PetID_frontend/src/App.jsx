@@ -2,9 +2,8 @@
 import NavBar from './componentes/NavBar';
 // Componentes agregados agora em HomePage
 import HomePage from './pages/HomePage';
-import Footer from './componentes/Footer';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import ProfilePage from './componentes/ProfilePage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (

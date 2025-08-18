@@ -141,5 +141,55 @@
     "subtitle": "Registre, proteja e acesse o histórico do seu pet de qualquer lugar, com segurança blockchain.",
     "primaryButton": "Começar Agora",
     "secondaryButton": "Saiba Mais"
+  },
+  "profile": {
+    "dashboardTitle": "Dashboard do Pet",
+    "dashboardSubtitle": "Gerencie seus NFTs, saúde, localização e comunidade em um só lugar.",
+    "sync": "Sincronizar",
+    "export": "Exportar",
+    "stats": {
+      "totalPets": "Total Pets",
+      "upcomingEvents": "Eventos Próx.",
+      "medicalPendings": "Pendências Médicas",
+      "partnerClinics": "Clínicas Parceiras",
+      "today": "Hoje"
+    },
+    "tabs": {
+      "nfts": "NFTs / Pets",
+      "map": "Localização & Clínicas",
+      "genealogy": "Genealogia",
+      "medical": "Saúde & Vacinas",
+      "community": "Comunidade",
+      "settings": "Configurações"
+    },
+    "map": {
+      "petLocation": "Localização do Pet",
+      "partnerClinics": "Clínicas Parceiras",
+      "staticNote": "Visualização estática (adicione API key para mapa real)"
+    },
+    "settings": {
+      "title": "Configurações",
+      "accountInfo": "Informações da Conta",
+      "name": "Nome",
+      "email": "E-mail",
+      "internetIdentity": "Internet Identity",
+      "notConnected": "Não conectado",
+      "connected": "Conectado",
+      "notifications": "Notificações",
+      "emailNotifications": "Notificações por e-mail",
+      "pushNotifications": "Notificações push",
+      "preferences": "Preferências",
+      "theme": "Tema",
+      "language": "Idioma",
+      "light": "Claro",
+      "dark": "Escuro",
+      "system": "Sistema",
+      "save": "Salvar Alterações",
+      "saved": "Salvo!",
+      "dangerZone": "Zona de Risco",
+      "deleteAccount": "Excluir Conta",
+      "deleteDisabled": "Exclusão desabilitada na demo",
+      "apiKeyHint": "Adicione sua Google Maps API key em um arquivo .env (VITE_GOOGLE_MAPS_API_KEY) para habilitar o mapa interativo."
+    }
   }
 }

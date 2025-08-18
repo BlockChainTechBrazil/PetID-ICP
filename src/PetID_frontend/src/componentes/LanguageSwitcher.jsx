@@ -96,7 +96,7 @@ const LanguageSwitcher = ({ compact = false }) => {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className={`flex items-center ${compact ? 'gap-0.5 p-1.5 rounded-lg' : 'gap-2 py-1 px-3 rounded-md'} hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-slate-200`}
+        className={`flex items-center ${compact ? 'gap-0.5 p-1.5 rounded-lg' : 'gap-2 py-1 px-3 rounded-md'} hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-white bg-white/70 dark:bg-surface-100 border border-gray-200 dark:border-surface-200`}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Selecionar idioma"
       >
@@ -119,12 +119,12 @@ const LanguageSwitcher = ({ compact = false }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-1 w-40 bg-white dark:bg-slate-800 rounded-md shadow-lg z-50 border border-gray-100 dark:border-slate-700">
+        <div className="absolute left-0 mt-1 w-44 bg-white/95 dark:bg-surface-75/95 backdrop-blur-xl rounded-xl shadow-lg z-50 border border-gray-100 dark:border-surface-200 overflow-hidden">
           <ul className="py-1">
             <li>
               <button
-                className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 ${i18n.language === 'en' ? 'font-semibold bg-gray-50 dark:bg-slate-700/40' : ''
-                  }`}
+                className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-surface-100/60 ${i18n.language === 'en' ? 'font-semibold bg-gray-50 dark:bg-surface-100/40' : ''
+                  } text-gray-700 dark:text-white`}
                 onClick={() => changeLanguage('en')}
               >
                 <Flag lang='en' /> <span>English</span>
@@ -132,8 +132,8 @@ const LanguageSwitcher = ({ compact = false }) => {
             </li>
             <li>
               <button
-                className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 ${i18n.language === 'pt' ? 'font-semibold bg-gray-50 dark:bg-slate-700/40' : ''
-                  }`}
+                className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-surface-100/60 ${i18n.language === 'pt' ? 'font-semibold bg-gray-50 dark:bg-surface-100/40' : ''
+                  } text-gray-700 dark:text-white`}
                 onClick={() => changeLanguage('pt')}
               >
                 <Flag lang='pt' /> <span>Português</span>
@@ -141,8 +141,8 @@ const LanguageSwitcher = ({ compact = false }) => {
             </li>
             <li>
               <button
-                className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 ${i18n.language === 'es' ? 'font-semibold bg-gray-50 dark:bg-slate-700/40' : ''
-                  }`}
+                className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-surface-100/60 ${i18n.language === 'es' ? 'font-semibold bg-gray-50 dark:bg-surface-100/40' : ''
+                  } text-gray-700 dark:text-white`}
                 onClick={() => changeLanguage('es')}
               >
                 <Flag lang='es' /> <span>Español</span>

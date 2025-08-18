@@ -141,5 +141,55 @@
     "subtitle": "Register, protect and access your pet's history from anywhere with blockchain security.",
     "primaryButton": "Get Started",
     "secondaryButton": "Learn More"
+  },
+  "profile": {
+    "dashboardTitle": "Pet Dashboard",
+    "dashboardSubtitle": "Manage your NFTs, health, location and community in one place.",
+    "sync": "Sync",
+    "export": "Export",
+    "stats": {
+      "totalPets": "Total Pets",
+      "upcomingEvents": "Upcoming Events",
+      "medicalPendings": "Medical Pendings",
+      "partnerClinics": "Partner Clinics",
+      "today": "Today"
+    },
+    "tabs": {
+      "nfts": "NFTs / Pets",
+      "map": "Location & Clinics",
+      "genealogy": "Genealogy",
+      "medical": "Health & Vaccines",
+      "community": "Community",
+      "settings": "Settings"
+    },
+    "map": {
+      "petLocation": "Pet Location",
+      "partnerClinics": "Partner Clinics",
+      "staticNote": "Static visualization (add API key for real map)"
+    },
+    "settings": {
+      "title": "Settings",
+      "accountInfo": "Account Information",
+      "name": "Name",
+      "email": "Email",
+      "internetIdentity": "Internet Identity",
+      "notConnected": "Not connected",
+      "connected": "Connected",
+      "notifications": "Notifications",
+      "emailNotifications": "Email notifications",
+      "pushNotifications": "Push notifications",
+      "preferences": "Preferences",
+      "theme": "Theme",
+      "language": "Language",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
+      "save": "Save Changes",
+      "saved": "Saved!",
+      "dangerZone": "Danger Zone",
+      "deleteAccount": "Delete Account",
+      "deleteDisabled": "Deletion disabled in demo",
+      "apiKeyHint": "Add your Google Maps API key in a .env file (VITE_GOOGLE_MAPS_API_KEY) to enable interactive map."
+    }
   }
 }

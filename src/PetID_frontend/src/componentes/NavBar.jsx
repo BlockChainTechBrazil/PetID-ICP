@@ -140,7 +140,7 @@ const NavBar = () => {
           </div>
         </div>
         {/* Painel Mobile */}
-        <div id="mobile-menu" className={`md:hidden origin-top transition-all duration-300 ${mobileOpen ? 'max-h-[600px] opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95'} overflow-hidden`}>
+        <div id="mobile-menu" className={`md:hidden origin-top transition-all duration-300 ${mobileOpen ? 'max-h-[600px] opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95'} overflow-visible`}>
           <div className="mt-3 rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/90 dark:bg-surface-75/95 backdrop-blur-xl shadow-xl p-4 flex flex-col gap-4 animate-[fadeIn_.4s_ease]">
             <div className="flex flex-col gap-2 font-medium text-gray-700 dark:text-slate-200">
               <Link onClick={() => setMobileOpen(false)} to="/" className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-100 transition-colors">{t('navbar.home')}</Link>
