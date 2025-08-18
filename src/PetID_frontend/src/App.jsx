@@ -17,7 +17,6 @@ function App() {
             <Route path="/perfil" element={<ProfilePage />} />
           </Routes>
         </main>
-        <Footer />
       </div>
     </BrowserRouter>
   );

@@ -16,21 +16,21 @@ const GallerySection = () => {
   const handleLoad = (i) => setLoaded(prev => prev.map((v, idx) => idx === i ? true : v));
 
   return (
-    <section className="py-24 bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div data-parallax data-parallax-speed="0.08" className="absolute -top-10 -left-10 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-60" />
-        <div data-parallax data-parallax-speed="0.15" className="absolute bottom-0 -right-16 w-80 h-80 bg-pink-100 rounded-full blur-3xl opacity-50" />
+        <div data-parallax data-parallax-speed="0.08" className="absolute -top-10 -left-10 w-72 h-72 bg-blue-100 dark:bg-brand-600/30 rounded-full blur-3xl opacity-60" />
+        <div data-parallax data-parallax-speed="0.15" className="absolute bottom-0 -right-16 w-80 h-80 bg-pink-100 dark:bg-accent-500/30 rounded-full blur-3xl opacity-50" />
       </div>
       <div className="container mx-auto px-4 relative">
         <div className="text-center mb-14 max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 reveal">{t('gallery.title')}</h2>
-          <p className="text-lg text-gray-600 reveal delay-100">{t('gallery.subtitle')}</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 reveal">{t('gallery.title')}</h2>
+          <p className="text-lg text-gray-600 dark:text-slate-400 reveal delay-100">{t('gallery.subtitle')}</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           {images.map((src, i) => (
-            <div key={i} className={`relative overflow-hidden rounded-2xl shadow-md aspect-[4/5] group reveal delay-${(i + 1) * 50}`}>
+            <div key={i} className={`relative overflow-hidden rounded-2xl shadow-md aspect-[4/5] group reveal delay-${(i + 1) * 50} bg-white dark:bg-slate-800/60`}>
               {!loaded[i] && (
-                <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-gray-200 to-gray-100" />
+                <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-gray-200 to-gray-100 dark:from-slate-700 dark:to-slate-800" />
               )}
               <img
                 src={src}

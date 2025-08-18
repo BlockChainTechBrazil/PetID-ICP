@@ -9,16 +9,16 @@ export function useScrollReveal(selector = '.reveal', options = {}) {
     const io = reduce
       ? null
       : new IntersectionObserver(
-          entries => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('reveal-visible');
-                io.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.15, rootMargin: '0px 0px -5% 0px', ...options }
-        );
+        entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('reveal-visible');
+              io.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15, rootMargin: '0px 0px -5% 0px', ...options }
+      );
 
     const observeElement = el => {
       if (!el || !(el instanceof HTMLElement)) return;

@@ -14,7 +14,7 @@ const DogParallax = ({ variant = 'hero' }) => {
     <div className="pointer-events-none select-none absolute inset-0 z-[1]" aria-hidden="true">
       {dogs.map((d, i) => (
         <div key={i} data-parallax data-parallax-speed={d.speed} className={`hidden md:block absolute ${d.className} drop-shadow-xl transition-transform duration-700 ease-out will-change-transform`}>
-          <img src={d.src} alt="Dog" className="rounded-2xl shadow-xl ring-2 ring-white/40 border border-white/30 backdrop-blur-lg" loading="lazy" />
+          <img src={d.src} alt="Dog" className="rounded-2xl shadow-xl ring-2 ring-white/40 dark:ring-slate-700/60 border border-white/30 dark:border-slate-600/40 backdrop-blur-lg" loading="lazy" />
         </div>
       ))}
     </div>

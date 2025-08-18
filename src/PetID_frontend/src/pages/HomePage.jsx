@@ -8,6 +8,7 @@ const PetForm = lazy(() => import('../componentes/PetForm'));
 const FAQ = lazy(() => import('../componentes/FAQ'));
 const GallerySection = lazy(() => import('../componentes/GallerySection'));
 const FinalCTA = lazy(() => import('../componentes/FinalCTA'));
+const Footer = lazy(() => import('../componentes/Footer'));
 
 function HomePage() {
   useScrollReveal();
@@ -22,6 +23,7 @@ function HomePage() {
         <div className="reveal"><PetForm /></div>
         <div id="faq" className="reveal"><FAQ /></div>
         <div className="reveal"><FinalCTA /></div>
+        <div className="reveal"><Footer /></div>
       </Suspense>
     </>
   );

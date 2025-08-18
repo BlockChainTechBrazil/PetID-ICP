@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const FAQ = () => {
@@ -38,29 +38,29 @@ const FAQ = () => {
   ];
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-white dark:bg-slate-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('faq.title')}</h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('faq.title')}</h2>
+          <p className="text-lg text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
             {t('faq.description')}
           </p>
         </div>
 
         <div className="max-w-3xl mx-auto">
           {faqs.map((faq, index) => (
-            <div key={index} className="mb-4 border-b border-gray-200 pb-4">
-              <button 
+            <div key={index} className="mb-4 border-b border-gray-200 dark:border-slate-700 pb-4">
+              <button
                 className="w-full text-left flex justify-between items-center py-4"
                 onClick={() => toggleAccordion(index)}
               >
-                <h3 className="text-xl font-semibold text-gray-900">{faq.question}</h3>
-                <span className="text-blue-500 text-xl">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{faq.question}</h3>
+                <span className="text-brand-600 dark:text-indigo-400 text-xl">
                   {openIndex === index ? '−' : '+'}
                 </span>
               </button>
               {openIndex === index && (
-                <div className="pb-4 text-gray-600">
+                <div className="pb-4 text-gray-600 dark:text-slate-300">
                   <p>{faq.answer}</p>
                 </div>
               )}

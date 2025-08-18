@@ -114,54 +114,54 @@ const ProfilePage = () => {
   useEffect(() => { if (actor) loadPets(); }, [actor]);
 
   return (
-    <section className="py-12 container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-6">{t('profile.title', 'Meu Perfil & NFTs')}</h1>
+    <section className="py-12 container mx-auto px-4 bg-white dark:bg-slate-900 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">{t('profile.title', 'Meu Perfil & NFTs')}</h1>
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
-          <div className="p-6 rounded-lg border bg-white shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Internet Identity</h2>
+          <div className="p-6 rounded-lg border bg-white dark:bg-slate-800/60 shadow-sm dark:border-slate-700">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Internet Identity</h2>
             {iiAuthenticated ? (
               <>
-                <p className="text-sm text-green-600 mb-2">Conectado ao Internet Identity.</p>
-                <button onClick={logoutII} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Logout II</button>
+                <p className="text-sm text-green-600 dark:text-green-400 mb-2">Conectado ao Internet Identity.</p>
+                <button onClick={logoutII} className="px-4 py-2 bg-gray-200 dark:bg-slate-700 dark:text-slate-100 rounded hover:bg-gray-300 dark:hover:bg-slate-600 text-sm">Logout II</button>
               </>
             ) : (
-              <button onClick={loginII} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">Conectar II</button>
+              <button onClick={loginII} className="px-4 py-2 bg-blue-500 dark:bg-indigo-600 text-white rounded hover:bg-blue-600 dark:hover:bg-indigo-500 text-sm">Conectar II</button>
             )}
           </div>
-          <div className="p-6 rounded-lg border bg-white shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Social Login (Firebase)</h2>
+          <div className="p-6 rounded-lg border bg-white dark:bg-slate-800/60 shadow-sm dark:border-slate-700">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Social Login (Firebase)</h2>
             {firebaseUser ? (
               <>
-                <p className="text-sm text-green-600 mb-2">Logado como {firebaseUser.displayName || firebaseUser.email}</p>
-                <button onClick={logoutGoogle} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Logout Google</button>
+                <p className="text-sm text-green-600 dark:text-green-400 mb-2">Logado como {firebaseUser.displayName || firebaseUser.email}</p>
+                <button onClick={logoutGoogle} className="px-4 py-2 bg-gray-200 dark:bg-slate-700 dark:text-slate-100 rounded hover:bg-gray-300 dark:hover:bg-slate-600 text-sm">Logout Google</button>
               </>
             ) : (
-              <button onClick={loginGoogle} className="px-4 py-2 bg-rose-500 text-white rounded hover:bg-rose-600 text-sm">Login Google</button>
+              <button onClick={loginGoogle} className="px-4 py-2 bg-rose-500 dark:bg-rose-600 text-white rounded hover:bg-rose-600 dark:hover:bg-rose-500 text-sm">Login Google</button>
             )}
           </div>
         </div>
 
-        <div className="p-6 rounded-lg border bg-white shadow-sm">
+        <div className="p-6 rounded-lg border bg-white dark:bg-slate-800/60 shadow-sm dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Meus Pets (NFTs)</h2>
-            <button onClick={loadPets} disabled={!actor || loadingPets} className="text-sm px-3 py-1 rounded bg-indigo-500 disabled:opacity-50 text-white">Atualizar</button>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Meus Pets (NFTs)</h2>
+            <button onClick={loadPets} disabled={!actor || loadingPets} className="text-sm px-3 py-1 rounded bg-indigo-500 dark:bg-indigo-600 disabled:opacity-50 text-white">Atualizar</button>
           </div>
-          {!iiAuthenticated && <p className="text-sm text-gray-600">Conecte-se com Internet Identity para ver seus pets.</p>}
+          {!iiAuthenticated && <p className="text-sm text-gray-600 dark:text-slate-400">Conecte-se com Internet Identity para ver seus pets.</p>}
           {loadingPets && <p>Carregando...</p>}
-          {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
+          {error && <p className="text-red-600 dark:text-red-400 text-sm mb-2">{error}</p>}
           <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
             {pets.map(p => (
-              <div key={p.id} className="border rounded p-3 bg-gray-50">
+              <div key={p.id} className="border rounded p-3 bg-gray-50 dark:bg-slate-700/50 dark:border-slate-600">
                 <div className="flex justify-between">
-                  <h3 className="font-medium text-blue-600">{p.name}</h3>
-                  <span className="text-xs text-gray-500">{p.id}</span>
+                  <h3 className="font-medium text-blue-600 dark:text-indigo-400">{p.name}</h3>
+                  <span className="text-xs text-gray-500 dark:text-slate-400">{p.id}</span>
                 </div>
-                {p.nickname && <p className="text-xs text-gray-600">Apelido: {p.nickname}</p>}
-                <p className="text-xs text-gray-600">Nascimento: {new Date(p.birthDate).toLocaleDateString()}</p>
+                {p.nickname && <p className="text-xs text-gray-600 dark:text-slate-300">Apelido: {p.nickname}</p>}
+                <p className="text-xs text-gray-600 dark:text-slate-300">Nascimento: {new Date(p.birthDate).toLocaleDateString()}</p>
               </div>
             ))}
-            {iiAuthenticated && pets.length === 0 && !loadingPets && <p className="text-sm text-gray-500">Nenhum pet encontrado.</p>}
+            {iiAuthenticated && pets.length === 0 && !loadingPets && <p className="text-sm text-gray-500 dark:text-slate-400">Nenhum pet encontrado.</p>}
           </div>
         </div>
       </div>
