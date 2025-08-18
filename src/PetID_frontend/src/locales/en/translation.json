@@ -8,7 +8,22 @@
     "title": "Decentralized registry for your pets",
     "description": "PetID uses blockchain technology to create immutable and secure records for your pets, ensuring that their information is always accessible and protected.",
     "registerButton": "Register your Pet",
-    "learnMoreButton": "Learn More"
+    "learnMoreButton": "Learn More",
+    "stats": {
+      "pets": "Pets Registered",
+      "clinics": "Clinics",
+      "transactions": "Transactions"
+    },
+    "badge": {
+      "nftIdentity": {
+        "title": "NFT Identity",
+        "subtitle": "Immutable record"
+      },
+      "secureHistory": {
+        "title": "Secure History",
+        "subtitle": "Accessible anywhere"
+      }
+    }
   },
   "petForm": {
     "title": "Register your Pet",
@@ -111,5 +126,15 @@
     "support": "Support",
     "partnerships": "Partnerships",
     "rights": "All rights reserved."
+  },
+  "gallery": {
+    "title": "Connection Stories",
+    "subtitle": "Pets and families protected with digital identity and secure history."
+  },
+  "cta": {
+    "title": "Ready to give identity to your best friend?",
+    "subtitle": "Register, protect and access your pet's history from anywhere with blockchain security.",
+    "primaryButton": "Get Started",
+    "secondaryButton": "Learn More"
   }
 }

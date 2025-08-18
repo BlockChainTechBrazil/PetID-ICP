@@ -7,6 +7,53 @@ body {
   font-size: 1.5rem;
 }
 
+/* Animações de revelação no scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(.98);
+  transition: opacity .8s ease, transform .8s cubic-bezier(.19, 1, .22, 1);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Hover tilt leve */
+.tilt-hover {
+  transition: transform .6s cubic-bezier(.19, 1, .22, 1), box-shadow .4s ease;
+}
+
+.tilt-hover:hover {
+  transform: rotate3d(.5, 1, 0, 6deg) translateY(-4px);
+}
+
+/* Animação sutil de flutuação */
+@keyframes floaty {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.floaty {
+  animation: floaty 6s ease-in-out infinite;
+}
+
+/* Delays utilitários */
+@for $i from 1 through 12 {
+  .delay-#{$i * 50} {
+    transition-delay: #{$i * 50}ms;
+  }
+}
+
 img {
   max-width: 50vw;
   max-height: 25vw;

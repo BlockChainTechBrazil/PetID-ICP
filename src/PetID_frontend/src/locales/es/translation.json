@@ -8,7 +8,22 @@
     "title": "Registro descentralizado para tus mascotas",
     "description": "PetID utiliza tecnología blockchain para crear registros inmutables y seguros para tus mascotas, asegurando que su información esté siempre accesible y protegida.",
     "registerButton": "Registra tu Mascota",
-    "learnMoreButton": "Saber más"
+    "learnMoreButton": "Saber más",
+    "stats": {
+      "pets": "Mascotas Registradas",
+      "clinics": "Clínicas",
+      "transactions": "Transacciones"
+    },
+    "badge": {
+      "nftIdentity": {
+        "title": "Identidad NFT",
+        "subtitle": "Registro inmutable"
+      },
+      "secureHistory": {
+        "title": "Historial Seguro",
+        "subtitle": "Accesible en cualquier lugar"
+      }
+    }
   },
   "petForm": {
     "title": "Registra tu Mascota",
@@ -111,5 +126,15 @@
     "support": "Soporte",
     "partnerships": "Alianzas",
     "rights": "Todos los derechos reservados."
+  },
+  "gallery": {
+    "title": "Historias de Conexión",
+    "subtitle": "Mascotas y familias protegidas con identidad digital e historial seguro."
+  },
+  "cta": {
+    "title": "¿Listo para dar identidad a tu mejor amigo?",
+    "subtitle": "Registra, protege y accede al historial de tu mascota desde cualquier lugar con seguridad blockchain.",
+    "primaryButton": "Comenzar Ahora",
+    "secondaryButton": "Saber Más"
   }
 }

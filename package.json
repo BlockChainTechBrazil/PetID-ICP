@@ -5,6 +5,11 @@
   },
   "name": "PetID",
   "scripts": {
+    "dev": "npm run dev --workspace src/PetID_frontend",
+    "dev:full": "dfx stop || true && dfx start --background && dfx deploy && npm run start --workspace src/PetID_frontend",
+    "deploy": "dfx deploy",
+    "canisters:start": "dfx start --background || true",
+    "canisters:stop": "dfx stop",
     "build": "npm run build --workspaces --if-present",
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
