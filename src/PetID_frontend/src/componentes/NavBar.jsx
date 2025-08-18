@@ -14,8 +14,7 @@ const NavBar = () => {
   // Dark mode persistence
   useEffect(() => {
     const stored = localStorage.getItem('theme');
-    const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const active = stored ? stored === 'dark' : prefers;
+    const active = stored ? stored === 'dark' : true; // default escuro
     setDark(active);
     document.documentElement.classList.toggle('dark', active);
   }, []);
@@ -65,13 +64,13 @@ const NavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 py-3 bg-white/90 dark:bg-slate-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-slate-800 shadow-md">
+    <nav className="sticky top-0 z-50 py-2 md:py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-slate-800 shadow-sm">
       <div className="container px-4 mx-auto relative lg:text-sm">
         <div className="flex justify-between items-center">
-          <div className="flex items-center flex-shrink-0">
-            <Link to="/" className="flex items-center">
-              <img src={Logo} alt="PetID Logo" className="h-10 w-10 mr-2" />
-              <span className="text-2xl font-bold tracking-tight text-blue-600">PetID</span>
+          <div className="flex items-center flex-shrink-0 gap-3">
+            <Link to="/" className="flex items-center gap-2 group">
+              <img src={Logo} alt="PetID" className="h-9 w-9 rounded-lg ring-1 ring-gray-200 dark:ring-slate-700 group-hover:scale-105 transition" />
+              <span className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-indigo-400 dark:to-accent-400 bg-clip-text text-transparent">PetID</span>
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-6 font-medium text-gray-700 dark:text-slate-200">

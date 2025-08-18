@@ -23,7 +23,8 @@
         "title": "Histórico Seguro",
         "subtitle": "Acessível em qualquer lugar"
       }
-    }
+    },
+    "searchPlaceholder": "Busque o ID do seu pet"
   },
   "petForm": {
     "title": "Registre seu Pet",

@@ -23,7 +23,8 @@
         "title": "Secure History",
         "subtitle": "Accessible anywhere"
       }
-    }
+    },
+    "searchPlaceholder": "Search your pet ID"
   },
   "petForm": {
     "title": "Register your Pet",

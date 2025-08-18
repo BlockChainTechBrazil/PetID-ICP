@@ -31,7 +31,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-brand-50 via-white to-accent-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 relative">
+  <section className="py-24 bg-gradient-to-b from-brand-50 via-white to-accent-50/30 dark:from-slate-900 dark:via-[#0e1628] dark:to-slate-950 relative">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-10 right-10 w-40 h-40 bg-brand-200/40 dark:bg-brand-600/30 rounded-full blur-2xl" />
         <div className="absolute bottom-10 left-4 w-56 h-56 bg-accent-200/40 dark:bg-accent-500/30 rounded-full blur-3xl" />
@@ -50,12 +50,13 @@ const HowItWorks = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {steps.map((step, i) => (
             <div key={step.key} className="relative group">
-              <div className="h-full rounded-2xl bg-white/80 dark:bg-slate-800/60 backdrop-blur px-6 py-8 shadow-soft border border-brand-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-slate-500 transition-all flex flex-col">
+              <div className="h-full rounded-2xl bg-white/80 dark:bg-gradient-to-br dark:from-slate-800/70 dark:via-slate-800/40 dark:to-slate-900/70 backdrop-blur px-6 py-8 shadow-soft border border-brand-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-petPink-500/60 transition-all flex flex-col overflow-hidden relative">
+                <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-petPink-500/30 via-petPurple-500/30 to-petMint-500/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-semibold text-brand-600 dark:text-indigo-300 tracking-wide">Step {step.number}</span>
-                  <span className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 dark:from-indigo-500 dark:to-accent-400 text-white flex items-center justify-center font-bold shadow">{i + 1}</span>
+                  <span className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 via-petPurple-500 to-accent-500 dark:from-petPink-500 dark:via-petPurple-500 dark:to-petMint-500 text-white flex items-center justify-center font-bold shadow animate-glow-pulse">{i + 1}</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 leading-snug">{step.title}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 leading-snug bg-gradient-to-r from-brand-600 to-accent-500 dark:from-petPink-500 dark:to-petPurple-500 bg-clip-text text-transparent">{step.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed flex-1">{step.description}</p>
                 <div className="mt-6 text-brand-600 dark:text-indigo-400 text-sm font-medium flex items-center">
                   <span className="group-hover:translate-x-1 transition-transform">Detalhes</span>

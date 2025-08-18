@@ -51,12 +51,12 @@ const Features = () => {
           {features.map((feature, i) => (
             <div
               key={feature.key}
-              className="group relative rounded-2xl bg-white/80 dark:bg-slate-800/60 backdrop-blur px-6 py-8 shadow-soft border border-brand-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-slate-500 hover:shadow-lg transition-all overflow-hidden"
+              className="group relative rounded-2xl bg-white/80 dark:bg-gradient-to-br dark:from-slate-800/70 dark:via-slate-800/40 dark:to-slate-900/70 backdrop-blur px-6 py-8 shadow-soft border border-brand-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-petPurple-500/60 hover:shadow-lg transition-all overflow-hidden"
             >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-brand-50 via-accent-50 to-white dark:from-slate-800/40 dark:via-slate-800/20 dark:to-slate-900" />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-brand-50 via-accent-50 to-white dark:from-petPurple-500/10 dark:via-petPink-500/10 dark:to-petMint-500/10" />
               <div className="relative">
-                <div className="text-4xl mb-5 drop-shadow-sm">{feature.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 leading-snug">{feature.title}</h3>
+                <div className="text-4xl mb-5 drop-shadow-sm animate-wiggle-slow">{feature.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 leading-snug bg-gradient-to-r from-brand-600 to-accent-500 dark:from-petPink-500 dark:to-petPurple-500 bg-clip-text text-transparent">{feature.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">{feature.description}</p>
               </div>
               <div className="mt-6 flex items-center text-brand-600 dark:text-indigo-400 text-sm font-medium">
