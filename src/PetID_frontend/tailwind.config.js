@@ -43,9 +43,9 @@ export default {
         },
         petPurple: {
           100: '#ede4ff',
-            300: '#c4a5ff',
-            500: '#9b6dff',
-            600: '#7d47ff'
+          300: '#c4a5ff',
+          500: '#9b6dff',
+          600: '#7d47ff'
         },
         petMint: {
           100: '#d6f9f0',
@@ -58,6 +58,13 @@ export default {
           300: '#ffe985',
           500: '#ffd438',
           600: '#ffbf00'
+        },
+        // Tons neutros claros para usar como "surface" em dark mode e evitar visual muito fechado
+        surface: {
+          50: '#0f1724',
+          75: '#142131',
+          100: '#192a3e',
+          200: '#20344b'
         }
       },
       boxShadow: {

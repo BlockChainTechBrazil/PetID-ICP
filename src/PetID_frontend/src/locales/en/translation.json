@@ -2,7 +2,9 @@
   "navbar": {
     "connectWallet": "Connect",
     "logout": "Logout",
-    "connecting": "Connecting..."
+    "connecting": "Connecting...",
+    "home": "Home",
+    "profile": "Profile"
   },
   "hero": {
     "title": "Decentralized registry for your pets",

@@ -2,7 +2,9 @@
   "navbar": {
     "connectWallet": "Conectar",
     "logout": "Salir",
-    "connecting": "Conectando..."
+    "connecting": "Conectando...",
+    "home": "Inicio",
+    "profile": "Perfil"
   },
   "hero": {
     "title": "Registro descentralizado para tus mascotas",

@@ -5,7 +5,7 @@ const Hero = () => {
   const { t } = useTranslation();
 
   return (
-  <section className="relative overflow-hidden pt-24 md:pt-28 pb-28 md:pb-32 bg-gradient-to-br from-white via-brand-50 to-violet-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
+    <section className="relative overflow-hidden pt-24 md:pt-28 pb-28 md:pb-32 bg-gradient-to-br from-white via-brand-50 to-violet-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
       {/* Decor radial & gradients */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-[-140px] left-[-140px] w-[480px] h-[480px] bg-gradient-to-br from-brand-400/25 via-sky-300/10 to-transparent rounded-full blur-3xl dark:from-brand-600/10" />

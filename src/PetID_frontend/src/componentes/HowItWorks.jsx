@@ -31,7 +31,7 @@ const HowItWorks = () => {
   ];
 
   return (
-  <section className="py-24 bg-gradient-to-b from-brand-50 via-white to-accent-50/30 dark:from-slate-900 dark:via-[#0e1628] dark:to-slate-950 relative">
+    <section className="py-24 bg-gradient-to-b from-brand-50 via-white to-accent-50/30 dark:from-slate-900 dark:via-[#0e1628] dark:to-slate-950 relative">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-10 right-10 w-40 h-40 bg-brand-200/40 dark:bg-brand-600/30 rounded-full blur-2xl" />
         <div className="absolute bottom-10 left-4 w-56 h-56 bg-accent-200/40 dark:bg-accent-500/30 rounded-full blur-3xl" />

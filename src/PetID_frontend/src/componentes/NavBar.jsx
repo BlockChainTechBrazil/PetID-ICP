@@ -64,7 +64,7 @@ const NavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 py-2 md:py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-slate-800 shadow-sm">
+    <nav className="sticky top-0 z-50 py-2 md:py-3 bg-white/80 dark:bg-surface-75/90 backdrop-blur-xl border-b border-gray-200 dark:border-surface-100 shadow-sm">
       <div className="container px-4 mx-auto relative lg:text-sm">
         <div className="flex justify-between items-center">
           <div className="flex items-center flex-shrink-0 gap-3">
@@ -74,12 +74,12 @@ const NavBar = () => {
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-6 font-medium text-gray-700 dark:text-slate-200">
-            <Link to="/" className="hover:text-blue-600 dark:hover:text-indigo-400 transition-colors">Home</Link>
-            <Link to="/perfil" className="hover:text-blue-600 dark:hover:text-indigo-400 transition-colors">Perfil</Link>
+            <Link to="/" className="hover:text-blue-600 dark:hover:text-indigo-300 transition-colors">{t('navbar.home')}</Link>
+            <Link to="/perfil" className="hover:text-blue-600 dark:hover:text-indigo-300 transition-colors">{t('navbar.profile')}</Link>
           </div>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <button onClick={toggleDark} aria-label={dark ? 'Switch to light' : 'Switch to dark'} className="p-2 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:scale-105 transition">
+            <button onClick={toggleDark} aria-label={dark ? 'Switch to light' : 'Switch to dark'} className="p-2 rounded-full bg-gray-100 dark:bg-surface-100 border border-gray-200 dark:border-surface-200 hover:scale-105 transition">
               {dark ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-300" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM4 11a1 1 0 100-2H3a1 1 0 000 2h1zm1.636 5.364a1 1 0 01-1.414-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707z" /></svg>
               ) : (
@@ -90,7 +90,7 @@ const NavBar = () => {
             {isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="px-5 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
+                className="px-5 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
               >
                 {t('navbar.logout', 'Logout')}
               </button>
@@ -98,7 +98,7 @@ const NavBar = () => {
               <button
                 onClick={handleLogin}
                 disabled={isLoading}
-                className="px-5 py-2 rounded-full bg-blue-500 hover:bg-blue-600 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white font-semibold shadow-lg transition-all duration-200"
+                className="px-5 py-2 rounded-full bg-blue-500 hover:bg-blue-600 dark:bg-gradient-to-r dark:from-brand-600 dark:via-petPurple-500 dark:to-accent-500 dark:hover:from-brand-500 dark:hover:via-petPink-500 dark:hover:to-accent-400 text-white font-semibold shadow-lg transition-all duration-200"
               >
                 {isLoading ? (
                   <span className="flex items-center">

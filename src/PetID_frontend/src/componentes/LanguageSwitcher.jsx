@@ -100,7 +100,7 @@ const LanguageSwitcher = ({ compact = false }) => {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Selecionar idioma"
       >
-  <Flag lang={i18n.language} />
+        <Flag lang={i18n.language} />
         {!compact && <span className="text-sm font-medium">{getCurrentLanguageName()}</span>}
         <svg
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
