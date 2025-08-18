@@ -4,7 +4,9 @@
     "logout": "Logout",
     "connecting": "Connecting...",
     "home": "Home",
-    "profile": "Profile"
+    "profile": "Profile",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "hero": {
     "title": "Decentralized registry for your pets",

@@ -4,7 +4,9 @@
     "logout": "Sair",
     "connecting": "Conectando...",
     "home": "Início",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
   },
   "hero": {
     "title": "Registro descentralizado para seus pets",
