@@ -4,12 +4,17 @@ import { defineConfig } from 'vite';
 import environment from 'vite-plugin-environment';
 import dotenv from 'dotenv';
 
+// Carregar .env da raiz do projeto
 dotenv.config({ path: '../../.env' });
 
 // Determine if we're in development mode
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
+  define: {
+    // Garantir que as variáveis de ambiente estejam disponíveis
+    'import.meta.env.REACT_APP_PINATA_JWT': JSON.stringify(process.env.REACT_APP_PINATA_JWT),
+  },
   build: {
     emptyOutDir: true,
   },

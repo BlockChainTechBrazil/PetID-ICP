@@ -12,16 +12,26 @@ const PetForm = () => {
   const [authClient, setAuthClient] = useState(null);
   const [authenticatedActor, setAuthenticatedActor] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    photo: '', // CID da imagem no IPFS
     nickname: '',
     birthDate: '',
   });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadingToIPFS, setUploadingToIPFS] = useState(false);
+  const [imageLoadingStates, setImageLoadingStates] = useState({}); // Para controlar loading das imagens dos pets
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [myPets, setMyPets] = useState([]);
 
   // Inicializar o AuthClient
   useEffect(() => {
+    // Debug: Verificar variáveis de ambiente
+    console.log('🔍 DEBUG: Verificando variáveis de ambiente...');
+    console.log('🔑 REACT_APP_PINATA_JWT:', import.meta.env.REACT_APP_PINATA_JWT ? 'PRESENTE' : 'AUSENTE');
+    console.log('🌍 Todas as variáveis REACT_APP:', Object.keys(import.meta.env).filter(key => key.startsWith('REACT_APP')));
+    console.log('🔧 import.meta.env completo:', import.meta.env);
+    
     const initAuth = async () => {
       const client = await AuthClient.create();
       const authenticated = await client.isAuthenticated();
@@ -118,6 +128,295 @@ const PetForm = () => {
     });
   };
 
+  // Função para lidar com seleção de arquivo
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validar tipo de arquivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Tipo de arquivo não suportado. Use JPEG, PNG, GIF ou WebP.');
+        return;
+      }
+
+      // Validar tamanho do arquivo (máximo 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        setError('O arquivo é muito grande. Máximo permitido: 10MB.');
+        return;
+      }
+
+      setSelectedFile(file);
+      setError(''); // Limpar erros anteriores
+      
+      // Criar preview da imagem
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Função para upload para IPFS usando múltiplos serviços
+  const uploadToIPFS = async (file) => {
+    try {
+      // Verificar se o arquivo é válido
+      if (!file || !file.type.startsWith('image/')) {
+        throw new Error('Por favor, selecione um arquivo de imagem válido.');
+      }
+
+      // Verificar tamanho do arquivo (máximo 5MB para melhor compatibilidade)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        throw new Error('O arquivo é muito grande. Máximo permitido: 5MB.');
+      }
+
+      console.log('🚀 Iniciando upload para IPFS...');
+      console.log('📁 Arquivo:', file.name, 'Tamanho:', (file.size / 1024).toFixed(2) + 'KB');
+      
+      // Método 1: Tentar Pinata primeiro (temos a chave configurada)
+      console.log('🔄 Tentando upload via Pinata...');
+      const result = await uploadViaPinata(file);
+      
+      if (!result) {
+        throw new Error('Pinata não retornou um CID válido');
+      }
+      
+      console.log('🎉 Upload via Pinata realizado com sucesso! CID:', result);
+      console.log('🔗 URL da imagem:', `https://gateway.pinata.cloud/ipfs/${result}`);
+      return result;
+      
+    } catch (error) {
+      console.error('❌ Erro no upload IPFS:', error);
+      throw error;
+    }
+  };
+
+  // Upload via NFT.Storage (gratuito e funcional)
+  const uploadViaNFTStorage = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('https://api.nft.storage/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjpwdWJsaWMiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY0NjY0NzY4NywibmFtZSI6InRlc3QifQ.test',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`NFT.Storage erro: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Upload via NFT.Storage bem-sucedido:', result.value.cid);
+    return result.value.cid;
+  };
+
+  // Upload via Pinata (usando chave real do .env)
+  const uploadViaPinata = async (file) => {
+    console.log('📤 Iniciando upload para Pinata...');
+    console.log('🔑 Verificando JWT...');
+    
+    const jwtToken = import.meta.env.REACT_APP_PINATA_JWT;
+    console.log('🔑 JWT presente:', jwtToken ? `Sim (${jwtToken.substring(0, 20)}...)` : 'NÃO ENCONTRADO!');
+    
+    if (!jwtToken) {
+      throw new Error('❌ REACT_APP_PINATA_JWT não encontrado no ambiente!');
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    console.log('📦 Arquivo adicionado ao FormData:', file.name, file.type);
+    
+    const metadata = JSON.stringify({
+      name: `pet-photo-${Date.now()}`,
+      keyvalues: {
+        type: 'pet-photo',
+        uploaded_at: new Date().toISOString(),
+        original_name: file.name
+      }
+    });
+    formData.append('pinataMetadata', metadata);
+
+    const options = JSON.stringify({
+      cidVersion: 1,
+    });
+    formData.append('pinataOptions', options);
+
+    console.log('🌐 Fazendo requisição para Pinata...');
+
+    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+      },
+      body: formData,
+    });
+
+    console.log('📡 Resposta do Pinata:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro do Pinata (texto):', errorText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+        console.error('❌ Erro do Pinata (JSON):', errorData);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Pinata erro ${response.status}: ${errorText}`);
+      }
+      
+      throw new Error(`Pinata erro ${response.status}: ${errorData.error?.reason || errorData.message || 'Erro desconhecido'}`);
+    }
+
+    const resultText = await response.text();
+    console.log('📄 Resposta completa (texto):', resultText);
+    
+    let result;
+    try {
+      result = JSON.parse(resultText);
+      console.log('✅ Resposta completa do Pinata (JSON):', result);
+    } catch (parseError) {
+      console.error('❌ Erro ao parsear resposta de sucesso:', parseError);
+      throw new Error('Resposta do Pinata não é JSON válido');
+    }
+    
+    console.log('🎯 CID retornado:', result.IpfsHash);
+    
+    if (!result.IpfsHash) {
+      console.error('❌ Resposta não contém IpfsHash:', result);
+      throw new Error('Pinata não retornou um CID válido');
+    }
+    
+    return result.IpfsHash;
+  };
+
+  // Função para verificar se um CID está disponível no IPFS
+  const verifyCIDAvailability = async (cid) => {
+    const gateways = [
+      'https://ipfs.io/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://dweb.link/ipfs/'
+    ];
+
+    for (const gateway of gateways) {
+      try {
+        const response = await fetch(`${gateway}${cid}`, {
+          method: 'HEAD', // Apenas verificar se existe, não baixar
+          timeout: 5000
+        });
+        
+        if (response.ok) {
+          console.log(`✅ CID ${cid} encontrado em: ${gateway}`);
+          return { available: true, gateway };
+        }
+      } catch (error) {
+        console.log(`❌ CID ${cid} não encontrado em: ${gateway}`);
+        continue;
+      }
+    }
+    
+    return { available: false, gateway: null };
+  };
+
+  // Função melhorada para simular CID com verificação
+  const simulateCID = async (file) => {
+    // CIDs conhecidos que devem funcionar
+    const knownCIDs = [
+      // Vamos usar um CID que sabemos que funciona - logo do IPFS
+      'QmRyUEkVCWfzHSzjFe2nMhRhNJTJFz7c1gLQfN8T8NoYdz',
+      'QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB',
+      'QmUNLLsPACCz1vLxQVkXqqLX5R1X9RVqGWP2veRtSxEN5Y'
+    ];
+    
+    // Tentar encontrar um CID que funcione
+    for (const cid of knownCIDs) {
+      const verification = await verifyCIDAvailability(cid);
+      if (verification.available) {
+        console.log(`🎯 Usando CID verificado: ${cid}`);
+        return cid;
+      }
+    }
+    
+    // Se nenhum CID conhecido funcionar, gerar um baseado no arquivo
+    const fileHash = file.name.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const fallbackCID = knownCIDs[Math.abs(fileHash) % knownCIDs.length];
+    console.log(`⚠️ Usando CID de fallback: ${fallbackCID} (pode não funcionar)`);
+    return fallbackCID;
+  };
+
+  // Função para fazer upload da imagem e obter CID (melhorada)
+  const handleImageUpload = async () => {
+    if (!selectedFile) {
+      setError('Por favor, selecione uma imagem primeiro.');
+      return;
+    }
+
+    setUploadingToIPFS(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      console.log('🚀 === INICIANDO PROCESSO DE UPLOAD ===');
+      console.log('📁 Arquivo selecionado:', selectedFile.name, selectedFile.type, selectedFile.size);
+      
+      setSuccess('🔄 Processando imagem...');
+      
+      const cid = await uploadToIPFS(selectedFile);
+      
+      console.log('🎯 CID RECEBIDO DO UPLOAD:', cid);
+      
+      if (!cid || cid.length < 10) {
+        throw new Error('CID inválido recebido');
+      }
+      
+      setSuccess('🔍 Verificando disponibilidade do CID...');
+      const verification = await verifyCIDAvailability(cid);
+      
+      // SEMPRE usar o CID retornado, independente da verificação
+      setFormData(prev => {
+        const newFormData = {
+          ...prev,
+          photo: cid
+        };
+        console.log('💾 Salvando CID no formulário:', cid);
+        console.log('📋 FormData atualizado:', newFormData);
+        return newFormData;
+      });
+      
+      if (verification.available) {
+        setSuccess(`✅ Imagem enviada e verificada! CID: ${cid}`);
+        console.log('✅ CID verificado e funcionando:', cid);
+      } else {
+        setSuccess(`⚠️ Upload realizado! CID: ${cid} (Propagação na rede IPFS pode levar alguns minutos)`);
+        console.log('⚠️ CID gerado mas ainda se propagando:', cid);
+      }
+      
+      console.log('🏁 === PROCESSO DE UPLOAD CONCLUÍDO ===');
+      
+    } catch (error) {
+      console.error('❌ ERRO NO PROCESSO DE UPLOAD:', error);
+      setError(`❌ Erro no upload: ${error.message}`);
+    }
+
+    setUploadingToIPFS(false);
+  };
+
   // Função para enviar o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -128,8 +427,14 @@ const PetForm = () => {
     setIsLoading(true);
 
     // Validações básicas
-    if (!formData.name.trim()) {
-      setError('O nome do pet é obrigatório.');
+    if (!formData.photo.trim()) {
+      setError('O CID da foto (IPFS) é obrigatório.');
+      setIsLoading(false);
+      return;
+    }
+    
+    if (!formData.nickname.trim()) {
+      setError('O apelido do pet é obrigatório.');
       setIsLoading(false);
       return;
     }
@@ -144,7 +449,7 @@ const PetForm = () => {
       // Enviar dados para o backend usando o ator autenticado
       const actor = authenticatedActor || PetID_backend;
       const result = await actor.createPet({
-        name: formData.name,
+        photo: formData.photo,
         nickname: formData.nickname,
         birthDate: formData.birthDate,
       });
@@ -154,10 +459,12 @@ const PetForm = () => {
         setSuccess('Pet registrado com sucesso!');
         // Limpar o formulário
         setFormData({
-          name: '',
+          photo: '',
           nickname: '',
           birthDate: '',
         });
+        setSelectedFile(null);
+        setImagePreview('');
         // Atualizar a lista de pets
         loadPets();
       } else if ('err' in result) {
@@ -179,6 +486,37 @@ const PetForm = () => {
     } catch (e) {
       return dateString;
     }
+  };
+
+  // Formatar timestamp para data/hora
+  const formatTimestamp = (timestamp) => {
+    try {
+      const date = new Date(Number(timestamp) / 1000000); // Convert nanoseconds to milliseconds
+      return date.toLocaleString();
+    } catch (e) {
+      return 'Data inválida';
+    }
+  };
+
+  // Formatar Principal para exibição
+  const formatPrincipal = (principal) => {
+    const principalStr = principal.toString();
+    return `${principalStr.slice(0, 8)}...${principalStr.slice(-8)}`;
+  };
+
+  // Função para gerenciar loading das imagens dos pets
+  const handleImageLoad = (petId) => {
+    setImageLoadingStates(prev => ({
+      ...prev,
+      [petId]: false
+    }));
+  };
+
+  const handleImageStart = (petId) => {
+    setImageLoadingStates(prev => ({
+      ...prev,
+      [petId]: true
+    }));
   };
 
   return (
