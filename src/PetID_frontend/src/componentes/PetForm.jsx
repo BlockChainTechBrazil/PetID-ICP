@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PetID_backend, createActor } from 'declarations/PetID_backend';
 import { AuthClient } from '@dfinity/auth-client';
 import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
-import { HttpAgent } from '@dfinity/agent';
+import { Actor, HttpAgent } from '@dfinity/agent';
 
 const PetForm = () => {
   const { t } = useTranslation();
@@ -35,16 +35,16 @@ const PetForm = () => {
     const initAuth = async () => {
       const client = await AuthClient.create();
       const authenticated = await client.isAuthenticated();
-
+      
       setAuthClient(client);
       setIsAuthenticated(authenticated);
-
+      
       if (authenticated) {
         await createAuthenticatedActor(client);
         loadPets();
       }
     };
-
+    
     initAuth();
   }, []);
 
@@ -90,11 +90,11 @@ const PetForm = () => {
   // Função para login com Internet Identity
   const handleLogin = async () => {
     setIsLoading(true);
-
-    const identityProvider = process.env.DFX_NETWORK === 'ic'
+    
+    const identityProvider = process.env.DFX_NETWORK === 'ic' 
       ? 'https://identity.ic0.app/#authorize'
       : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943`;
-
+    
     await authClient?.login({
       identityProvider,
       onSuccess: async () => {
@@ -110,7 +110,7 @@ const PetForm = () => {
       },
     });
   };
-
+  
   // Função para logout
   const handleLogout = async () => {
     await authClient?.logout();
@@ -420,12 +420,12 @@ const PetForm = () => {
   // Função para enviar o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     // Resetar mensagens
     setError('');
     setSuccess('');
     setIsLoading(true);
-
+    
     // Validações básicas
     if (!formData.photo.trim()) {
       setError('O CID da foto (IPFS) é obrigatório.');
@@ -438,13 +438,13 @@ const PetForm = () => {
       setIsLoading(false);
       return;
     }
-
+    
     if (!formData.birthDate) {
       setError('A data de nascimento é obrigatória.');
       setIsLoading(false);
       return;
     }
-
+    
     try {
       // Enviar dados para o backend usando o ator autenticado
       const actor = authenticatedActor || PetID_backend;
@@ -453,7 +453,7 @@ const PetForm = () => {
         nickname: formData.nickname,
         birthDate: formData.birthDate,
       });
-
+      
       if ('ok' in result) {
         // Sucesso ao registrar o pet
         setSuccess('Pet registrado com sucesso!');
@@ -475,7 +475,7 @@ const PetForm = () => {
       console.error('Error creating pet:', err);
       setError('Ocorreu um erro ao registrar o pet. Tente novamente.');
     }
-
+    
     setIsLoading(false);
   };
 
@@ -520,27 +520,27 @@ const PetForm = () => {
   };
 
   return (
-    <section className="py-12 bg-white dark:bg-slate-900">
+    <section className="py-12 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-3xl font-bold text-gray-900">
               {t('petForm.title', 'Registre seu Pet')}
             </h2>
-            <p className="mt-2 text-lg text-gray-600 dark:text-slate-400">
+            <p className="mt-2 text-lg text-gray-600">
               {t('petForm.description', 'Registre seu animal de estimação na blockchain do Internet Computer')}
             </p>
           </div>
-
+          
           {!isAuthenticated ? (
             <div className="text-center py-8">
-              <p className="mb-6 text-gray-600 dark:text-slate-400">
+              <p className="mb-6 text-gray-600">
                 {t('petForm.loginPrompt', 'Para registrar seu pet, é necessário conectar-se com sua Internet Identity')}
               </p>
               <button
                 onClick={handleLogin}
                 disabled={isLoading}
-                className="px-6 py-3 bg-blue-500 dark:bg-indigo-600 text-white font-medium rounded-full shadow-lg hover:bg-blue-600 dark:hover:bg-indigo-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300/50"
+                className="px-6 py-3 bg-blue-500 text-white font-medium rounded-full shadow-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 {isLoading ? (
                   <span className="flex items-center">
@@ -558,39 +558,155 @@ const PetForm = () => {
           ) : (
             <>
               {/* Formulário para usuários autenticados */}
-              <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg shadow-sm p-6 mb-8 border border-transparent dark:border-slate-700">
+              <div className="bg-gray-50 rounded-lg shadow-sm p-6 mb-8">
                 <form onSubmit={handleSubmit}>
                   {error && (
-                    <div className="mb-4 p-3 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-md">
+                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
                       {error}
                     </div>
                   )}
-
+                  
                   {success && (
-                    <div className="mb-4 p-3 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 rounded-md">
+                    <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
                       {success}
                     </div>
                   )}
-
+                  
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                      {t('petForm.name', 'Nome')} *
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('petForm.photo', 'Foto do Pet')} *
                     </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/60"
-                      placeholder={t('petForm.namePlaceholder', 'Nome do seu pet')}
-                    />
+                    
+                    {/* Upload de arquivo */}
+                    <div className="mb-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    
+                    {/* Preview da imagem */}
+                    {imagePreview && (
+                      <div className="mb-4 text-center">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview"
+                          className="w-32 h-32 rounded-lg object-cover mx-auto border-2 border-gray-200"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Botão para upload para IPFS */}
+                    {selectedFile && !formData.photo && (
+                      <div className="mb-4">
+                        <button
+                          type="button"
+                          onClick={handleImageUpload}
+                          disabled={uploadingToIPFS}
+                          className="w-full px-4 py-2 bg-purple-500 text-white font-medium rounded-md hover:bg-purple-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-300"
+                        >
+                          {uploadingToIPFS ? (
+                            <span className="flex items-center justify-center">
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Enviando para IPFS...
+                            </span>
+                          ) : (
+                            'Enviar para IPFS'
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Campo manual para CID (opcional) */}
+                    <div>
+                      <label htmlFor="photo" className="block text-sm font-medium text-gray-600 mb-1">
+                        Ou cole o CID da imagem IPFS:
+                      </label>
+                      <input
+                        type="text"
+                        id="photo"
+                        name="photo"
+                        value={formData.photo}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder={t('petForm.photoPlaceholder', 'CID da imagem no IPFS')}
+                      />
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setError('');
+                            setSuccess('Verificando CIDs conhecidos...');
+                            
+                            // Lista de CIDs para testar
+                            const testCIDs = [
+                              'QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB',
+                              'QmUNLLsPACCz1vLxQVkXqqLX5R1X9RVqGWP2veRtSxEN5Y',
+                              'QmRyUEkVCWfzHSzjFe2nMhRhNJTJFz7c1gLQfN8T8NoYdz'
+                            ];
+                            
+                            for (const cid of testCIDs) {
+                              const verification = await verifyCIDAvailability(cid);
+                              if (verification.available) {
+                                setFormData({
+                                  ...formData,
+                                  photo: cid
+                                });
+                                setSuccess(`✅ CID funcionando encontrado: ${cid}`);
+                                return;
+                              }
+                            }
+                            
+                            setError('❌ Nenhum CID de teste funcionou. Gateways IPFS podem estar instáveis.');
+                          }}
+                          className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md transition-colors duration-200 mr-2"
+                        >
+                          � Verificar CID Real
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Usar um placeholder data URL para garantir que funcione
+                            const dataUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjNDMzOENBIi8+CjxwYXRoIGQ9Ik00NyA0OEM0NyA0NC42ODYzIDQ5LjY4NjMgNDIgNTMgNDJINzVDNzguMzEzNyA0MiA4MSA0NC42ODYzIDgxIDQ4VjgwQzgxIDgzLjMxMzcgNzguMzEzNyA4NiA3NSA4Nkg1M0M0OS42ODYzIDg2IDQ3IDgzLjMxMzcgNDcgODBWNDhaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNTUgNTVDNTcuNzYxNCA1NSA2MCA1Mi43NjE0IDYwIDUwQzYwIDQ3LjIzODYgNTcuNzYxNCA0NSA1NSA0NUM1Mi4yMzg2IDQ1IDUwIDQ3LjIzODYgNTAgNTBDNTAgNTIuNzYxNCA1Mi4yMzg2IDU1IDU1IDU1WiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNzMgNTVDNzUuNzYxNCA1NSA3OCA1Mi43NjE0IDc4IDUwQzc4IDQ3LjIzODYgNzUuNzYxNCA0NSA3MyA0NUM3MC4yMzg2IDQ1IDY4IDQ3LjIzODYgNjggNTBDNjggNTIuNzYxNCA3MC4yMzg2IDU1IDczIDU1WiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNTggNzJDNjIuNDE4MyA3MiA2NiA2OC40MTgzIDY2IDY0QzY2IDU5LjU4MTcgNjIuNDE4MyA1NiA1OCA1NkM1My41ODE3IDU2IDUwIDU5LjU4MTcgNTAgNjRDNTAgNjguNDE4MyA1My41ODE3IDcyIDU4IDcyWiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNzAgNzJDNzQuNDE4MyA3MiA3OCA2OC40MTgzIDc4IDY0Qzc4IDU5LjU4MTcgNzQuNDE4MyA1NiA3MCA1NkM2NS41ODE3IDU2IDYyIDU5LjU4MTcgNjIgNjRDNjIgNjguNDE4MyA2NS41ODE3IDcyIDcwIDcyWiIgZmlsbD0iIzQzMzhDQSIvPgo8L3N2Zz4K";
+                            setFormData({
+                              ...formData,
+                              photo: 'local-placeholder'
+                            });
+                            setImagePreview(dataUrl);
+                            setSuccess('Usando imagem placeholder local!');
+                            setError('');
+                          }}
+                          className="text-sm bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md transition-colors duration-200"
+                        >
+                          � Placeholder Local
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Preview da imagem do IPFS */}
+                    {formData.photo && (
+                      <div className="mt-4 text-center">
+                        <img 
+                          src={`https://ipfs.io/ipfs/${formData.photo}`} 
+                          alt="Foto do Pet"
+                          className="w-32 h-32 rounded-lg object-cover mx-auto border-2 border-green-200"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                        <p className="text-sm text-green-600 mt-2">✓ Imagem carregada do IPFS</p>
+                      </div>
+                    )}
                   </div>
-
+                  
                   <div className="mb-4">
-                    <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                      {t('petForm.nickname', 'Apelido')}
+                    <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('petForm.nickname', 'Apelido')} *
                     </label>
                     <input
                       type="text"
@@ -598,13 +714,14 @@ const PetForm = () => {
                       name="nickname"
                       value={formData.nickname}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/60"
-                      placeholder={t('petForm.nicknamePlaceholder', 'Apelido do seu pet (opcional)')}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder={t('petForm.nicknamePlaceholder', 'Apelido do seu pet')}
                     />
                   </div>
-
+                  
                   <div className="mb-6">
-                    <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                    <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1">
                       {t('petForm.birthDate', 'Data de Nascimento')} *
                     </label>
                     <input
@@ -614,15 +731,15 @@ const PetForm = () => {
                       value={formData.birthDate}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/60"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
-
+                  
                   <div className="flex items-center justify-between">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="px-6 py-2 bg-blue-500 dark:bg-indigo-600 text-white font-medium rounded-full shadow-md hover:bg-blue-600 dark:hover:bg-indigo-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300/50"
+                      className="px-6 py-2 bg-blue-500 text-white font-medium rounded-full shadow-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300"
                     >
                       {isLoading ? (
                         <span className="flex items-center">
@@ -636,39 +753,131 @@ const PetForm = () => {
                         t('petForm.register', 'Registrar Pet')
                       )}
                     </button>
-
+                    
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 hover:underline focus:outline-none"
+                      className="text-gray-600 hover:text-gray-800 hover:underline focus:outline-none"
                     >
                       {t('petForm.logout', 'Desconectar')}
                     </button>
                   </div>
                 </form>
               </div>
-
+              
               {/* Lista de pets do usuário */}
               {myPets.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
                     {t('petForm.myPets', 'Meus Pets')}
                   </h3>
-
+                  
                   <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                     {myPets.map((pet) => (
-                      <div key={pet.id} className="bg-white dark:bg-slate-800/60 rounded-lg shadow-md p-4 border border-gray-200 dark:border-slate-700">
-                        <h4 className="text-lg font-medium text-blue-600 dark:text-indigo-400">{pet.name}</h4>
-                        {pet.nickname && (
-                          <p className="text-gray-600 dark:text-slate-300 text-sm">
-                            <span className="font-medium">{t('petForm.nickname', 'Apelido')}:</span> {pet.nickname}
-                          </p>
+                      <div key={pet.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                        {/* Imagem do Pet com múltiplos gateways */}
+                        {pet.photo && (
+                          <div className="mb-4 text-center relative">
+                            <img 
+                              src={pet.photo === 'local-placeholder' 
+                                ? "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjNDMzOENBIi8+CjxwYXRoIGQ9Ik00NyA0OEM0NyA0NC42ODYzIDQ5LjY4NjMgNDIgNTMgNDJINzVDNzguMzEzNyA0MiA4MSA0NC42ODYzIDgxIDQ4VjgwQzgxIDgzLjMxMzcgNzguMzEzNyA4NiA3NSA4Nkg1M0M0OS42ODYzIDg2IDQ3IDgzLjMxMzcgNDcgODBWNDhaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNTUgNTVDNTcuNzYxNCA1NSA2MCA1Mi43NjE0IDYwIDUwQzYwIDQ3LjIzODYgNTcuNzYxNCA0NSA1NSA0NUM1Mi4yMzg2IDQ1IDUwIDQ3LjIzODYgNTAgNTBDNTAgNTIuNzYxNCA1Mi4yMzg2IDU1IDU1IDU1WiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNzMgNTVDNzUuNzYxNCA1NSA3OCA1Mi43NjE0IDc4IDUwQzc4IDQ3LjIzODYgNzUuNzYxNCA0NSA3MyA0NUM3MC4yMzg2IDQ1IDY4IDQ3LjIzODYgNjggNTBDNjggNTIuNzYxNCA3MC4yMzg2IDU1IDczIDU1WiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNTggNzJDNjIuNDE4MyA3MiA2NiA2OC40MTgzIDY2IDY0QzY2IDU5LjU4MTcgNjIuNDE4MyA1NiA1OCA1NkM1My41ODE3IDU2IDUwIDU5LjU4MTcgNTAgNjRDNTAgNjguNDE4MyA1My41ODE3IDcyIDU4IDcyWiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNzAgNzJDNzQuNDE4MyA3MiA3OCA2OC40MTgzIDc4IDY0Qzc4IDU5LjU4MTcgNzQuNDE4MyA1NiA3MCA1NkM2NS41ODE3IDU2IDYyIDU5LjU4MTcgNjIgNjRDNjIgNjguNDE4MyA2NS41ODE3IDcyIDcwIDcyWiIgZmlsbD0iIzQzMzhDQSIvPgo8L3N2Zz4K"
+                                : `https://ipfs.io/ipfs/${pet.photo}`
+                              } 
+                              alt={`Foto do ${pet.nickname}`}
+                              className="w-32 h-32 rounded-lg object-cover mx-auto border-2 border-gray-200 shadow-md"
+                              onLoad={() => {
+                                console.log(`✅ Imagem carregada com sucesso: ${pet.photo}`);
+                              }}
+                              onError={(e) => {
+                                if (pet.photo === 'local-placeholder') {
+                                  // Já é um placeholder, não fazer nada
+                                  return;
+                                }
+                                
+                                console.log(`❌ Erro ao carregar imagem: ${e.target.src}`);
+                                
+                                if (e.target.src.includes('ipfs.io')) {
+                                  console.log('🔄 Tentando gateway Pinata...');
+                                  e.target.src = `https://gateway.pinata.cloud/ipfs/${pet.photo}`;
+                                } else if (e.target.src.includes('pinata.cloud')) {
+                                  console.log('🔄 Tentando gateway Cloudflare...');
+                                  e.target.src = `https://cloudflare-ipfs.com/ipfs/${pet.photo}`;
+                                } else if (e.target.src.includes('cloudflare-ipfs.com')) {
+                                  console.log('🔄 Tentando gateway Dweb...');
+                                  e.target.src = `https://dweb.link/ipfs/${pet.photo}`;
+                                } else {
+                                  console.log('❌ Todos os gateways falharam, mostrando placeholder');
+                                  e.target.style.display = 'none';
+                                  
+                                  // Criar placeholder apenas se ainda não existe
+                                  if (!e.target.parentNode.querySelector('.placeholder-image')) {
+                                    const placeholder = document.createElement('div');
+                                    placeholder.className = 'placeholder-image w-32 h-32 rounded-lg bg-gray-200 flex items-center justify-center mx-auto border-2 border-gray-200';
+                                    placeholder.innerHTML = `
+                                      <div class="text-center text-gray-500">
+                                        <svg class="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-xs">Imagem não encontrada</p>
+                                        <p class="text-xs text-gray-400">CID: ${pet.photo.substring(0, 10)}...</p>
+                                      </div>
+                                    `;
+                                    e.target.parentNode.appendChild(placeholder);
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
                         )}
-                        <p className="text-gray-600 dark:text-slate-300 text-sm">
-                          <span className="font-medium">{t('petForm.birthDate', 'Data de Nascimento')}:</span> {formatDate(pet.birthDate)}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-slate-500 mt-2">
-                          ID: {pet.id}
+                        
+                        <h4 className="text-lg font-medium text-blue-600 text-center mb-2">{pet.nickname}</h4>
+                        
+                        <div className="space-y-1 text-sm">
+                          <p className="text-gray-600">
+                            <span className="font-medium">{t('petForm.birthDate', 'Data de Nascimento')}:</span> {formatDate(pet.birthDate)}
+                          </p>
+                          
+                          <p className="text-gray-600">
+                            <span className="font-medium">Proprietário:</span> {formatPrincipal(pet.owner)}
+                          </p>
+                          
+                          <p className="text-gray-600">
+                            <span className="font-medium">Criado em:</span> {formatTimestamp(pet.createdAt)}
+                          </p>
+                        </div>
+                        
+                        {/* Informações do CID */}
+                        {pet.photo && (
+                          <div className="bg-gray-50 p-3 rounded-lg mt-3">
+                            <p className="text-gray-600 text-sm mb-2">
+                              <span className="font-medium">IPFS CID:</span>
+                            </p>
+                            <p className="text-xs text-gray-500 font-mono break-all mb-2">
+                              {pet.photo}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              <a 
+                                href={`https://ipfs.io/ipfs/${pet.photo}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:text-blue-700 text-xs underline"
+                              >
+                                Ver no IPFS.io
+                              </a>
+                              <a 
+                                href={`https://gateway.pinata.cloud/ipfs/${pet.photo}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:text-blue-700 text-xs underline"
+                              >
+                                Ver no Pinata
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <p className="text-xs text-gray-500 mt-2">
+                          Pet ID: {pet.id}
                         </p>
                       </div>
                     ))}
