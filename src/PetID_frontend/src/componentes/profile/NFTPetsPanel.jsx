@@ -1,29 +1,297 @@
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { createActor } from 'declarations/PetID_backend';
+import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
+import { HttpAgent } from '@dfinity/agent';
+import { useTranslation } from 'react-i18next';
 
-const mockPets = [
-  { id: 'PET-001', name: 'Luna', species: 'Canina', breed: 'Border Collie', age: 2, vaccinations: ['Raiva', 'V10'], lastCheck: '2025-06-10' },
-  { id: 'PET-002', name: 'Thor', species: 'Canina', breed: 'Labrador', age: 4, vaccinations: ['Raiva', 'V10', 'Giárdia'], lastCheck: '2025-05-20' },
-  { id: 'PET-003', name: 'Milo', species: 'Felina', breed: 'Siamês', age: 3, vaccinations: ['Raiva'], lastCheck: '2025-05-28' },
+const gateways = [
+  (cid) => `https://ipfs.io/ipfs/${cid}`,
+  (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
+  (cid) => `https://cloudflare-ipfs.com/ipfs/${cid}`,
+  (cid) => `https://dweb.link/ipfs/${cid}`,
 ];
 
 const NFTPetsPanel = () => {
+  const { isAuthenticated, authClient } = useAuth();
+  const { t } = useTranslation();
+  const [actor, setActor] = useState(null);
+  const [pets, setPets] = useState([]);
+  const [loadingPets, setLoadingPets] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false); // upload de imagem
+  const [uploadProgress, setUploadProgress] = useState(null); // futuro: porcentagem (não suportado fetch simples)
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [formData, setFormData] = useState({
+    photo: '',
+    nickname: '',
+    birthDate: '',
+  });
+  const initializedRef = useRef(false);
+
+  // Create actor when authenticated
+  useEffect(() => {
+    const init = async () => {
+      if (!isAuthenticated || !authClient || initializedRef.current) return;
+      initializedRef.current = true;
+      try {
+        const identity = authClient.getIdentity();
+        const network = import.meta.env.DFX_NETWORK || 'local';
+        const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
+        const agent = new HttpAgent({ identity, host });
+        if (network !== 'ic') {
+          try { await agent.fetchRootKey(); } catch { }
+        }
+        const a = await createActor(backendCanisterId, { agent });
+        setActor(a);
+      } catch (e) {
+        console.error('[NFTPetsPanel] actor error', e);
+        setError('Erro ao inicializar ator');
+      }
+    };
+    init();
+  }, [isAuthenticated, authClient]);
+
+  const loadPets = async () => {
+    if (!actor) return;
+    setLoadingPets(true);
+    try {
+      const res = await actor.getMyPets();
+      if ('ok' in res) setPets(res.ok);
+    } catch (e) {
+      console.error('[NFTPetsPanel] load pets error', e);
+    } finally {
+      setLoadingPets(false);
+    }
+  };
+
+  useEffect(() => { loadPets(); }, [actor]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(f => ({ ...f, [name]: value }));
+  };
+
+  const handleFileSelect = (file) => {
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowed.includes(file.type)) { setError('Tipo de arquivo não suportado'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('Máx 5MB'); return; }
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+    // upload automático
+    autoUpload(file);
+  };
+
+  const onInputFileChange = (e) => handleFileSelect(e.target.files?.[0]);
+
+  const uploadToIPFS = async (file) => {
+    const jwtToken = import.meta.env.REACT_APP_PINATA_JWT;
+    if (!jwtToken) throw new Error('Config PINATA JWT ausente');
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('pinataMetadata', JSON.stringify({ name: `pet-${Date.now()}` }));
+    // Usando XMLHttpRequest para permitir progresso futuro
+    return await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://api.pinata.cloud/pinning/pinFileToIPFS');
+      xhr.setRequestHeader('Authorization', `Bearer ${jwtToken}`);
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable) {
+          const pct = Math.round((evt.loaded / evt.total) * 100);
+          setUploadProgress(pct);
+        }
+      };
+      xhr.onerror = () => reject(new Error('Erro de rede no upload'));
+      xhr.onload = () => {
+        try {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data.IpfsHash);
+          } else {
+            reject(new Error('Falha upload IPFS: ' + xhr.status));
+          }
+        } catch (e) { reject(e); }
+      };
+      xhr.send(fd);
+    });
+  };
+
+  const autoUpload = useCallback(async (file) => {
+    setUploading(true); setUploadProgress(null); setError(''); setSuccess('');
+    try {
+      const cid = await uploadToIPFS(file);
+      setFormData(f => ({ ...f, photo: cid }));
+      setSuccess('Imagem enviada');
+    } catch (e) {
+      setError(e.message || 'Erro ao enviar imagem');
+      setFormData(f => ({ ...f, photo: '' }));
+    } finally { setUploading(false); setUploadProgress(null); }
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true); setError(''); setSuccess('');
+    try {
+      if (!actor) throw new Error('Ator não pronto');
+      // Se há arquivo selecionado mas ainda não temos CID, faz upload agora
+      if (selectedFile && !formData.photo) {
+        await autoUpload(selectedFile);
+      }
+      if (!formData.photo) throw new Error('Selecione uma imagem válida');
+      if (!formData.nickname || !formData.birthDate) throw new Error('Preencha todos os campos');
+      const res = await actor.createPet({
+        photo: formData.photo,
+        nickname: formData.nickname,
+        birthDate: formData.birthDate,
+      });
+      if ('ok' in res) {
+        setSuccess('Pet registrado!');
+        setFormData({ photo: '', nickname: '', birthDate: '' });
+        setSelectedFile(null); setImagePreview('');
+        loadPets();
+        setFormOpen(false);
+      } else if ('err' in res) { setError(res.err); }
+    } catch (er) { setError(er.message); } finally { setSubmitting(false); }
+  };
+
+  const formatDate = (dateString) => {
+    try { return new Date(dateString).toLocaleDateString(); } catch { return dateString; }
+  };
+  const formatTimestamp = (ts) => { try { return new Date(Number(ts) / 1_000_000).toLocaleString(); } catch { return '—'; } };
+  const formatPrincipal = (p) => { const s = p.toString(); return s.slice(0, 6) + '...' + s.slice(-6); };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header + botão adicionar */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          🐾 {t('petForm.myPets', 'Meus Pets')}
+          {loadingPets && <svg className="animate-spin h-4 w-4 text-indigo-500" viewBox="0 0 24 24" />}
+        </h2>
+        {isAuthenticated && (
+          <button
+            onClick={() => setFormOpen(o => !o)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-brand-500 to-petPurple-500 text-white shadow hover:shadow-md transition"
+          >
+            <span className="text-lg">{formOpen ? '−' : '+'}</span> {formOpen ? t('petForm.register', 'Registrar Pet') : t('petForm.register', 'Registrar Pet')}
+          </button>
+        )}
+      </div>
+
+      {/* Acordeão do formulário */}
+      {formOpen && (
+        <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/70 backdrop-blur p-6 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && <div className="p-3 rounded-md bg-red-100 text-red-700 text-sm">{error}</div>}
+            {success && <div className="p-3 rounded-md bg-green-100 text-green-700 text-sm">{success}</div>}
+
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Coluna Imagem / Dropzone */}
+              <div className="lg:col-span-1">
+                <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400 mb-2">Imagem *</label>
+                <div
+                  className={`relative group border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center transition cursor-pointer bg-white/60 dark:bg-surface-100/40 hover:border-indigo-400 dark:hover:border-indigo-500 ${uploading ? 'opacity-70' : ''}`}
+                  onDragOver={(e) => { e.preventDefault(); }}
+                  onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; handleFileSelect(file); }}
+                  onClick={() => document.getElementById('pet-image-input')?.click()}
+                >
+                  {!imagePreview && !formData.photo && (
+                    <>
+                      <svg className="h-10 w-10 text-indigo-400 mb-3" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V8.25A2.25 2.25 0 0 1 5.25 6h13.5A2.25 2.25 0 0 1 21 8.25v8.25m-18 0A2.25 2.25 0 0 0 5.25 18h13.5A2.25 2.25 0 0 0 21 16.5m-18 0v.75A2.25 2.25 0 0 0 5.25 19.5h13.5A2.25 2.25 0 0 0 21 17.25v-.75M12 12l3 3m0 0l3-3m-3 3V3" /></svg>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">Arraste ou clique para selecionar<br /><span className="text-[10px] uppercase tracking-wide font-medium text-indigo-500">PNG JPG GIF WEBP • até 5MB</span></p>
+                    </>
+                  )}
+                  {(imagePreview || formData.photo) && (
+                    <div className="relative w-40 h-40">
+                      <img
+                        src={imagePreview || gateways[0](formData.photo)}
+                        alt="Preview"
+                        className="w-40 h-40 object-cover rounded-xl ring-2 ring-indigo-300/40 dark:ring-indigo-600/30 shadow"
+                      />
+                      {uploading && (
+                        <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex flex-col items-center justify-center rounded-xl text-white text-xs gap-2">
+                          <svg className="animate-spin h-6 w-6 text-indigo-200" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          <span>{uploadProgress ? `${uploadProgress}%` : 'Enviando...'}</span>
+                        </div>
+                      )}
+                      {formData.photo && !uploading && (
+                        <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow">CID OK</span>
+                      )}
+                    </div>
+                  )}
+                  <input id="pet-image-input" type="file" accept="image/*" onChange={onInputFileChange} className="hidden" />
+                </div>
+                {formData.photo && (
+                  <p className="mt-3 text-[10px] font-mono break-all text-emerald-600 dark:text-emerald-400">CID: {formData.photo}</p>
+                )}
+              </div>
+              {/* Coluna dados */}
+              <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Apelido *</label>
+                  <input name="nickname" value={formData.nickname} onChange={handleChange} placeholder="Ex: Luna" className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/70 dark:bg-surface-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Data de Nascimento *</label>
+                  <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/70 dark:bg-surface-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                </div>
+                <div className="sm:col-span-2 flex flex-wrap gap-3 pt-2">
+                  <button disabled={submitting || uploading} className="px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-petPurple-600 text-white text-sm font-semibold shadow hover:shadow-md transition disabled:opacity-60 flex items-center gap-2">
+                    {(submitting || uploading) && (
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+                    )}
+                    {submitting ? 'Salvando...' : uploading ? 'Enviando imagem...' : 'Salvar Pet'}
+                  </button>
+                  <button type="button" onClick={() => setFormOpen(false)} className="px-5 py-2.5 rounded-full text-sm font-medium bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-surface-200">Fechar</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Lista de pets */}
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-        {mockPets.map(pet => (
+        {pets.length === 0 && !loadingPets && (
+          <div className="col-span-full text-sm text-gray-500 dark:text-slate-400">Nenhum pet cadastrado ainda.</div>
+        )}
+        {pets.map(pet => (
           <div key={pet.id} className="group relative rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5 shadow-sm hover:shadow-md transition overflow-hidden">
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-brand-500/10 via-petPink-400/10 to-accent-500/10" />
+            {/* Imagem */}
+            {pet.photo && (
+              <div className="mb-3 relative w-full flex justify-center">
+                <img
+                  src={gateways[0](pet.photo)}
+                  alt={pet.nickname}
+                  className="w-32 h-32 object-cover rounded-xl ring-1 ring-gray-200 dark:ring-slate-700 shadow"
+                  onError={(e) => {
+                    const current = gateways.findIndex(g => e.target.src === g(pet.photo));
+                    const next = gateways[current + 1];
+                    if (next) e.target.src = next(pet.photo); else e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">{pet.name} <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">{pet.id}</span></h3>
-              <button className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-surface-200">Editar</button>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">{pet.nickname} <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">{pet.id}</span></h3>
             </div>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{pet.species} • {pet.breed}</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Idade: {pet.age} anos</p>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {pet.vaccinations.map(v => (
-                <span key={v} className="text-[10px] tracking-wide uppercase font-semibold px-2 py-1 rounded bg-gradient-to-r from-petMint-400/30 to-petPurple-400/30 text-petPurple-700 dark:text-petPurple-200 ring-1 ring-petMint-500/30">{v}</span>
-              ))}
+            <div className="space-y-1 text-[11px] text-gray-500 dark:text-slate-400">
+              <p><span className="font-medium">Nascimento:</span> {formatDate(pet.birthDate)}</p>
+              <p><span className="font-medium">Criado:</span> {formatTimestamp(pet.createdAt)}</p>
+              <p><span className="font-medium">Dono:</span> {formatPrincipal(pet.owner)}</p>
+              {pet.photo && <p className="truncate"><span className="font-medium">CID:</span> {pet.photo}</p>}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-slate-500">Último check: {pet.lastCheck}</p>
           </div>
         ))}
       </div>

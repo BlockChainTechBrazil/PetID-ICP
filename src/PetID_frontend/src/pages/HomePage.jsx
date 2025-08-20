@@ -4,7 +4,6 @@ import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useParallax } from '../hooks/useParallax';
 const Features = lazy(() => import('../componentes/Features'));
 const HowItWorks = lazy(() => import('../componentes/HowItWorks'));
-const PetForm = lazy(() => import('../componentes/PetForm'));
 const FAQ = lazy(() => import('../componentes/FAQ'));
 const GallerySection = lazy(() => import('../componentes/GallerySection'));
 const FinalCTA = lazy(() => import('../componentes/FinalCTA'));
@@ -35,7 +34,6 @@ function HomePage() {
         <div className="reveal"><Features /></div>
         <div className="reveal"><HowItWorks /></div>
         <div className="reveal"><GallerySection /></div>
-        <div className="reveal"><PetForm /></div>
         <div id="faq" className="reveal"><FAQ /></div>
         <div className="reveal"><FinalCTA /></div>
         <div className="reveal"><Footer /></div>

@@ -1,4 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createActor } from 'declarations/PetID_backend';
+import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
+import { HttpAgent } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
 
 const AuthContext = createContext(null);
@@ -83,6 +86,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, [authClient]);
 
+  const createBackendActor = useCallback(async () => {
+    if (!authClient || !isAuthenticated) return null;
+    const identity = authClient.getIdentity();
+    const network = import.meta.env.DFX_NETWORK || 'local';
+    const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
+    const agent = new HttpAgent({ identity, host });
+    if (network !== 'ic') {
+      try { await agent.fetchRootKey(); } catch { }
+    }
+    return createActor(backendCanisterId, { agent });
+  }, [authClient, isAuthenticated]);
+
   const value = {
     authClient,
     isAuthenticated,
@@ -91,7 +106,8 @@ export const AuthProvider = ({ children }) => {
     loginLoading,
     error,
     login,
-    logout
+    logout,
+    createBackendActor
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
