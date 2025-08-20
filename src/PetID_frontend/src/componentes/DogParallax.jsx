@@ -1,10 +1,15 @@
 
-// Parallax de cães; variant 'hero' usa imagens menores e posicionamento fora do texto
+import { dogImages } from '../data/dogImages';
+
+// Seleciona algumas imagens distintas para efeitos de parallax
+const selected = [dogImages[0], dogImages[3], dogImages[6]].filter(Boolean);
+
+// Config de posições por variante
 const baseDogs = {
   hero: [
-    { src: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=500&q=70', speed: 0.1, className: 'w-36 md:w-44 top-[250px] left-[5%] rotate-[-4deg]' },
-    { src: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=500&q=70', speed: 0.1, className: 'w-40 md:w-52 top-[140px] right-[4%] rotate-[6deg]' },
-    { src: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=500&q=70', speed: 0.16, className: 'w-32 md:w-40 bottom-[40px] left-[65%] rotate-[3deg]' }
+    { src: selected[0]?.src, speed: 0.1, className: 'w-36 md:w-44 top-[250px] left-[5%] rotate-[-4deg]' },
+    { src: selected[1]?.src, speed: 0.1, className: 'w-40 md:w-52 top-[140px] right-[4%] rotate-[6deg]' },
+    { src: selected[2]?.src, speed: 0.16, className: 'w-32 md:w-40 bottom-[40px] left-[65%] rotate-[3deg]' }
   ]
 };
 

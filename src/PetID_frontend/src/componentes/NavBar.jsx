@@ -47,10 +47,6 @@ const NavBar = () => {
               <span className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-indigo-400 dark:to-accent-400 bg-clip-text text-transparent">PetID</span>
             </Link>
           </div>
-          {/* Links Desktop (Profile removido, acesso via botão à direita) */}
-          <div className="hidden md:flex items-center gap-6 font-medium text-gray-700 dark:text-slate-200">
-            <Link to="/" className="hover:text-blue-600 dark:hover:text-indigo-300 transition-colors">{t('navbar.home')}</Link>
-          </div>
           {/* Ações Desktop */}
           <div className="hidden md:flex items-center gap-3">
             <LanguageSwitcher />
@@ -108,9 +104,6 @@ const NavBar = () => {
         {/* Painel Mobile */}
         <div id="mobile-menu" className={`md:hidden origin-top transition-all duration-300 ${mobileOpen ? 'max-h-[600px] opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95'} overflow-visible`}>
           <div className="mt-3 rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/90 dark:bg-surface-75/95 backdrop-blur-xl shadow-xl p-4 flex flex-col gap-4 animate-[fadeIn_.4s_ease]">
-            <div className="flex flex-col gap-2 font-medium text-gray-700 dark:text-slate-200">
-              <Link onClick={() => setMobileOpen(false)} to="/" className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-100 transition-colors">{t('navbar.home')}</Link>
-            </div>
             <div className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-surface-200 to-transparent" />
             <div className="flex flex-wrap items-center gap-3">
               <LanguageSwitcher />
