@@ -8,6 +8,16 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
+  "login": {
+    "title": "Access your account",
+    "subtitle": "Authenticate with your Internet Identity to access your dashboard and manage your pets.",
+    "ctaICP": "Sign in with Internet Identity",
+    "loading": "Connecting...",
+    "cta": "Sign in",
+    "already": "You are already authenticated. Redirecting...",
+    "futureProviders": "Coming soon: Google, Apple, Ethereum, Solana...",
+    "error": "Authentication error"
+  },
   "hero": {
     "title": "Decentralized registry for your pets",
     "description": "PetID uses blockchain technology to create immutable and secure records for your pets, ensuring that their information is always accessible and protected.",

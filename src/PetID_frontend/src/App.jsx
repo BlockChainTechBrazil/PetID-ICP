@@ -1,22 +1,27 @@
 // Import do backend removido porque não é usado neste componente e causava 404 se bindings ainda não gerados.
 import NavBar from './componentes/NavBar';
-// Componentes agregados agora em HomePage
 import HomePage from './pages/HomePage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProfilePage from './pages/ProfilePage';
+import LoginPage from './pages/LoginPage';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col">
-        <NavBar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/perfil" element={<ProfilePage />} />
-          </Routes>
-        </main>
-      </div>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col">
+          <NavBar />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            </Routes>
+          </main>
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

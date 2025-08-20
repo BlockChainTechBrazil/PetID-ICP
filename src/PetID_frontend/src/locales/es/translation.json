@@ -8,6 +8,16 @@
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú"
   },
+  "login": {
+    "title": "Accede a tu cuenta",
+    "subtitle": "Autentícate con tu Internet Identity para acceder a tu panel y gestionar tus mascotas.",
+    "ctaICP": "Entrar con Internet Identity",
+    "loading": "Conectando...",
+    "cta": "Entrar",
+    "already": "Ya estás autenticado. Redirigiendo...",
+    "futureProviders": "Próximamente: Google, Apple, Ethereum, Solana...",
+    "error": "Error de autenticación"
+  },
   "hero": {
     "title": "Registro descentralizado para tus mascotas",
     "description": "PetID utiliza tecnología blockchain para crear registros inmutables y seguros para tus mascotas, asegurando que su información esté siempre accesible y protegida.",

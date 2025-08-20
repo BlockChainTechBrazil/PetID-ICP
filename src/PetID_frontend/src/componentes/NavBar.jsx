@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
-import { AuthClient } from '@dfinity/auth-client';
 import Logo from "../assets/logo/PetID_logo.jpg";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const NavBar = () => {
   const { t } = useTranslation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authClient, setAuthClient] = useState(null);
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, loginLoading } = useAuth() || {};
   const [isLoading, setIsLoading] = useState(false);
   const [dark, setDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,49 +34,8 @@ const NavBar = () => {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  // Inicializar o AuthClient
-  useEffect(() => {
-    const initAuth = async () => {
-      const client = await AuthClient.create();
-      const authenticated = await client.isAuthenticated();
-
-      setAuthClient(client);
-      setIsAuthenticated(authenticated);
-    };
-
-    initAuth();
-  }, []);
-
-  // Função para login com Internet Identity
-  const handleLogin = async () => {
-    setIsLoading(true);
-
-    const iiCanister = import.meta.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai';
-    const network = import.meta.env.DFX_NETWORK || 'local';
-    const identityProvider = network === 'ic'
-      ? 'https://identity.ic0.app/#authorize'
-      : `http://${iiCanister}.localhost:4943/#authorize`;
-    console.log('[NavBar Login] identityProvider', identityProvider);
-
-    await authClient?.login({
-      identityProvider,
-      onSuccess: () => {
-        setIsAuthenticated(true);
-        setIsLoading(false);
-      },
-      onError: (err) => {
-        console.error('Login failed:', err);
-        setIsLoading(false);
-      },
-    });
-  };
-
-  // Função para logout
-  const handleLogout = async () => {
-    await authClient?.logout();
-    setIsAuthenticated(false);
-    window.location.reload(); // Recarrega a página para atualizar estado
-  };
+  const goLogin = () => navigate('/login');
+  const handleLogout = async () => { await logout?.(); };
 
   return (
     <nav className="sticky top-0 z-50 py-2 md:py-3 bg-white/80 dark:bg-surface-75/90 backdrop-blur-xl border-b border-gray-200 dark:border-surface-100 shadow-sm">
@@ -88,10 +47,9 @@ const NavBar = () => {
               <span className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-indigo-400 dark:to-accent-400 bg-clip-text text-transparent">PetID</span>
             </Link>
           </div>
-          {/* Links Desktop */}
+          {/* Links Desktop (Profile removido, acesso via botão à direita) */}
           <div className="hidden md:flex items-center gap-6 font-medium text-gray-700 dark:text-slate-200">
             <Link to="/" className="hover:text-blue-600 dark:hover:text-indigo-300 transition-colors">{t('navbar.home')}</Link>
-            <Link to="/perfil" className="hover:text-blue-600 dark:hover:text-indigo-300 transition-colors">{t('navbar.profile')}</Link>
           </div>
           {/* Ações Desktop */}
           <div className="hidden md:flex items-center gap-3">
@@ -104,19 +62,24 @@ const NavBar = () => {
               )}
             </button>
             {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="px-5 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
-              >
-                {t('navbar.logout', 'Logout')}
-              </button>
+              <div className="flex items-center gap-2">
+                <Link to="/perfil" className="px-4 py-2 rounded-full bg-gradient-to-r from-brand-500 to-petPurple-500 text-white font-semibold shadow hover:shadow-md transition">
+                  {t('navbar.profile', 'Perfil')}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-5 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
+                >
+                  {t('navbar.logout', 'Logout')}
+                </button>
+              </div>
             ) : (
               <button
-                onClick={handleLogin}
-                disabled={isLoading}
+                onClick={goLogin}
+                disabled={isLoading || loginLoading}
                 className="px-5 py-2 rounded-full bg-blue-500 hover:bg-blue-600 dark:bg-gradient-to-r dark:from-brand-600 dark:via-petPurple-500 dark:to-accent-500 dark:hover:from-brand-500 dark:hover:via-petPink-500 dark:hover:to-accent-400 text-white font-semibold shadow-lg transition-all duration-200"
               >
-                {isLoading ? (
+                {(isLoading || loginLoading) ? (
                   <span className="flex items-center">
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -125,7 +88,7 @@ const NavBar = () => {
                     {t('navbar.connecting', 'Conectando...')}
                   </span>
                 ) : (
-                  t('navbar.connectWallet', 'Conectar')
+                  t('login.cta', 'Entrar')
                 )}
               </button>
             )}
@@ -147,7 +110,6 @@ const NavBar = () => {
           <div className="mt-3 rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/90 dark:bg-surface-75/95 backdrop-blur-xl shadow-xl p-4 flex flex-col gap-4 animate-[fadeIn_.4s_ease]">
             <div className="flex flex-col gap-2 font-medium text-gray-700 dark:text-slate-200">
               <Link onClick={() => setMobileOpen(false)} to="/" className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-100 transition-colors">{t('navbar.home')}</Link>
-              <Link onClick={() => setMobileOpen(false)} to="/perfil" className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-100 transition-colors">{t('navbar.profile')}</Link>
             </div>
             <div className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-surface-200 to-transparent" />
             <div className="flex flex-wrap items-center gap-3">
@@ -160,19 +122,24 @@ const NavBar = () => {
                 )}
               </button>
               {isAuthenticated ? (
-                <button
-                  onClick={() => { handleLogout(); setMobileOpen(false); }}
-                  className="flex-1 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
-                >
-                  {t('navbar.logout', 'Logout')}
-                </button>
+                <div className="flex w-full gap-2">
+                  <Link onClick={() => setMobileOpen(false)} to="/perfil" className="flex-1 px-4 py-2 rounded-full bg-gradient-to-r from-brand-500 to-petPurple-500 text-white font-semibold shadow hover:shadow-md transition">
+                    {t('navbar.profile', 'Perfil')}
+                  </Link>
+                  <button
+                    onClick={() => { handleLogout(); setMobileOpen(false); }}
+                    className="flex-1 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
+                  >
+                    {t('navbar.logout', 'Logout')}
+                  </button>
+                </div>
               ) : (
                 <button
-                  onClick={() => { handleLogin(); }}
-                  disabled={isLoading}
+                  onClick={() => { setMobileOpen(false); navigate('/login'); }}
+                  disabled={isLoading || loginLoading}
                   className="flex-1 px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-600 dark:bg-gradient-to-r dark:from-brand-600 dark:via-petPurple-500 dark:to-accent-500 dark:hover:from-brand-500 dark:hover:via-petPink-500 dark:hover:to-accent-400 text-white font-semibold shadow-lg transition-all duration-200"
                 >
-                  {isLoading ? (
+                  {(isLoading || loginLoading) ? (
                     <span className="flex items-center justify-center">
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -181,7 +148,7 @@ const NavBar = () => {
                       {t('navbar.connecting', 'Conectando...')}
                     </span>
                   ) : (
-                    t('navbar.connectWallet', 'Conectar')
+                    t('login.cta', 'Entrar')
                   )}
                 </button>
               )}

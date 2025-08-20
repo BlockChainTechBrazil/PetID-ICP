@@ -8,6 +8,16 @@
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu"
   },
+  "login": {
+    "title": "Acesse sua conta",
+    "subtitle": "Autentique-se com sua Internet Identity para acessar seu dashboard e gerenciar seus pets.",
+    "ctaICP": "Entrar com Internet Identity",
+    "loading": "Conectando...",
+    "cta": "Entrar",
+    "already": "Você já está autenticado. Redirecionando...",
+    "futureProviders": "Em breve: Google, Apple, Ethereum, Solana...",
+    "error": "Erro ao autenticar"
+  },
   "hero": {
     "title": "Registro descentralizado para seus pets",
     "description": "A PetID utiliza a tecnologia blockchain para criar registros imutáveis e seguros para seus animais de estimação, garantindo que suas informações estejam sempre acessíveis e protegidas.",
