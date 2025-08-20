@@ -50,8 +50,25 @@ export const AuthProvider = ({ children }) => {
     setLoginLoading(true);
     setError(null);
     try {
+      // Definição de dimensões da popup (pode ser ajustado futuramente via env vars)
+      const popupWidth = 560; // largura adequada para fluxo do II
+      const popupHeight = 720; // altura confortável
+      // Cálculo para centralizar (fallback simples caso window não exista)
+      let left = 100; let top = 100;
+      if (typeof window !== 'undefined') {
+        const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
+        const dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY;
+        const w = window.innerWidth || document.documentElement.clientWidth || screen.width;
+        const h = window.innerHeight || document.documentElement.clientHeight || screen.height;
+        left = Math.max(0, (w - popupWidth) / 2 + dualScreenLeft);
+        top = Math.max(0, (h - popupHeight) / 2 + dualScreenTop);
+      }
+      // Features: sem barra de ferramentas, redimensionável (true para acessibilidade), sem barra de localização
+      const windowOpenerFeatures = `left=${left},top=${top},width=${popupWidth},height=${popupHeight},toolbar=0,menubar=0,location=0,status=0,resizable=1,scrollbars=1`;
       await authClient.login({
         identityProvider: getIdentityProvider(),
+        // Define as features para forçar abrir como popup menor em vez de nova aba
+        windowOpenerFeatures,
         onSuccess: async () => {
           const authenticated = await authClient.isAuthenticated();
           setIsAuthenticated(authenticated);

@@ -280,12 +280,12 @@ const NFTPetsPanel = () => {
       )}
 
       {/* Lista de pets */}
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 justify-items-center">
         {pets.length === 0 && !loadingPets && (
           <div className="col-span-full text-sm text-gray-500 dark:text-slate-400">{t('petPanel.noPets')}</div>
         )}
         {pets.map(pet => (
-          <div key={pet.id} className="group relative rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5 shadow-sm hover:shadow-md transition overflow-hidden">
+          <div key={pet.id} className="group relative w-full max-w-sm rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5 shadow-sm hover:shadow-md transition overflow-hidden">
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-brand-500/10 via-petPink-400/10 to-accent-500/10" />
             {/* Imagem */}
             {pet.photo && (
