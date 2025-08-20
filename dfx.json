@@ -2,7 +2,8 @@
   "canisters": {
     "PetID_backend": {
       "main": "src/PetID_backend/main.mo",
-      "type": "motoko"
+      "type": "motoko",
+      "id": "bkyz2-fmaaa-aaaaa-qaaaq-cai"
     },
     "PetID_frontend": {
       "dependencies": [
@@ -11,7 +12,8 @@
       "source": [
         "src/PetID_frontend/dist"
       ],
-      "type": "assets"
+      "type": "assets",
+      "id": "bd3sg-teaaa-aaaaa-qaaba-cai"
     },
     "internet_identity": {
       "type": "pull",
@@ -24,9 +26,5 @@
       "packtool": ""
     }
   },
-  "version": 1,
-  "canister_ids": {
-    "PetID_backend": "bkyz2-fmaaa-aaaaa-qaaaq-cai",
-    "PetID_frontend": "bd3sg-teaaa-aaaaa-qaaba-cai"
-  }
+  "version": 1
 }

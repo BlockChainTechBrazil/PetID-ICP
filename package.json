@@ -7,7 +7,7 @@
   "scripts": {
     "canisters:start": "dfx start --background || true",
     "canisters:stop": "dfx stop || true",
-    "initial": "npm run canisters:stop && dfx start --background && dfx deploy && npm run start --workspace src/PetID_frontend",
+    "initial": "npm run canisters:stop && rm -rf .dfx && dfx start --clean --background && dfx deploy && ./update-env.sh && npm run start --workspace src/PetID_frontend",
     "dev": "npm run canisters:start && npm run start --workspace src/PetID_frontend",
     "build": "npm run build --workspaces --if-present",
     "prebuild": "npm run prebuild --workspaces --if-present",
