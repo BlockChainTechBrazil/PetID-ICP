@@ -14,6 +14,10 @@ export default defineConfig({
   define: {
     // Garantir que as variáveis de ambiente estejam disponíveis
     'import.meta.env.REACT_APP_PINATA_JWT': JSON.stringify(process.env.REACT_APP_PINATA_JWT),
+    'import.meta.env.CANISTER_ID_PETID_BACKEND': JSON.stringify(process.env.CANISTER_ID_PETID_BACKEND),
+    'import.meta.env.CANISTER_ID_PETID_FRONTEND': JSON.stringify(process.env.CANISTER_ID_PETID_FRONTEND),
+    'import.meta.env.CANISTER_ID_INTERNET_IDENTITY': JSON.stringify(process.env.CANISTER_ID_INTERNET_IDENTITY),
+    'import.meta.env.DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK),
   },
   build: {
     emptyOutDir: true,

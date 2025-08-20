@@ -24,7 +24,6 @@
       "packtool": ""
     }
   },
-  "output_env_file": ".env",
   "version": 1,
   "canister_ids": {
     "PetID_backend": "bkyz2-fmaaa-aaaaa-qaaaq-cai",

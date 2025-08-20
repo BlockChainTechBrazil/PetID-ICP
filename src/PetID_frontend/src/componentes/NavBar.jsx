@@ -51,9 +51,12 @@ const NavBar = () => {
   const handleLogin = async () => {
     setIsLoading(true);
 
-    const identityProvider = process.env.DFX_NETWORK === 'ic'
+    const iiCanister = import.meta.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai';
+    const network = import.meta.env.DFX_NETWORK || 'local';
+    const identityProvider = network === 'ic'
       ? 'https://identity.ic0.app/#authorize'
-      : `http://${process.env.CANISTER_ID_INTERNET_IDENTITY || 'localhost:4943'}`;
+      : `http://${iiCanister}.localhost:4943/#authorize`;
+    console.log('[NavBar Login] identityProvider', identityProvider);
 
     await authClient?.login({
       identityProvider,

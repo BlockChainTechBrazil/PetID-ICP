@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PetID_backend, createActor } from 'declarations/PetID_backend';
+import { createActor } from 'declarations/PetID_backend';
 import { AuthClient } from '@dfinity/auth-client';
 import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
-import { Actor, HttpAgent } from '@dfinity/agent';
+import { HttpAgent } from '@dfinity/agent';
 
 const PetForm = () => {
   const { t } = useTranslation();
@@ -26,81 +26,87 @@ const PetForm = () => {
 
   // Inicializar o AuthClient
   useEffect(() => {
-    // Debug: Verificar variáveis de ambiente
-    console.log('🔍 DEBUG: Verificando variáveis de ambiente...');
-    console.log('🔑 REACT_APP_PINATA_JWT:', import.meta.env.REACT_APP_PINATA_JWT ? 'PRESENTE' : 'AUSENTE');
-    console.log('🌍 Todas as variáveis REACT_APP:', Object.keys(import.meta.env).filter(key => key.startsWith('REACT_APP')));
-    console.log('🔧 import.meta.env completo:', import.meta.env);
-    
     const initAuth = async () => {
       const client = await AuthClient.create();
       const authenticated = await client.isAuthenticated();
-      
       setAuthClient(client);
       setIsAuthenticated(authenticated);
-      
       if (authenticated) {
         await createAuthenticatedActor(client);
-        loadPets();
       }
     };
-    
     initAuth();
   }, []);
 
   // Criar ator autenticado
   const createAuthenticatedActor = async (client) => {
     const identity = client.getIdentity();
-    const agent = new HttpAgent({
-      identity,
-      host: process.env.DFX_NETWORK === 'ic' ? 'https://ic0.app' : 'http://localhost:4943',
-    });
-
-    if (process.env.DFX_NETWORK !== 'ic') {
-      await agent.fetchRootKey();
+    const network = import.meta.env.DFX_NETWORK || 'local';
+    const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
+    console.log('[AuthActor] Criando agent', { network, host, backendCanisterId });
+    const agent = new HttpAgent({ identity, host });
+    if (network !== 'ic') {
+      try {
+        await agent.fetchRootKey();
+        console.log('[AuthActor] Root key obtida');
+      } catch (e) {
+        console.warn('[AuthActor] Falha ao obter root key', e);
+      }
     }
-
-    const actor = createActor(backendCanisterId, {
-      agent,
-    });
-
+    const actor = await createActor(backendCanisterId, { agent });
     setAuthenticatedActor(actor);
   };
 
   // Função para carregar pets do usuário
   const loadPets = async () => {
     try {
-      const actor = authenticatedActor || PetID_backend;
+      const actor = authenticatedActor; // só chama se autenticado
+      if (!actor) return; // evita chamadas anônimas que geram 400
       const result = await actor.getMyPets();
       if ('ok' in result) {
         setMyPets(result.ok);
       }
     } catch (err) {
       console.error('Error loading pets:', err);
+      const msg = String(err?.message || '');
+      if (msg.includes('Invalid delegation') || msg.includes('certificate verification failed')) {
+        console.warn('[Auth] Delegação inválida detectada. Forçando logout.');
+        if (authClient) {
+          await authClient.logout();
+        }
+        setIsAuthenticated(false);
+        setAuthenticatedActor(null);
+        setError('Sessão inválida. Faça login novamente.');
+      }
     }
   };
 
-  // UseEffect para atualizar pets quando o ator autenticado muda
+  // Evitar chamadas duplicadas (StrictMode) usando ref
+  const petsLoadedRef = useRef(false);
   useEffect(() => {
-    if (isAuthenticated && authenticatedActor) {
+    if (isAuthenticated && authenticatedActor && !petsLoadedRef.current) {
+      petsLoadedRef.current = true;
       loadPets();
     }
-  }, [authenticatedActor]);
+  }, [isAuthenticated, authenticatedActor]);
 
   // Função para login com Internet Identity
   const handleLogin = async () => {
     setIsLoading(true);
-    
-    const identityProvider = process.env.DFX_NETWORK === 'ic' 
+    const iiCanister = import.meta.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai';
+    const network = import.meta.env.DFX_NETWORK || 'local';
+    const identityProvider = network === 'ic'
       ? 'https://identity.ic0.app/#authorize'
-      : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943`;
-    
+      : `http://${iiCanister}.localhost:4943/#authorize`;
+    console.log('[Login] identityProvider', identityProvider);
+
     await authClient?.login({
       identityProvider,
       onSuccess: async () => {
         setIsAuthenticated(true);
         await createAuthenticatedActor(authClient);
-        loadPets();
+        console.log('[Login] Principal autenticado:', authClient.getIdentity().getPrincipal().toString());
+        await loadPets();
         setIsLoading(false);
       },
       onError: (err) => {
@@ -110,13 +116,34 @@ const PetForm = () => {
       },
     });
   };
-  
+
+  const handleClearIdentity = async () => {
+    try {
+      const client = await AuthClient.create();
+      await client.logout();
+      // Limpar possíveis chaves residuais
+      try { sessionStorage.clear(); } catch { }
+      try { localStorage.removeItem('ic-identity'); } catch { }
+      setIsAuthenticated(false);
+      setAuthenticatedActor(null);
+      setMyPets([]);
+      petsLoadedRef.current = false;
+      setError('Sessão limpa. Faça login novamente.');
+      console.log('[Identity] Sessão/Delegação limpa');
+    } catch (e) {
+      console.warn('Falha ao limpar identidade', e);
+    }
+  };
+
   // Função para logout
   const handleLogout = async () => {
-    await authClient?.logout();
+    if (authClient) {
+      await authClient.logout();
+    }
     setIsAuthenticated(false);
     setAuthenticatedActor(null);
     setMyPets([]);
+    petsLoadedRef.current = false;
   };
 
   // Função para lidar com mudanças nos campos do formulário
@@ -148,7 +175,7 @@ const PetForm = () => {
 
       setSelectedFile(file);
       setError(''); // Limpar erros anteriores
-      
+
       // Criar preview da imagem
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -174,19 +201,19 @@ const PetForm = () => {
 
       console.log('🚀 Iniciando upload para IPFS...');
       console.log('📁 Arquivo:', file.name, 'Tamanho:', (file.size / 1024).toFixed(2) + 'KB');
-      
+
       // Método 1: Tentar Pinata primeiro (temos a chave configurada)
       console.log('🔄 Tentando upload via Pinata...');
       const result = await uploadViaPinata(file);
-      
+
       if (!result) {
         throw new Error('Pinata não retornou um CID válido');
       }
-      
+
       console.log('🎉 Upload via Pinata realizado com sucesso! CID:', result);
       console.log('🔗 URL da imagem:', `https://gateway.pinata.cloud/ipfs/${result}`);
       return result;
-      
+
     } catch (error) {
       console.error('❌ Erro no upload IPFS:', error);
       throw error;
@@ -219,18 +246,18 @@ const PetForm = () => {
   const uploadViaPinata = async (file) => {
     console.log('📤 Iniciando upload para Pinata...');
     console.log('🔑 Verificando JWT...');
-    
+
     const jwtToken = import.meta.env.REACT_APP_PINATA_JWT;
     console.log('🔑 JWT presente:', jwtToken ? `Sim (${jwtToken.substring(0, 20)}...)` : 'NÃO ENCONTRADO!');
-    
+
     if (!jwtToken) {
       throw new Error('❌ REACT_APP_PINATA_JWT não encontrado no ambiente!');
     }
-    
+
     const formData = new FormData();
     formData.append('file', file);
     console.log('📦 Arquivo adicionado ao FormData:', file.name, file.type);
-    
+
     const metadata = JSON.stringify({
       name: `pet-photo-${Date.now()}`,
       keyvalues: {
@@ -266,7 +293,7 @@ const PetForm = () => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Erro do Pinata (texto):', errorText);
-      
+
       let errorData;
       try {
         errorData = JSON.parse(errorText);
@@ -275,13 +302,13 @@ const PetForm = () => {
         console.error('❌ Erro ao parsear resposta JSON:', parseError);
         throw new Error(`Pinata erro ${response.status}: ${errorText}`);
       }
-      
+
       throw new Error(`Pinata erro ${response.status}: ${errorData.error?.reason || errorData.message || 'Erro desconhecido'}`);
     }
 
     const resultText = await response.text();
     console.log('📄 Resposta completa (texto):', resultText);
-    
+
     let result;
     try {
       result = JSON.parse(resultText);
@@ -290,14 +317,14 @@ const PetForm = () => {
       console.error('❌ Erro ao parsear resposta de sucesso:', parseError);
       throw new Error('Resposta do Pinata não é JSON válido');
     }
-    
+
     console.log('🎯 CID retornado:', result.IpfsHash);
-    
+
     if (!result.IpfsHash) {
       console.error('❌ Resposta não contém IpfsHash:', result);
       throw new Error('Pinata não retornou um CID válido');
     }
-    
+
     return result.IpfsHash;
   };
 
@@ -316,7 +343,7 @@ const PetForm = () => {
           method: 'HEAD', // Apenas verificar se existe, não baixar
           timeout: 5000
         });
-        
+
         if (response.ok) {
           console.log(`✅ CID ${cid} encontrado em: ${gateway}`);
           return { available: true, gateway };
@@ -326,7 +353,7 @@ const PetForm = () => {
         continue;
       }
     }
-    
+
     return { available: false, gateway: null };
   };
 
@@ -339,7 +366,7 @@ const PetForm = () => {
       'QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB',
       'QmUNLLsPACCz1vLxQVkXqqLX5R1X9RVqGWP2veRtSxEN5Y'
     ];
-    
+
     // Tentar encontrar um CID que funcione
     for (const cid of knownCIDs) {
       const verification = await verifyCIDAvailability(cid);
@@ -348,13 +375,13 @@ const PetForm = () => {
         return cid;
       }
     }
-    
+
     // Se nenhum CID conhecido funcionar, gerar um baseado no arquivo
     const fileHash = file.name.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
-    
+
     const fallbackCID = knownCIDs[Math.abs(fileHash) % knownCIDs.length];
     console.log(`⚠️ Usando CID de fallback: ${fallbackCID} (pode não funcionar)`);
     return fallbackCID;
@@ -374,20 +401,20 @@ const PetForm = () => {
     try {
       console.log('🚀 === INICIANDO PROCESSO DE UPLOAD ===');
       console.log('📁 Arquivo selecionado:', selectedFile.name, selectedFile.type, selectedFile.size);
-      
+
       setSuccess('🔄 Processando imagem...');
-      
+
       const cid = await uploadToIPFS(selectedFile);
-      
+
       console.log('🎯 CID RECEBIDO DO UPLOAD:', cid);
-      
+
       if (!cid || cid.length < 10) {
         throw new Error('CID inválido recebido');
       }
-      
+
       setSuccess('🔍 Verificando disponibilidade do CID...');
       const verification = await verifyCIDAvailability(cid);
-      
+
       // SEMPRE usar o CID retornado, independente da verificação
       setFormData(prev => {
         const newFormData = {
@@ -398,7 +425,7 @@ const PetForm = () => {
         console.log('📋 FormData atualizado:', newFormData);
         return newFormData;
       });
-      
+
       if (verification.available) {
         setSuccess(`✅ Imagem enviada e verificada! CID: ${cid}`);
         console.log('✅ CID verificado e funcionando:', cid);
@@ -406,9 +433,9 @@ const PetForm = () => {
         setSuccess(`⚠️ Upload realizado! CID: ${cid} (Propagação na rede IPFS pode levar alguns minutos)`);
         console.log('⚠️ CID gerado mas ainda se propagando:', cid);
       }
-      
+
       console.log('🏁 === PROCESSO DE UPLOAD CONCLUÍDO ===');
-      
+
     } catch (error) {
       console.error('❌ ERRO NO PROCESSO DE UPLOAD:', error);
       setError(`❌ Erro no upload: ${error.message}`);
@@ -420,40 +447,43 @@ const PetForm = () => {
   // Função para enviar o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Resetar mensagens
     setError('');
     setSuccess('');
     setIsLoading(true);
-    
+
     // Validações básicas
     if (!formData.photo.trim()) {
       setError('O CID da foto (IPFS) é obrigatório.');
       setIsLoading(false);
       return;
     }
-    
+
     if (!formData.nickname.trim()) {
       setError('O apelido do pet é obrigatório.');
       setIsLoading(false);
       return;
     }
-    
+
     if (!formData.birthDate) {
       setError('A data de nascimento é obrigatória.');
       setIsLoading(false);
       return;
     }
-    
+
     try {
       // Enviar dados para o backend usando o ator autenticado
-      const actor = authenticatedActor || PetID_backend;
+      if (!authenticatedActor) {
+        throw new Error('Ator autenticado ainda não inicializado. Refaça login.');
+      }
+      const actor = authenticatedActor;
       const result = await actor.createPet({
         photo: formData.photo,
         nickname: formData.nickname,
         birthDate: formData.birthDate,
       });
-      
+
       if ('ok' in result) {
         // Sucesso ao registrar o pet
         setSuccess('Pet registrado com sucesso!');
@@ -473,9 +503,14 @@ const PetForm = () => {
       }
     } catch (err) {
       console.error('Error creating pet:', err);
-      setError('Ocorreu um erro ao registrar o pet. Tente novamente.');
+      const msg = String(err?.message || err);
+      if (msg.includes('Invalid delegation')) {
+        setError('Sessão expirada (delegação inválida). Faça logout e login novamente.');
+      } else {
+        setError('Ocorreu um erro ao registrar o pet. Tente novamente.');
+      }
     }
-    
+
     setIsLoading(false);
   };
 
@@ -531,29 +566,36 @@ const PetForm = () => {
               {t('petForm.description', 'Registre seu animal de estimação na blockchain do Internet Computer')}
             </p>
           </div>
-          
+
           {!isAuthenticated ? (
             <div className="text-center py-8">
               <p className="mb-6 text-gray-600">
                 {t('petForm.loginPrompt', 'Para registrar seu pet, é necessário conectar-se com sua Internet Identity')}
               </p>
-              <button
-                onClick={handleLogin}
-                disabled={isLoading}
-                className="px-6 py-3 bg-blue-500 text-white font-medium rounded-full shadow-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                {isLoading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {t('petForm.connecting', 'Conectando...')}
-                  </span>
-                ) : (
-                  t('petForm.connectWithII', 'Conectar com Internet Identity')
-                )}
-              </button>
+              <div className="flex flex-col items-center gap-4">
+                <button
+                  onClick={handleLogin}
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-blue-500 text-white font-medium rounded-full shadow-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {t('petForm.connecting', 'Conectando...')}
+                    </span>
+                  ) : (
+                    t('petForm.connectWithII', 'Conectar com Internet Identity')
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearIdentity}
+                  className="text-xs text-gray-500 hover:text-gray-700 underline"
+                >Limpar sessão / delegação</button>
+              </div>
             </div>
           ) : (
             <>
@@ -565,18 +607,18 @@ const PetForm = () => {
                       {error}
                     </div>
                   )}
-                  
+
                   {success && (
                     <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
                       {success}
                     </div>
                   )}
-                  
+
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('petForm.photo', 'Foto do Pet')} *
                     </label>
-                    
+
                     {/* Upload de arquivo */}
                     <div className="mb-4">
                       <input
@@ -586,18 +628,18 @@ const PetForm = () => {
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
-                    
+
                     {/* Preview da imagem */}
                     {imagePreview && (
                       <div className="mb-4 text-center">
-                        <img 
-                          src={imagePreview} 
+                        <img
+                          src={imagePreview}
                           alt="Preview"
                           className="w-32 h-32 rounded-lg object-cover mx-auto border-2 border-gray-200"
                         />
                       </div>
                     )}
-                    
+
                     {/* Botão para upload para IPFS */}
                     {selectedFile && !formData.photo && (
                       <div className="mb-4">
@@ -621,7 +663,7 @@ const PetForm = () => {
                         </button>
                       </div>
                     )}
-                    
+
                     {/* Campo manual para CID (opcional) */}
                     <div>
                       <label htmlFor="photo" className="block text-sm font-medium text-gray-600 mb-1">
@@ -642,14 +684,14 @@ const PetForm = () => {
                           onClick={async () => {
                             setError('');
                             setSuccess('Verificando CIDs conhecidos...');
-                            
+
                             // Lista de CIDs para testar
                             const testCIDs = [
                               'QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB',
                               'QmUNLLsPACCz1vLxQVkXqqLX5R1X9RVqGWP2veRtSxEN5Y',
                               'QmRyUEkVCWfzHSzjFe2nMhRhNJTJFz7c1gLQfN8T8NoYdz'
                             ];
-                            
+
                             for (const cid of testCIDs) {
                               const verification = await verifyCIDAvailability(cid);
                               if (verification.available) {
@@ -661,7 +703,7 @@ const PetForm = () => {
                                 return;
                               }
                             }
-                            
+
                             setError('❌ Nenhum CID de teste funcionou. Gateways IPFS podem estar instáveis.');
                           }}
                           className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md transition-colors duration-200 mr-2"
@@ -687,12 +729,12 @@ const PetForm = () => {
                         </button>
                       </div>
                     </div>
-                    
+
                     {/* Preview da imagem do IPFS */}
                     {formData.photo && (
                       <div className="mt-4 text-center">
-                        <img 
-                          src={`https://ipfs.io/ipfs/${formData.photo}`} 
+                        <img
+                          src={`https://ipfs.io/ipfs/${formData.photo}`}
                           alt="Foto do Pet"
                           className="w-32 h-32 rounded-lg object-cover mx-auto border-2 border-green-200"
                           onError={(e) => {
@@ -703,7 +745,7 @@ const PetForm = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="mb-4">
                     <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 mb-1">
                       {t('petForm.nickname', 'Apelido')} *
@@ -719,7 +761,7 @@ const PetForm = () => {
                       placeholder={t('petForm.nicknamePlaceholder', 'Apelido do seu pet')}
                     />
                   </div>
-                  
+
                   <div className="mb-6">
                     <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1">
                       {t('petForm.birthDate', 'Data de Nascimento')} *
@@ -734,7 +776,7 @@ const PetForm = () => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <button
                       type="submit"
@@ -753,7 +795,7 @@ const PetForm = () => {
                         t('petForm.register', 'Registrar Pet')
                       )}
                     </button>
-                    
+
                     <button
                       type="button"
                       onClick={handleLogout}
@@ -764,25 +806,25 @@ const PetForm = () => {
                   </div>
                 </form>
               </div>
-              
+
               {/* Lista de pets do usuário */}
               {myPets.length > 0 && (
                 <div className="mt-8">
                   <h3 className="text-xl font-semibold text-gray-800 mb-4">
                     {t('petForm.myPets', 'Meus Pets')}
                   </h3>
-                  
+
                   <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                     {myPets.map((pet) => (
                       <div key={pet.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
                         {/* Imagem do Pet com múltiplos gateways */}
                         {pet.photo && (
                           <div className="mb-4 text-center relative">
-                            <img 
-                              src={pet.photo === 'local-placeholder' 
+                            <img
+                              src={pet.photo === 'local-placeholder'
                                 ? "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjNDMzOENBIi8+CjxwYXRoIGQ9Ik00NyA0OEM0NyA0NC42ODYzIDQ5LjY4NjMgNDIgNTMgNDJINzVDNzguMzEzNyA0MiA4MSA0NC42ODYzIDgxIDQ4VjgwQzgxIDgzLjMxMzcgNzguMzEzNyA4NiA3NSA4Nkg1M0M0OS42ODYzIDg2IDQ3IDgzLjMxMzcgNDcgODBWNDhaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNTUgNTVDNTcuNzYxNCA1NSA2MCA1Mi43NjE0IDYwIDUwQzYwIDQ3LjIzODYgNTcuNzYxNCA0NSA1NSA0NUM1Mi4yMzg2IDQ1IDUwIDQ3LjIzODYgNTAgNTBDNTAgNTIuNzYxNCA1Mi4yMzg2IDU1IDU1IDU1WiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNzMgNTVDNzUuNzYxNCA1NSA3OCA1Mi43NjE0IDc4IDUwQzc4IDQ3LjIzODYgNzUuNzYxNCA0NSA3MyA0NUM3MC4yMzg2IDQ1IDY4IDQ3LjIzODYgNjggNTBDNjggNTIuNzYxNCA3MC4yMzg2IDU1IDczIDU1WiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNTggNzJDNjIuNDE4MyA3MiA2NiA2OC40MTgzIDY2IDY0QzY2IDU5LjU4MTcgNjIuNDE4MyA1NiA1OCA1NkM1My41ODE3IDU2IDUwIDU5LjU4MTcgNTAgNjRDNTAgNjguNDE4MyA1My41ODE3IDcyIDU4IDcyWiIgZmlsbD0iIzQzMzhDQSIvPgo8cGF0aCBkPSJNNzAgNzJDNzQuNDE4MyA3MiA3OCA2OC40MTgzIDc4IDY0Qzc4IDU5LjU4MTcgNzQuNDE4MyA1NiA3MCA1NkM2NS41ODE3IDU2IDYyIDU5LjU4MTcgNjIgNjRDNjIgNjguNDE4MyA2NS41ODE3IDcyIDcwIDcyWiIgZmlsbD0iIzQzMzhDQSIvPgo8L3N2Zz4K"
                                 : `https://ipfs.io/ipfs/${pet.photo}`
-                              } 
+                              }
                               alt={`Foto do ${pet.nickname}`}
                               className="w-32 h-32 rounded-lg object-cover mx-auto border-2 border-gray-200 shadow-md"
                               onLoad={() => {
@@ -793,9 +835,9 @@ const PetForm = () => {
                                   // Já é um placeholder, não fazer nada
                                   return;
                                 }
-                                
+
                                 console.log(`❌ Erro ao carregar imagem: ${e.target.src}`);
-                                
+
                                 if (e.target.src.includes('ipfs.io')) {
                                   console.log('🔄 Tentando gateway Pinata...');
                                   e.target.src = `https://gateway.pinata.cloud/ipfs/${pet.photo}`;
@@ -808,7 +850,7 @@ const PetForm = () => {
                                 } else {
                                   console.log('❌ Todos os gateways falharam, mostrando placeholder');
                                   e.target.style.display = 'none';
-                                  
+
                                   // Criar placeholder apenas se ainda não existe
                                   if (!e.target.parentNode.querySelector('.placeholder-image')) {
                                     const placeholder = document.createElement('div');
@@ -829,23 +871,23 @@ const PetForm = () => {
                             />
                           </div>
                         )}
-                        
+
                         <h4 className="text-lg font-medium text-blue-600 text-center mb-2">{pet.nickname}</h4>
-                        
+
                         <div className="space-y-1 text-sm">
                           <p className="text-gray-600">
                             <span className="font-medium">{t('petForm.birthDate', 'Data de Nascimento')}:</span> {formatDate(pet.birthDate)}
                           </p>
-                          
+
                           <p className="text-gray-600">
                             <span className="font-medium">Proprietário:</span> {formatPrincipal(pet.owner)}
                           </p>
-                          
+
                           <p className="text-gray-600">
                             <span className="font-medium">Criado em:</span> {formatTimestamp(pet.createdAt)}
                           </p>
                         </div>
-                        
+
                         {/* Informações do CID */}
                         {pet.photo && (
                           <div className="bg-gray-50 p-3 rounded-lg mt-3">
@@ -856,17 +898,17 @@ const PetForm = () => {
                               {pet.photo}
                             </p>
                             <div className="flex flex-wrap gap-2">
-                              <a 
-                                href={`https://ipfs.io/ipfs/${pet.photo}`} 
-                                target="_blank" 
+                              <a
+                                href={`https://ipfs.io/ipfs/${pet.photo}`}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-500 hover:text-blue-700 text-xs underline"
                               >
                                 Ver no IPFS.io
                               </a>
-                              <a 
-                                href={`https://gateway.pinata.cloud/ipfs/${pet.photo}`} 
-                                target="_blank" 
+                              <a
+                                href={`https://gateway.pinata.cloud/ipfs/${pet.photo}`}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-500 hover:text-blue-700 text-xs underline"
                               >
@@ -875,7 +917,7 @@ const PetForm = () => {
                             </div>
                           </div>
                         )}
-                        
+
                         <p className="text-xs text-gray-500 mt-2">
                           Pet ID: {pet.id}
                         </p>

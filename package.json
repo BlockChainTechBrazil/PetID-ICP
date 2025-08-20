@@ -3,10 +3,10 @@
     "node": ">=16.0.0",
     "npm": ">=7.0.0"
   },
-  "name": "PetID",
+  "name": "petid",
   "scripts": {
-    "dev": "npm run dev --workspace src/PetID_frontend",
-    "dev:full": "dfx stop || true && dfx start --clean --background && dfx deploy && npm run start --workspace src/PetID_frontend",
+    "dev": "(dfx start --background || true) && npm run start --workspace src/PetID_frontend",
+    "dev:deploy": "dfx deploy && npm run start --workspace src/PetID_frontend",
     "deploy": "dfx deploy",
     "canisters:start": "dfx start --background || true",
     "canisters:stop": "dfx stop",
