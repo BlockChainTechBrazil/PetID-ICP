@@ -1,8 +1,14 @@
 import { useTranslation } from 'react-i18next';
-import DogParallax from './DogParallax';
+import { useNavigate } from 'react-router-dom';
+import dogAndCat from "../assets/dogs/Dog_nd_cat_1.jpg"
 
 const Hero = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleRegisterClick = () => {
+    navigate('/login');
+  };
 
   return (
     <section className="relative overflow-hidden pt-24 md:pt-28 pb-28 md:pb-32 bg-gradient-to-br from-white via-brand-50 to-violet-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
@@ -15,11 +21,11 @@ const Hero = () => {
         <div className="hidden dark:block absolute top-10 left-1/4 w-72 h-72 bg-gradient-to-br from-petPurple-500/30 via-petPink-500/20 to-petMint-500/20 rounded-full blur-3xl mix-blend-screen animate-gradient-x" />
         <div className="hidden dark:block absolute -bottom-16 -right-10 w-[420px] h-[420px] bg-gradient-to-tr from-petMint-500/25 via-petYellow-500/20 to-petPurple-500/30 rounded-full blur-3xl mix-blend-screen animate-gradient-x" />
       </div>
-      <DogParallax variant="hero" />
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+  
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         <div className="grid gap-16 lg:gap-12 lg:grid-cols-2 items-center">
           {/* Coluna texto */}
-          <div className="relative z-10 order-2 lg:order-1">
+          <div className="relative z-10 order-2 lg:order-1 px-2 sm:px-0">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/70 dark:bg-slate-800/70 backdrop-blur border border-blue-200/60 dark:border-slate-700 shadow-sm mb-6 reveal">
               <span className="w-2.5 h-2.5 bg-gradient-to-tr from-brand-500 to-indigo-500 rounded-full animate-pulse" />
               <span className="text-xs font-medium tracking-wide text-brand-700 dark:text-indigo-300">Blockchain + Identidade Digital</span>
@@ -43,7 +49,10 @@ const Hero = () => {
             {/* CTA + busca */}
             <div className="space-y-5 reveal delay-200 max-w-xl">
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="group px-8 py-4 bg-gradient-to-r from-brand-600 via-petPurple-500 to-accent-500 bg-[length:200%_200%] animate-gradient-x hover:from-brand-500 hover:via-petPink-500 hover:to-accent-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-brand-300/50 animate-glow-pulse">
+                <button 
+                  onClick={handleRegisterClick}
+                  className="group px-8 py-4 bg-gradient-to-r from-brand-600 via-petPurple-500 to-accent-500 bg-[length:200%_200%] animate-gradient-x hover:from-brand-500 hover:via-petPink-500 hover:to-accent-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-brand-300/50 animate-glow-pulse"
+                >
                   <span className="inline-flex items-center gap-2">
                     {t('hero.registerButton')}
                     <span className="transition-transform group-hover:translate-x-1">→</span>
@@ -52,11 +61,6 @@ const Hero = () => {
                 <button className="px-8 py-4 bg-white/70 dark:bg-slate-800/70 backdrop-blur text-blue-700 dark:text-indigo-200 font-medium rounded-full shadow-md border border-blue-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-200/40">
                   {t('hero.learnMoreButton')}
                 </button>
-              </div>
-              <div className="group flex items-center gap-3 bg-white/80 dark:bg-slate-800/60 backdrop-blur px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow transition-all w-full">
-                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <input placeholder={t('hero.searchPlaceholder', 'Busque o ID do seu pet')} aria-label={t('hero.searchPlaceholder', 'Busque o ID do seu pet')} className="bg-transparent flex-1 outline-none text-sm text-slate-600 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500" />
-                <span className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-petPink-500 to-petPurple-500 text-white font-semibold shadow-sm">Beta</span>
               </div>
             </div>
             {/* Stats */}
@@ -75,31 +79,15 @@ const Hero = () => {
             </div>
           </div>
           {/* Coluna imagem */}
-          <div className="relative order-1 lg:order-2 reveal">
-            <div className="relative max-w-xl mx-auto">
-              <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-blue-300/40 via-indigo-200/20 to-transparent dark:from-indigo-500/30 rounded-[2.5rem] blur-2xl" />
-              <div className="overflow-hidden rounded-[2rem] shadow-2xl ring-1 ring-blue-200/40 dark:ring-indigo-500/20 border border-white/40 dark:border-slate-700/40">
-                <img
-                  src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80"
-                  alt="Cachorro feliz olhando para a câmera"
-                  className="w-full h-[340px] md:h-[500px] object-cover"
-                  loading="eager"
-                  decoding="async"
-                  sizes="(min-width:1024px) 520px, 90vw"
-                  srcSet="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=600&q=80 600w, https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=80 900w, https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80 1200w"
+          <div className="relative order-1 lg:order-2 reveal mx-12 sm:mx-0">
+            <div className="relative w-full max-w-[200px] sm:max-w-md lg:max-w-xl mx-auto">
+              <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-blue-300/40 via-indigo-200/20 to-transparent dark:from-indigo-500/30 rounded-[1rem] sm:rounded-[2.5rem] lg:rounded-[3rem] blur-lg" />
+              <div className="overflow-hidden rounded-[1rem] sm:rounded-[2.5rem] lg:rounded-[3rem] shadow-2xl ring-1 ring-blue-200/40 dark:ring-indigo-500/20 border border-white/40 dark:border-slate-700/40">
+                <img 
+                  src={dogAndCat} 
+                  alt="Cachorro e gato juntos - PetID" 
+                  className="w-full h-[200px] sm:h-[380px] md:h-[420px] lg:h-[480px] object-cover object-center"
                 />
-              </div>
-              <div className="absolute -bottom-6 left-4 md:left-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-2xl shadow-lg p-4 w-48 border border-blue-100 dark:border-slate-700 hover:shadow-xl transition-all">
-                <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1 flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-brand-500 to-indigo-500 animate-pulse" />{t('hero.badge.nftIdentity.title')}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{t('hero.badge.nftIdentity.subtitle')}</p>
-              </div>
-              <div className="absolute top-6 -right-4 md:right-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-2xl shadow-lg p-4 w-48 border border-blue-100 dark:border-slate-700 hover:shadow-xl transition-all">
-                <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1 flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-accent-500 to-pink-500 animate-pulse" />{t('hero.badge.secureHistory.title')}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{t('hero.badge.secureHistory.subtitle')}</p>
               </div>
             </div>
           </div>

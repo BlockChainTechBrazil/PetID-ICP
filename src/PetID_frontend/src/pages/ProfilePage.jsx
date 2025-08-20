@@ -20,10 +20,6 @@ const ProfilePage = () => {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-brand-600 to-petPurple-600 dark:from-brand-400 dark:to-accent-400 bg-clip-text text-transparent">{t('profile.dashboardTitle')}</h1>
           <p className="text-sm text-gray-600 dark:text-slate-400">{t('profile.dashboardSubtitle')}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-brand-500 to-petPurple-500 text-white shadow hover:shadow-md transition">{t('profile.sync')}</button>
-          <button className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-surface-100 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-surface-200 transition">{t('profile.export')}</button>
-        </div>
       </div>
     </div>
   );

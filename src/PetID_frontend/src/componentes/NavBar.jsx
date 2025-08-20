@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
-import Logo from "../assets/logo/PetID_logo.jpg";
+import Logo from "../assets/logo/logo.jpg";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePWAInstall } from '../hooks/usePWAInstall';
@@ -117,14 +117,14 @@ const NavBar = () => {
             <div className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-surface-200 to-transparent" />
             <div className="flex flex-wrap items-center gap-3">
               <LanguageSwitcher />
-              {canInstall && !isInstalled && (
+              {/*canInstall && !isInstalled && (
                 <button
                   onClick={() => { promptInstall(); setMobileOpen(false); }}
                   className="px-3 py-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow hover:shadow-md transition text-sm"
                 >
                   {t('pwa.install', 'Instalar App')}
                 </button>
-              )}
+              )*/}
               <button onClick={toggleDark} aria-label={dark ? 'Switch to light' : 'Switch to dark'} className="p-2 rounded-full bg-gray-100 dark:bg-surface-100 border border-gray-200 dark:border-surface-200 hover:scale-105 transition">
                 {dark ? (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-300" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM4 11a1 1 0 100-2H3a1 1 0 000 2h1zm1.636 5.364a1 1 0 01-1.414-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707z" /></svg>

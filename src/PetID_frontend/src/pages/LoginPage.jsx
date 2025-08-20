@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Logo from '../assets/logo/PetID_logo.jpg';
+import Logo from '../assets/logo/logo.jpg';
 
 const LoginPage = () => {
   const { isAuthenticated, login, loginLoading, loading, error } = useAuth();

@@ -66,7 +66,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-800 dark:border-surface-200/60 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} PetID. {t('footer.rights')}</p>
+          <p>&copy; {new Date().getFullYear()} Blockchain Tech Brazil. {t('footer.rights')}</p>
         </div>
       </div>
     </footer>
