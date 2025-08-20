@@ -146,6 +146,9 @@
     "title": "Historias de Conexión",
     "subtitle": "Mascotas y familias protegidas con identidad digital e historial seguro."
   },
+  "pwa": {
+    "install": "Instalar App"
+  },
   "cta": {
     "title": "¿Listo para dar identidad a tu mejor amigo?",
     "subtitle": "Registra, protege y accede al historial de tu mascota desde cualquier lugar con seguridad blockchain.",

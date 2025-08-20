@@ -146,6 +146,9 @@
     "title": "Connection Stories",
     "subtitle": "Pets and families protected with digital identity and secure history."
   },
+  "pwa": {
+    "install": "Install App"
+  },
   "cta": {
     "title": "Ready to give identity to your best friend?",
     "subtitle": "Register, protect and access your pet's history from anywhere with blockchain security.",

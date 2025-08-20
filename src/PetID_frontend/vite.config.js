@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'url';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import environment from 'vite-plugin-environment';
 import dotenv from 'dotenv';
 
@@ -52,6 +53,61 @@ export default defineConfig({
     react(),
     environment("all", { prefix: "CANISTER_" }),
     environment("all", { prefix: "DFX_" }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      devOptions: {
+        enabled: true, // habilita manifest e sw virtuais no modo dev
+        navigateFallback: 'index.html'
+      },
+      includeAssets: ['favicon.ico', 'logo2.svg'],
+      manifest: {
+        name: 'PetID',
+        short_name: 'PetID',
+        description: 'Identidade digital e genealogia para seu pet na ICP',
+        theme_color: '#0f172a',
+        background_color: '#0f172a',
+        display: 'standalone',
+        scope: '/',
+        start_url: '/',
+        orientation: 'portrait-primary',
+        lang: 'pt-BR',
+        icons: [
+          {
+            src: '/logo2.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any'
+          },
+          {
+            src: '/favicon.ico',
+            sizes: '64x64 32x32 24x24 16x16',
+            type: 'image/x-icon'
+          }
+        ]
+      },
+      workbox: {
+        navigateFallback: '/index.html',
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 }
+            }
+          },
+          {
+            urlPattern: /\/api\//,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 }
+            }
+          }
+        ]
+      }
+    })
   ],
   resolve: {
     alias: [

@@ -8,6 +8,9 @@
   <base href="/" />
   <!-- Favicon corrigido: usar logo existente -->
   <link rel="icon" type="image/jpeg" href="/src/assets/logo/PetID_logo.jpg" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="description" content="Identidade digital e genealogia para seu pet na Internet Computer" />
   <!-- Fonte amigável -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,6 +42,14 @@
   </div>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+  <script>
+    // Avisar usuário após atualização do service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('[PWA] Nova versão ativa.');
+      });
+    }
+  </script>
 </body>
 
 </html>

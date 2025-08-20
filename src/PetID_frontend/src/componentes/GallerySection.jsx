@@ -22,11 +22,11 @@ const GallerySection = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 reveal">{t('gallery.title')}</h2>
           <p className="text-lg text-gray-600 dark:text-slate-400 reveal delay-100">{t('gallery.subtitle')}</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
           {images.map((img, i) => (
             <div
               key={i}
-              className={`relative overflow-hidden rounded-2xl shadow-md aspect-square group reveal delay-${(i + 1) * 50} bg-white dark:bg-gradient-to-br dark:from-surface-100 dark:via-surface-75 dark:to-surface-100`}
+              className={`relative overflow-hidden rounded-xl md:rounded-2xl shadow-md group reveal delay-${(i + 1) * 50} bg-white dark:bg-gradient-to-br dark:from-surface-100 dark:via-surface-75 dark:to-surface-100 flex items-center justify-center aspect-[4/3] md:aspect-square`}
             >
               {!loaded[i] && (
                 <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-gray-200 to-gray-100 dark:from-petPurple-500/20 dark:via-petPink-500/20 dark:to-petMint-500/20" />
@@ -34,7 +34,7 @@ const GallerySection = () => {
               <img
                 src={img.src}
                 alt={img.alt}
-                className={`w-full h-full object-cover transform group-hover:scale-110 transition-[transform,filter,opacity] duration-700 ${loaded[i] ? 'opacity-100' : 'opacity-0'} ease-out`}
+                className={`max-w-full max-h-full w-full h-full object-contain md:object-cover object-center transform group-hover:scale-105 md:group-hover:scale-110 transition-[transform,filter,opacity] duration-700 ${loaded[i] ? 'opacity-100' : 'opacity-0'} ease-out`}
                 loading="lazy"
                 decoding="async"
                 onLoad={() => handleLoad(i)}
