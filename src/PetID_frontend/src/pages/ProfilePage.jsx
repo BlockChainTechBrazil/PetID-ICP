@@ -25,23 +25,6 @@ const ProfilePage = () => {
           <button className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-surface-100 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-surface-200 transition">{t('profile.export')}</button>
         </div>
       </div>
-      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
-        {[
-          { label: t('profile.stats.totalPets'), value: 3, color: 'from-petPink-400 to-petPurple-500' },
-          { label: t('profile.stats.upcomingEvents'), value: 2, color: 'from-emerald-400 to-teal-500' },
-          { label: t('profile.stats.medicalPendings'), value: 1, color: 'from-amber-400 to-orange-500' },
-          { label: t('profile.stats.partnerClinics'), value: 3, color: 'from-indigo-400 to-accent-500' },
-        ].map(c => (
-          <div key={c.label} className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-white/70 to-white/40 dark:from-surface-75/70 dark:to-surface-100/40 backdrop-blur group border border-gray-200 dark:border-surface-100">
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-r ${c.color} mix-blend-overlay`} />
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{c.label}</p>
-            <div className="mt-2 flex items-end justify-between">
-              <span className="text-3xl font-bold text-gray-800 dark:text-white">{c.value}</span>
-              <span className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300">{t('profile.stats.today')}</span>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 

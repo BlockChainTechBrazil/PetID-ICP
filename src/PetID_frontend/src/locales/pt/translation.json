@@ -201,5 +201,28 @@
       "deleteDisabled": "Exclusão desabilitada na demo",
       "apiKeyHint": "Adicione sua Google Maps API key em um arquivo .env (VITE_GOOGLE_MAPS_API_KEY) para habilitar o mapa interativo."
     }
+  },
+  "petPanel": {
+    "image": "Imagem",
+    "nickname": "Apelido",
+    "birthDate": "Data de Nascimento",
+    "selectOrDrop": "Arraste ou clique para selecionar",
+    "fileTypes": "PNG JPG GIF WEBP • até 5MB",
+    "cidOk": "CID OK",
+    "cidLabel": "CID",
+    "saving": "Salvando...",
+    "uploadingImage": "Enviando imagem...",
+    "savePet": "Salvar Pet",
+    "close": "Fechar",
+    "noPets": "Nenhum pet cadastrado ainda.",
+    "birth": "Nascimento",
+    "created": "Criado",
+    "owner": "Dono",
+    "petRegistered": "Pet registrado!",
+    "invalidImage": "Selecione uma imagem válida",
+    "fillAll": "Preencha todos os campos",
+    "imgSent": "Imagem enviada",
+    "unsupportedType": "Tipo de arquivo não suportado",
+    "max5mb": "Máx 5MB"
   }
 }

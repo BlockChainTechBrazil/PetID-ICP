@@ -79,8 +79,8 @@ const NFTPetsPanel = () => {
   const handleFileSelect = (file) => {
     if (!file) return;
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowed.includes(file.type)) { setError('Tipo de arquivo não suportado'); return; }
-    if (file.size > 5 * 1024 * 1024) { setError('Máx 5MB'); return; }
+    if (!allowed.includes(file.type)) { setError(t('petPanel.unsupportedType')); return; }
+    if (file.size > 5 * 1024 * 1024) { setError(t('petPanel.max5mb')); return; }
     setSelectedFile(file);
     const reader = new FileReader();
     reader.onload = ev => setImagePreview(ev.target.result);
@@ -128,9 +128,9 @@ const NFTPetsPanel = () => {
     try {
       const cid = await uploadToIPFS(file);
       setFormData(f => ({ ...f, photo: cid }));
-      setSuccess('Imagem enviada');
+      setSuccess(t('petPanel.imgSent'));
     } catch (e) {
-      setError(e.message || 'Erro ao enviar imagem');
+      setError(e.message || t('petPanel.invalidImage'));
       setFormData(f => ({ ...f, photo: '' }));
     } finally { setUploading(false); setUploadProgress(null); }
   }, []);
@@ -139,20 +139,20 @@ const NFTPetsPanel = () => {
     e.preventDefault();
     setSubmitting(true); setError(''); setSuccess('');
     try {
-      if (!actor) throw new Error('Ator não pronto');
+      if (!actor) throw new Error('Actor not ready');
       // Se há arquivo selecionado mas ainda não temos CID, faz upload agora
       if (selectedFile && !formData.photo) {
         await autoUpload(selectedFile);
       }
-      if (!formData.photo) throw new Error('Selecione uma imagem válida');
-      if (!formData.nickname || !formData.birthDate) throw new Error('Preencha todos os campos');
+      if (!formData.photo) throw new Error(t('petPanel.invalidImage'));
+      if (!formData.nickname || !formData.birthDate) throw new Error(t('petPanel.fillAll'));
       const res = await actor.createPet({
         photo: formData.photo,
         nickname: formData.nickname,
         birthDate: formData.birthDate,
       });
       if ('ok' in res) {
-        setSuccess('Pet registrado!');
+        setSuccess(t('petPanel.petRegistered'));
         setFormData({ photo: '', nickname: '', birthDate: '' });
         setSelectedFile(null); setImagePreview('');
         loadPets();
@@ -185,6 +185,25 @@ const NFTPetsPanel = () => {
         )}
       </div>
 
+      {/* Stats dentro do painel */}
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+        {[
+          { key: 'totalPets', value: pets.length, color: 'from-petPink-400 to-petPurple-500' },
+          { key: 'upcomingEvents', value: 2, color: 'from-emerald-400 to-teal-500' }, // mock
+          { key: 'medicalPendings', value: 1, color: 'from-amber-400 to-orange-500' }, // mock
+          { key: 'partnerClinics', value: 3, color: 'from-indigo-400 to-accent-500' }, // mock
+        ].map(c => (
+          <div key={c.key} className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-white/70 to-white/40 dark:from-surface-75/70 dark:to-surface-100/40 backdrop-blur group border border-gray-200 dark:border-surface-100">
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-r ${c.color} mix-blend-overlay`} />
+            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t(`profile.stats.${c.key}`)}</p>
+            <div className="mt-2 flex items-end justify-between">
+              <span className="text-3xl font-bold text-gray-800 dark:text-white">{c.value}</span>
+              <span className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300">{t('profile.stats.today')}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Acordeão do formulário */}
       {formOpen && (
         <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/70 backdrop-blur p-6 shadow-sm">
@@ -195,9 +214,9 @@ const NFTPetsPanel = () => {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Coluna Imagem / Dropzone */}
               <div className="lg:col-span-1">
-                <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400 mb-2">Imagem *</label>
+                <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200 mb-2">Imagem *</label>
                 <div
-                  className={`relative group border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center transition cursor-pointer bg-white/60 dark:bg-surface-100/40 hover:border-indigo-400 dark:hover:border-indigo-500 ${uploading ? 'opacity-70' : ''}`}
+                  className={`relative group border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center transition cursor-pointer bg-white/70 dark:bg-surface-100/30 hover:border-indigo-400 dark:hover:border-indigo-500 ${uploading ? 'opacity-70' : ''}`}
                   onDragOver={(e) => { e.preventDefault(); }}
                   onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; handleFileSelect(file); }}
                   onClick={() => document.getElementById('pet-image-input')?.click()}
@@ -205,7 +224,7 @@ const NFTPetsPanel = () => {
                   {!imagePreview && !formData.photo && (
                     <>
                       <svg className="h-10 w-10 text-indigo-400 mb-3" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V8.25A2.25 2.25 0 0 1 5.25 6h13.5A2.25 2.25 0 0 1 21 8.25v8.25m-18 0A2.25 2.25 0 0 0 5.25 18h13.5A2.25 2.25 0 0 0 21 16.5m-18 0v.75A2.25 2.25 0 0 0 5.25 19.5h13.5A2.25 2.25 0 0 0 21 17.25v-.75M12 12l3 3m0 0l3-3m-3 3V3" /></svg>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">Arraste ou clique para selecionar<br /><span className="text-[10px] uppercase tracking-wide font-medium text-indigo-500">PNG JPG GIF WEBP • até 5MB</span></p>
+                      <p className="text-xs text-gray-600 dark:text-slate-200 leading-relaxed">{t('petPanel.selectOrDrop')}<br /><span className="text-[10px] uppercase tracking-wide font-medium text-indigo-500">{t('petPanel.fileTypes')}</span></p>
                     </>
                   )}
                   {(imagePreview || formData.photo) && (
@@ -221,38 +240,38 @@ const NFTPetsPanel = () => {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          <span>{uploadProgress ? `${uploadProgress}%` : 'Enviando...'}</span>
+                          <span>{uploadProgress ? `${uploadProgress}%` : t('petPanel.uploadingImage')}</span>
                         </div>
                       )}
                       {formData.photo && !uploading && (
-                        <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow">CID OK</span>
+                        <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow">{t('petPanel.cidOk')}</span>
                       )}
                     </div>
                   )}
                   <input id="pet-image-input" type="file" accept="image/*" onChange={onInputFileChange} className="hidden" />
                 </div>
                 {formData.photo && (
-                  <p className="mt-3 text-[10px] font-mono break-all text-emerald-600 dark:text-emerald-400">CID: {formData.photo}</p>
+                  <p className="mt-3 text-[10px] font-mono break-all text-emerald-600 dark:text-emerald-400">{t('petPanel.cidLabel')}: {formData.photo}</p>
                 )}
               </div>
               {/* Coluna dados */}
               <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Apelido *</label>
-                  <input name="nickname" value={formData.nickname} onChange={handleChange} placeholder="Ex: Luna" className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/70 dark:bg-surface-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petPanel.nickname')} *</label>
+                  <input name="nickname" value={formData.nickname} onChange={handleChange} placeholder={t('petForm.nicknamePlaceholder', 'Ex: Luna')} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500" />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Data de Nascimento *</label>
-                  <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/70 dark:bg-surface-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petPanel.birthDate')} *</label>
+                  <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500" />
                 </div>
                 <div className="sm:col-span-2 flex flex-wrap gap-3 pt-2">
                   <button disabled={submitting || uploading} className="px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-petPurple-600 text-white text-sm font-semibold shadow hover:shadow-md transition disabled:opacity-60 flex items-center gap-2">
                     {(submitting || uploading) && (
                       <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
                     )}
-                    {submitting ? 'Salvando...' : uploading ? 'Enviando imagem...' : 'Salvar Pet'}
+                    {submitting ? t('petPanel.saving') : uploading ? t('petPanel.uploadingImage') : t('petPanel.savePet')}
                   </button>
-                  <button type="button" onClick={() => setFormOpen(false)} className="px-5 py-2.5 rounded-full text-sm font-medium bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-surface-200">Fechar</button>
+                  <button type="button" onClick={() => setFormOpen(false)} className="px-5 py-2.5 rounded-full text-sm font-medium bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-surface-200">{t('petPanel.close')}</button>
                 </div>
               </div>
             </div>
@@ -263,7 +282,7 @@ const NFTPetsPanel = () => {
       {/* Lista de pets */}
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
         {pets.length === 0 && !loadingPets && (
-          <div className="col-span-full text-sm text-gray-500 dark:text-slate-400">Nenhum pet cadastrado ainda.</div>
+          <div className="col-span-full text-sm text-gray-500 dark:text-slate-400">{t('petPanel.noPets')}</div>
         )}
         {pets.map(pet => (
           <div key={pet.id} className="group relative rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5 shadow-sm hover:shadow-md transition overflow-hidden">
@@ -287,10 +306,10 @@ const NFTPetsPanel = () => {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">{pet.nickname} <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">{pet.id}</span></h3>
             </div>
             <div className="space-y-1 text-[11px] text-gray-500 dark:text-slate-400">
-              <p><span className="font-medium">Nascimento:</span> {formatDate(pet.birthDate)}</p>
-              <p><span className="font-medium">Criado:</span> {formatTimestamp(pet.createdAt)}</p>
-              <p><span className="font-medium">Dono:</span> {formatPrincipal(pet.owner)}</p>
-              {pet.photo && <p className="truncate"><span className="font-medium">CID:</span> {pet.photo}</p>}
+              <p><span className="font-medium">{t('petPanel.birth')}:</span> {formatDate(pet.birthDate)}</p>
+              <p><span className="font-medium">{t('petPanel.created')}:</span> {formatTimestamp(pet.createdAt)}</p>
+              <p><span className="font-medium">{t('petPanel.owner')}:</span> {formatPrincipal(pet.owner)}</p>
+              {pet.photo && <p className="truncate"><span className="font-medium">{t('petPanel.cidLabel')}:</span> {pet.photo}</p>}
             </div>
           </div>
         ))}

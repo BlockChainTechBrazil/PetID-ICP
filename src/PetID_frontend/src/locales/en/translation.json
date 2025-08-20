@@ -201,5 +201,28 @@
       "deleteDisabled": "Deletion disabled in demo",
       "apiKeyHint": "Add your Google Maps API key in a .env file (VITE_GOOGLE_MAPS_API_KEY) to enable interactive map."
     }
+  },
+  "petPanel": {
+    "image": "Image",
+    "nickname": "Nickname",
+    "birthDate": "Birth Date",
+    "selectOrDrop": "Drag or click to select",
+    "fileTypes": "PNG JPG GIF WEBP • up to 5MB",
+    "cidOk": "CID OK",
+    "cidLabel": "CID",
+    "saving": "Saving...",
+    "uploadingImage": "Uploading image...",
+    "savePet": "Save Pet",
+    "close": "Close",
+    "noPets": "No pets registered yet.",
+    "birth": "Birth",
+    "created": "Created",
+    "owner": "Owner",
+    "petRegistered": "Pet registered!",
+    "invalidImage": "Select a valid image",
+    "fillAll": "Fill all required fields",
+    "imgSent": "Image uploaded",
+    "unsupportedType": "Unsupported file type",
+    "max5mb": "Max 5MB"
   }
 }
