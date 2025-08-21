@@ -9,7 +9,7 @@ import Time "mo:base/Time";
 import Result "mo:base/Result";
 import Buffer "mo:base/Buffer";
 
-actor PetID {
+persistent actor PetID {
     // Tipo para representar um Pet
     public type Pet = {
         id: Nat;
@@ -36,15 +36,15 @@ actor PetID {
     };
 
     // Contador de IDs de pets
-    private stable var nextPetId: Nat = 1;
+    private var nextPetId: Nat = 1;
     
     // Registro de pets (persistente)
-    private stable var petsEntries : [(Nat, Pet)] = [];
-    private var pets = HashMap.HashMap<Nat, Pet>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    private var petsEntries : [(Nat, Pet)] = [];
+    private transient var pets = HashMap.HashMap<Nat, Pet>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
     
     // Mapeamento de pets por proprietário (Principal do usuário)
-    private stable var petsByOwnerEntries : [(Principal, [Nat])] = [];
-    private var petsByOwner = HashMap.HashMap<Principal, [Nat]>(0, Principal.equal, Principal.hash);
+    private var petsByOwnerEntries : [(Principal, [Nat])] = [];
+    private transient var petsByOwner = HashMap.HashMap<Principal, [Nat]>(0, Principal.equal, Principal.hash);
     
     // Função auxiliar para checar se é o próprio usuário
     private func _isCaller(caller : Principal) : Bool {
