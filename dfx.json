@@ -2,8 +2,7 @@
   "canisters": {
     "PetID_backend": {
       "main": "src/PetID_backend/main.mo",
-      "type": "motoko",
-      "id": "bkyz2-fmaaa-aaaaa-qaaaq-cai"
+      "type": "motoko"
     },
     "PetID_frontend": {
       "dependencies": [
@@ -12,12 +11,21 @@
       "source": [
         "src/PetID_frontend/dist"
       ],
-      "type": "assets",
-      "id": "bd3sg-teaaa-aaaaa-qaaba-cai"
+      "type": "assets"
     },
     "internet_identity": {
       "type": "pull",
       "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:4943",
+      "type": "ephemeral"
+    },
+    "ic": {
+      "providers": ["https://icp0.io", "https://icp-api.io"],
+      "type": "persistent"
     }
   },
   "defaults": {
