@@ -15,6 +15,10 @@ const PetForm = () => {
     photo: '', // CID da imagem no IPFS
     nickname: '',
     birthDate: '',
+    species: '',
+    gender: '',
+    color: '',
+    isLost: false,
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -762,7 +766,7 @@ const PetForm = () => {
                     />
                   </div>
 
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1">
                       {t('petForm.birthDate', 'Data de Nascimento')} *
                     </label>
@@ -777,23 +781,118 @@ const PetForm = () => {
                     />
                   </div>
 
+                  {/* Novos campos organizados em grid responsivo */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label htmlFor="species" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('petForm.species', 'Espécie')} *
+                      </label>
+                      <select
+                        id="species"
+                        name="species"
+                        value={formData.species}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      >
+                        <option value="">{t('petForm.selectSpecies', 'Selecione a espécie')}</option>
+                        <option value="dog">{t('petForm.dog', 'Cachorro')}</option>
+                        <option value="cat">{t('petForm.cat', 'Gato')}</option>
+                        <option value="bird">{t('petForm.bird', 'Pássaro')}</option>
+                        <option value="snake">{t('petForm.snake', 'Cobra')}</option>
+                        <option value="hamster">{t('petForm.hamster', 'Hamster')}</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('petForm.gender', 'Gênero')} *
+                      </label>
+                      <select
+                        id="gender"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      >
+                        <option value="">{t('petForm.selectGender', 'Selecione o gênero')}</option>
+                        <option value="male">{t('petForm.male', 'Macho')}</option>
+                        <option value="female">{t('petForm.female', 'Fêmea')}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('petForm.color', 'Cor Principal')} *
+                      </label>
+                      <select
+                        id="color"
+                        name="color"
+                        value={formData.color}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      >
+                        <option value="">{t('petForm.selectColor', 'Selecione a cor')}</option>
+                        <option value="black">{t('petForm.black', 'Preto')}</option>
+                        <option value="white">{t('petForm.white', 'Branco')}</option>
+                        <option value="brown">{t('petForm.brown', 'Marrom')}</option>
+                        <option value="golden">{t('petForm.golden', 'Dourado')}</option>
+                        <option value="gray">{t('petForm.gray', 'Cinza')}</option>
+                        <option value="orange">{t('petForm.orange', 'Laranja')}</option>
+                        <option value="mixed">{t('petForm.mixed', 'Misto')}</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="isLost" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('petForm.status', 'Status')}
+                      </label>
+                      <select
+                        id="isLost"
+                        name="isLost"
+                        value={formData.isLost.toString()}
+                        onChange={(e) => setFormData({ ...formData, isLost: e.target.value === 'true' })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      >
+                        <option value="false">{t('petForm.notLost', 'Em casa')}</option>
+                        <option value="true">{t('petForm.lost', 'Perdido')}</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="px-6 py-2 bg-blue-500 text-white font-medium rounded-full shadow-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
                     >
                       {isLoading ? (
-                        <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                           {t('petForm.registering', 'Registrando...')}
                         </span>
                       ) : (
-                        t('petForm.register', 'Registrar Pet')
+                        <span className="flex items-center justify-center">
+                          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                          </svg>
+                          {t('petForm.register', 'Registrar Pet')}
+                        </span>
                       )}
+                    </button>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-xs text-gray-500 text-center">
+                      {t('petForm.requiredNote', '* Campos obrigatórios')}
+                    </p>
                     </button>
 
                     <button

@@ -16,6 +16,10 @@ persistent actor PetID {
         photo: Text; // CID da imagem no IPFS
         nickname: Text;
         birthDate: Text;
+        species: Text; // dog, cat, bird, snake, hamster
+        gender: Text; // male, female
+        color: Text; // main pet colors
+        isLost: Bool; // lost status flag
         owner: Principal;
         createdAt: Int; // Timestamp
     };
@@ -25,6 +29,10 @@ persistent actor PetID {
         photo: Text; // CID da imagem no IPFS
         nickname: Text;
         birthDate: Text;
+        species: Text;
+        gender: Text;
+        color: Text;
+        isLost: Bool;
     };
     
     // Estrutura para armazenar erros
@@ -73,6 +81,18 @@ persistent actor PetID {
             return #err("A data de nascimento do pet é obrigatória.");
         };
         
+        if (Text.size(payload.species) == 0) {
+            return #err("A espécie do pet é obrigatória.");
+        };
+        
+        if (Text.size(payload.gender) == 0) {
+            return #err("O gênero do pet é obrigatório.");
+        };
+        
+        if (Text.size(payload.color) == 0) {
+            return #err("A cor do pet é obrigatória.");
+        };
+        
         // Criar o novo pet
         let petId = nextPetId;
         nextPetId += 1;
@@ -84,6 +104,10 @@ persistent actor PetID {
             photo = payload.photo;
             nickname = payload.nickname;
             birthDate = payload.birthDate;
+            species = payload.species;
+            gender = payload.gender;
+            color = payload.color;
+            isLost = payload.isLost;
             owner = caller;
             createdAt = now;
         };

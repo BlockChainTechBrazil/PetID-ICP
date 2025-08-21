@@ -30,6 +30,10 @@ const NFTPetsPanel = () => {
     photo: '',
     nickname: '',
     birthDate: '',
+    species: '',
+    gender: '',
+    color: '',
+    isLost: false,
   });
   const initializedRef = useRef(false);
 
@@ -145,15 +149,21 @@ const NFTPetsPanel = () => {
         await autoUpload(selectedFile);
       }
       if (!formData.photo) throw new Error(t('petPanel.invalidImage'));
-      if (!formData.nickname || !formData.birthDate) throw new Error(t('petPanel.fillAll'));
+      if (!formData.nickname || !formData.birthDate || !formData.species || !formData.gender || !formData.color) {
+        throw new Error(t('petPanel.fillAll'));
+      }
       const res = await actor.createPet({
         photo: formData.photo,
         nickname: formData.nickname,
         birthDate: formData.birthDate,
+        species: formData.species,
+        gender: formData.gender,
+        color: formData.color,
+        isLost: formData.isLost,
       });
       if ('ok' in res) {
         setSuccess(t('petPanel.petRegistered'));
-        setFormData({ photo: '', nickname: '', birthDate: '' });
+        setFormData({ photo: '', nickname: '', birthDate: '', species: '', gender: '', color: '', isLost: false });
         setSelectedFile(null); setImagePreview('');
         loadPets();
         setFormOpen(false);
@@ -264,7 +274,51 @@ const NFTPetsPanel = () => {
                   <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petPanel.birthDate')} *</label>
                   <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500" />
                 </div>
-                <div className="sm:col-span-2 flex flex-wrap gap-3 pt-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.species')} *</label>
+                  <select name="species" value={formData.species} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100">
+                    <option value="">{t('petForm.selectSpecies')}</option>
+                    <option value="dog">{t('petForm.dog')}</option>
+                    <option value="cat">{t('petForm.cat')}</option>
+                    <option value="bird">{t('petForm.bird')}</option>
+                    <option value="snake">{t('petForm.snake')}</option>
+                    <option value="hamster">{t('petForm.hamster')}</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.gender')} *</label>
+                  <select name="gender" value={formData.gender} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100">
+                    <option value="">{t('petForm.selectGender')}</option>
+                    <option value="male">{t('petForm.male')}</option>
+                    <option value="female">{t('petForm.female')}</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.color')} *</label>
+                  <select name="color" value={formData.color} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100">
+                    <option value="">{t('petForm.selectColor')}</option>
+                    <option value="black">{t('petForm.black')}</option>
+                    <option value="white">{t('petForm.white')}</option>
+                    <option value="brown">{t('petForm.brown')}</option>
+                    <option value="golden">{t('petForm.golden')}</option>
+                    <option value="gray">{t('petForm.gray')}</option>
+                    <option value="orange">{t('petForm.orange')}</option>
+                    <option value="mixed">{t('petForm.mixed')}</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.status')}</label>
+                  <select 
+                    name="isLost" 
+                    value={formData.isLost.toString()} 
+                    onChange={(e) => setFormData({...formData, isLost: e.target.value === 'true'})} 
+                    className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100"
+                  >
+                    <option value="false">{t('petForm.notLost')}</option>
+                    <option value="true">{t('petForm.lost')}</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2 flex flex-wrap gap-3 pt-2">{/* Botões permanecem iguais */}
                   <button disabled={submitting || uploading} className="px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-petPurple-600 text-white text-sm font-semibold shadow hover:shadow-md transition disabled:opacity-60 flex items-center gap-2">
                     {(submitting || uploading) && (
                       <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
@@ -303,10 +357,24 @@ const NFTPetsPanel = () => {
               </div>
             )}
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">{pet.nickname} <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">{pet.id}</span></h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                {pet.nickname} 
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">#{pet.id}</span>
+                {pet.isLost && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-300">
+                    {t('petForm.lost')}
+                  </span>
+                )}
+              </h3>
             </div>
             <div className="space-y-1 text-[11px] text-gray-500 dark:text-slate-400">
-              <p><span className="font-medium">{t('petPanel.birth')}:</span> {formatDate(pet.birthDate)}</p>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                <p><span className="font-medium">{t('petForm.species')}:</span> {t(`petForm.${pet.species}`, pet.species)}</p>
+                <p><span className="font-medium">{t('petForm.gender')}:</span> {t(`petForm.${pet.gender}`, pet.gender)}</p>
+                <p><span className="font-medium">{t('petForm.color')}:</span> {t(`petForm.${pet.color}`, pet.color)}</p>
+                <p><span className="font-medium">{t('petForm.status')}:</span> {pet.isLost ? t('petForm.lost') : t('petForm.notLost')}</p>
+              </div>
+              <p className="pt-1"><span className="font-medium">{t('petPanel.birth')}:</span> {formatDate(pet.birthDate)}</p>
               <p><span className="font-medium">{t('petPanel.created')}:</span> {formatTimestamp(pet.createdAt)}</p>
               <p><span className="font-medium">{t('petPanel.owner')}:</span> {formatPrincipal(pet.owner)}</p>
               {pet.photo && <p className="truncate"><span className="font-medium">{t('petPanel.cidLabel')}:</span> {pet.photo}</p>}
