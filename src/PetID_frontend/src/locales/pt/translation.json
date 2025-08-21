@@ -2,13 +2,43 @@
   "navbar": {
     "connectWallet": "Conectar",
     "logout": "Sair",
-    "connecting": "Conectando..."
+    "connecting": "Conectando...",
+    "home": "Início",
+    "profile": "Perfil",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
+  },
+  "login": {
+    "title": "Acesse sua conta",
+    "subtitle": "Autentique-se com sua Internet Identity para acessar seu dashboard e gerenciar seus pets.",
+    "ctaICP": "Entrar com Internet Identity",
+    "loading": "Conectando...",
+    "cta": "Entrar",
+    "already": "Você já está autenticado. Redirecionando...",
+    "futureProviders": "Em breve: Google, Apple, Ethereum, Solana...",
+    "error": "Erro ao autenticar"
   },
   "hero": {
     "title": "Registro descentralizado para seus pets",
     "description": "A PetID utiliza a tecnologia blockchain para criar registros imutáveis e seguros para seus animais de estimação, garantindo que suas informações estejam sempre acessíveis e protegidas.",
     "registerButton": "Registre seu Pet",
-    "learnMoreButton": "Saiba mais"
+    "learnMoreButton": "Saiba mais",
+    "stats": {
+      "pets": "Pets Registrados",
+      "clinics": "Clínicas",
+      "transactions": "Transações"
+    },
+    "badge": {
+      "nftIdentity": {
+        "title": "Identidade NFT",
+        "subtitle": "Registro imutável"
+      },
+      "secureHistory": {
+        "title": "Histórico Seguro",
+        "subtitle": "Acessível em qualquer lugar"
+      }
+    },
+    "searchPlaceholder": "Busque o ID do seu pet"
   },
   "petForm": {
     "title": "Registre seu Pet",
@@ -21,6 +51,30 @@
     "nickname": "Apelido",
     "nicknamePlaceholder": "Apelido do seu pet (opcional)",
     "birthDate": "Data de Nascimento",
+    "species": "Espécie",
+    "selectSpecies": "Selecione a espécie",
+    "dog": "Cachorro",
+    "cat": "Gato",
+    "bird": "Pássaro",
+    "snake": "Cobra",
+    "hamster": "Hamster",
+    "gender": "Gênero",
+    "selectGender": "Selecione o gênero",
+    "male": "Macho",
+    "female": "Fêmea",
+    "color": "Cor Principal",
+    "selectColor": "Selecione a cor",
+    "black": "Preto",
+    "white": "Branco",
+    "brown": "Marrom",
+    "golden": "Dourado",
+    "gray": "Cinza",
+    "orange": "Laranja",
+    "mixed": "Misto",
+    "status": "Status",
+    "notLost": "Em casa",
+    "lost": "Perdido",
+    "requiredNote": "* Campos obrigatórios",
     "register": "Registrar Pet",
     "registering": "Registrando...",
     "logout": "Desconectar",
@@ -111,5 +165,91 @@
     "support": "Suporte",
     "partnerships": "Parcerias",
     "rights": "Todos os direitos reservados."
+  },
+  "gallery": {
+    "title": "Histórias de Conexão",
+    "subtitle": "Pets e famílias protegidos com identidade digital e histórico seguro."
+  },
+  "pwa": {
+    "install": "Instalar App"
+  },
+  "cta": {
+    "title": "Pronto para dar identidade ao seu melhor amigo?",
+    "subtitle": "Registre, proteja e acesse o histórico do seu pet de qualquer lugar, com segurança blockchain.",
+    "primaryButton": "Começar Agora",
+    "secondaryButton": "Saiba Mais"
+  },
+  "profile": {
+    "dashboardTitle": "Dashboard do Pet",
+    "dashboardSubtitle": "Gerencie seus NFTs, saúde, localização e comunidade em um só lugar.",
+    "sync": "Sincronizar",
+    "export": "Exportar",
+    "stats": {
+      "totalPets": "Total Pets",
+      "upcomingEvents": "Eventos Próx.",
+      "medicalPendings": "Pendências Médicas",
+      "partnerClinics": "Clínicas Parceiras",
+      "today": "Hoje"
+    },
+    "tabs": {
+      "nfts": "NFTs / Pets",
+      "map": "Localização & Clínicas",
+      "genealogy": "Genealogia",
+      "medical": "Saúde & Vacinas",
+      "community": "Comunidade",
+      "settings": "Configurações"
+    },
+    "map": {
+      "petLocation": "Localização do Pet",
+      "partnerClinics": "Clínicas Parceiras",
+      "staticNote": "Visualização estática (adicione API key para mapa real)"
+    },
+    "settings": {
+      "title": "Configurações",
+      "accountInfo": "Informações da Conta",
+      "name": "Nome",
+      "email": "E-mail",
+      "internetIdentity": "Internet Identity",
+      "notConnected": "Não conectado",
+      "connected": "Conectado",
+      "notifications": "Notificações",
+      "emailNotifications": "Notificações por e-mail",
+      "pushNotifications": "Notificações push",
+      "preferences": "Preferências",
+      "theme": "Tema",
+      "language": "Idioma",
+      "light": "Claro",
+      "dark": "Escuro",
+      "system": "Sistema",
+      "save": "Salvar Alterações",
+      "saved": "Salvo!",
+      "dangerZone": "Zona de Risco",
+      "deleteAccount": "Excluir Conta",
+      "deleteDisabled": "Exclusão desabilitada na demo",
+      "apiKeyHint": "Adicione sua Google Maps API key em um arquivo .env (VITE_GOOGLE_MAPS_API_KEY) para habilitar o mapa interativo."
+    }
+  },
+  "petPanel": {
+    "image": "Imagem",
+    "nickname": "Apelido",
+    "birthDate": "Data de Nascimento",
+    "selectOrDrop": "Arraste ou clique para selecionar",
+    "fileTypes": "PNG JPG GIF WEBP • até 5MB",
+    "cidOk": "CID OK",
+    "cidLabel": "CID",
+    "saving": "Salvando...",
+    "uploadingImage": "Enviando imagem...",
+    "savePet": "Salvar Pet",
+    "close": "Fechar",
+    "noPets": "Nenhum pet cadastrado ainda.",
+    "birth": "Nascimento",
+    "created": "Criado",
+    "owner": "Dono",
+    "petRegistered": "Pet registrado!",
+    "invalidImage": "Selecione uma imagem válida",
+    "fillAll": "Preencha todos os campos",
+    "imgSent": "Imagem enviada",
+    "unsupportedType": "Tipo de arquivo não suportado",
+    "max5mb": "Máx 5MB"
   }
 }

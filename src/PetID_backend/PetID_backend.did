@@ -1,0 +1,30 @@
+type Pet = record {
+  id: nat;
+  photo: text;
+  nickname: text;
+  birthDate: text;
+  owner: principal;
+  createdAt: int;
+};
+
+// Payload para criar um pet
+ type PetPayload = record {
+  photo: text;
+  nickname: text;
+  birthDate: text;
+};
+
+type Error = variant {
+  NotAuthorized;
+  NotFound;
+  AlreadyExists;
+  InvalidInput;
+};
+
+service : {
+  createPet: (PetPayload) -> (variant { ok: Pet; err: text }) ;
+  getMyPets: () -> (variant { ok: vec Pet; err: text }) ;
+  getPet: (nat) -> (variant { ok: Pet; err: text }) query;
+  isAuthenticated: () -> (bool);
+  getAllPets: () -> (vec Pet) query;
+}

@@ -4,9 +4,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
-  <title>PetID - ICP</title>
-  <base href="/" />
-  <link rel="icon" href="./dist/assets/logo/petid_logo_png.png" />
+  <title>PetID</title>
+  <!-- Favicon corrigido: usar logo existente -->
+  <link rel="icon" type="image/jpeg" href="./src/assets/logo/logo.jpg" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="description" content="Identidade digital e genealogia para seu pet na Internet Computer" />
+  <!-- Fonte amigável -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    html {
+      background: #0f172a;
+    }
+
+    body {
+      background: transparent
+    }
+  </style>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('theme');
+        var dark = stored ? stored === 'dark' : true; // default escuro
+        if (dark) document.documentElement.classList.add('dark');
+      } catch (e) { document.documentElement.classList.add('dark'); }
+    })();
+  </script>
 </head>
 
 <body>
@@ -16,6 +41,14 @@
   </div>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+  <script>
+    // Avisar usuário após atualização do service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('[PWA] Nova versão ativa.');
+      });
+    }
+  </script>
 </body>
 
 </html>

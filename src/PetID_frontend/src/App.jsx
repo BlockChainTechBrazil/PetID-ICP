@@ -1,26 +1,28 @@
-import React from 'react';
-import { PetID_backend } from 'declarations/PetID_backend';
+// Import do backend removido porque não é usado neste componente e causava 404 se bindings ainda não gerados.
 import NavBar from './componentes/NavBar';
-import Hero from './componentes/Hero';
-import Features from './componentes/Features';
-import HowItWorks from './componentes/HowItWorks';
-import FAQ from './componentes/FAQ';
-import PetForm from './componentes/PetForm';
-import Footer from './componentes/Footer';
+import HomePage from './pages/HomePage';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProfilePage from './pages/ProfilePage';
+import LoginPage from './pages/LoginPage';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <NavBar />
-      <main className="flex-grow">
-        <Hero />
-        <Features />
-        <HowItWorks />
-        <PetForm />
-        <FAQ />
-      </main>
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col">
+          <NavBar />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            </Routes>
+          </main>
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
