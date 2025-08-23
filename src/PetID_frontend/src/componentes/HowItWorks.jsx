@@ -31,7 +31,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-brand-50 via-white to-accent-50/30 dark:from-slate-900 dark:via-[#0e1628] dark:to-slate-950 relative">
+    <section className="py-8 bg-gradient-to-b from-brand-50 via-white to-accent-50/30 dark:from-slate-900 dark:via-[#0e1628] dark:to-slate-950 relative">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-10 right-10 w-40 h-40 bg-brand-200/40 dark:bg-brand-600/30 rounded-full blur-2xl" />
         <div className="absolute bottom-10 left-4 w-56 h-56 bg-accent-200/40 dark:bg-accent-500/30 rounded-full blur-3xl" />
@@ -50,7 +50,7 @@ const HowItWorks = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {steps.map((step, i) => (
             <div key={step.key} className="relative group">
-              <div className="h-full rounded-2xl bg-white/80 dark:bg-gradient-to-br dark:from-slate-800/70 dark:via-slate-800/40 dark:to-slate-900/70 backdrop-blur px-6 py-8 shadow-soft border border-brand-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-petPink-500/60 transition-all flex flex-col overflow-hidden relative">
+              <div className="h-full rounded-2xl bg-white/80 dark:bg-gradient-to-br dark:from-slate-800/70 dark:via-slate-800/40 dark:to-slate-900/70 backdrop-blur px-4 py-4 shadow-soft border border-brand-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-petPink-500/60 transition-all flex flex-col overflow-hidden relative">
                 <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-petPink-500/30 via-petPurple-500/30 to-petMint-500/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-semibold text-brand-600 dark:text-indigo-300 tracking-wide">Step {step.number}</span>
@@ -58,10 +58,6 @@ const HowItWorks = () => {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 leading-snug bg-gradient-to-r from-brand-600 to-accent-500 dark:from-petPink-500 dark:to-petPurple-500 bg-clip-text text-transparent">{step.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed flex-1">{step.description}</p>
-                <div className="mt-6 text-brand-600 dark:text-indigo-400 text-sm font-medium flex items-center">
-                  <span className="group-hover:translate-x-1 transition-transform">Detalhes</span>
-                  <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </div>
               </div>
               {i < steps.length - 1 && (
                 <div className="hidden lg:block absolute top-1/2 -right-4 translate-x-1/2 text-brand-300 dark:text-slate-600">→</div>

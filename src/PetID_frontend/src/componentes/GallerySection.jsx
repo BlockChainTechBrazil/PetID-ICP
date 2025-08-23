@@ -22,7 +22,7 @@ const GallerySection = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 reveal">{t('gallery.title')}</h2>
           <p className="text-lg text-gray-600 dark:text-slate-400 reveal delay-100">{t('gallery.subtitle')}</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           {images.map((img, i) => (
             <div
               key={i}
@@ -34,7 +34,7 @@ const GallerySection = () => {
               <img
                 src={img.src}
                 alt={img.alt}
-                className={`max-w-full max-h-full w-full h-full object-contain md:object-cover object-center transform group-hover:scale-105 md:group-hover:scale-110 transition-[transform,filter,opacity] duration-700 ${loaded[i] ? 'opacity-100' : 'opacity-0'} ease-out`}
+                className={`max-w-full max-h-full w-full h-full object-contain md:object-cover object-center transform group-hover:scale-105  transition-[transform,filter,opacity] duration-700 ${loaded[i] ? 'opacity-100' : 'opacity-0'} ease-out`}
                 loading="lazy"
                 decoding="async"
                 onLoad={() => handleLoad(i)}

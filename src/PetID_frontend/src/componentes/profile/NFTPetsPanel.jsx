@@ -179,22 +179,6 @@ const NFTPetsPanel = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header + botão adicionar */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          🐾 {t('petForm.myPets', 'Meus Pets')}
-          {loadingPets && <svg className="animate-spin h-4 w-4 text-indigo-500" viewBox="0 0 24 24" />}
-        </h2>
-        {isAuthenticated && (
-          <button
-            onClick={() => setFormOpen(o => !o)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-brand-500 to-petPurple-500 text-white shadow hover:shadow-md transition"
-          >
-            <span className="text-lg">{formOpen ? '−' : '+'}</span> {formOpen ? t('petForm.register', 'Registrar Pet') : t('petForm.register', 'Registrar Pet')}
-          </button>
-        )}
-      </div>
-
       {/* Stats dentro do painel */}
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
         {[
@@ -213,6 +197,23 @@ const NFTPetsPanel = () => {
           </div>
         ))}
       </div>
+      {/* Header + botão adicionar */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          🐾 {t('petForm.myPets', 'Meus Pets')}
+          {loadingPets && <svg className="animate-spin h-4 w-4 text-indigo-500" viewBox="0 0 24 24" />}
+        </h2>
+        {isAuthenticated && (
+          <button
+            onClick={() => setFormOpen(o => !o)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-brand-500 to-petPurple-500 text-white shadow hover:shadow-md transition"
+          >
+            <span className="text-lg">{formOpen ? '−' : '+'}</span> {formOpen ? t('petForm.register', 'Registrar Pet') : t('petForm.register', 'Registrar Pet')}
+          </button>
+        )}
+      </div>
+
+    
 
       {/* Acordeão do formulário */}
       {formOpen && (

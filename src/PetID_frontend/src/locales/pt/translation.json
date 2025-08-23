@@ -29,6 +29,7 @@
       "transactions": "Transações"
     },
     "badge": {
+      "blockchainIdentity": "Blockchain + Identidade Digital",
       "nftIdentity": {
         "title": "Identidade NFT",
         "subtitle": "Registro imutável"

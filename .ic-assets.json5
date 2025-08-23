@@ -1,0 +1,38 @@
+[
+  {
+    "match": "**/*",
+    "security_policy": "standard",
+    "headers": {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "X-XSS-Protection": "1; mode=block",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
+    }
+  },
+  {
+    "match": "**/*.js",
+    "headers": {
+      "Content-Type": "application/javascript",
+      "Cache-Control": "public, max-age=31536000"
+    }
+  },
+  {
+    "match": "**/*.css",
+    "headers": {
+      "Content-Type": "text/css",
+      "Cache-Control": "public, max-age=31536000"
+    }
+  },
+  {
+    "match": "**/*.{jpg,jpeg,png,gif,svg,ico}",
+    "headers": {
+      "Cache-Control": "public, max-age=2592000"
+    }
+  },
+  {
+    "match": "index.html",
+    "headers": {
+      "Cache-Control": "no-cache"
+    }
+  }
+]

@@ -11,12 +11,6 @@ const Features = () => {
       description: t('features.secureRegistry.description')
     },
     {
-      icon: "🔄",
-      key: "simpleTransfer",
-      title: t('features.simpleTransfer.title'),
-      description: t('features.simpleTransfer.description')
-    },
-    {
       icon: "📱",
       key: "universalAccess",
       title: t('features.universalAccess.title'),
@@ -60,10 +54,6 @@ const Features = () => {
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white leading-snug bg-gradient-to-r from-brand-600 to-accent-500 dark:from-petPink-500 dark:to-petPurple-500 bg-clip-text text-transparent">{feature.title}</h3>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">{feature.description}</p>
-              </div>
-              <div className="mt-6 flex items-center text-brand-600 dark:text-indigo-400 text-sm font-medium">
-                <span className="group-hover:translate-x-1 transition-transform">Saiba mais</span>
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
               </div>
             </div>
           ))}
