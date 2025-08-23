@@ -28,20 +28,10 @@ const Hero = () => {
           <div className="relative z-10 order-2 lg:order-1 px-2 sm:px-0">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/70 dark:bg-slate-800/70 backdrop-blur border border-blue-200/60 dark:border-slate-700 shadow-sm mb-6 reveal">
               <span className="w-2.5 h-2.5 bg-gradient-to-tr from-brand-500 to-indigo-500 rounded-full animate-pulse" />
-              <span className="text-xs font-medium tracking-wide text-brand-700 dark:text-indigo-300">Blockchain + Identidade Digital</span>
+              <span className="text-xs font-medium tracking-wide text-brand-700 dark:text-indigo-300">{t('hero.badge.blockchainIdentity')}</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white leading-[1.05] mb-6 tracking-tight reveal max-w-xl">
-              {t('hero.title').split(' ').map((word, index) => {
-                const highlightIndex = 1;
-                return index === highlightIndex ? (
-                  <span key={index} className="relative inline-block">
-                    <span className="bg-gradient-to-r from-brand-600 via-indigo-600 to-accent-500 dark:from-indigo-400 dark:via-brand-400 dark:to-accent-400 bg-clip-text text-transparent drop-shadow-sm">{word}</span>
-                    <span className="absolute inset-x-0 -bottom-1 h-2 rounded-full bg-gradient-to-r from-brand-300/40 to-accent-300/40 dark:from-indigo-500/30 dark:to-accent-500/30 blur-[2px]" aria-hidden="true" />
-                  </span>
-                ) : (
-                  word + ' '
-                );
-              })}
+              {t('hero.title')}
             </h1>
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-xl reveal delay-100">
               {t('hero.description')}
@@ -57,9 +47,6 @@ const Hero = () => {
                     {t('hero.registerButton')}
                     <span className="transition-transform group-hover:translate-x-1">→</span>
                   </span>
-                </button>
-                <button className="px-8 py-4 bg-white/70 dark:bg-slate-800/70 backdrop-blur text-blue-700 dark:text-indigo-200 font-medium rounded-full shadow-md border border-blue-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-200/40">
-                  {t('hero.learnMoreButton')}
                 </button>
               </div>
             </div>
