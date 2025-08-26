@@ -9,7 +9,7 @@
 ## 📑 Table of Contents
 
 - [🔗 Important Links](#-important-links)
-- [🏗️ Project architecture](#-project-architecture)
+- [🏗️ Project Architecture](#-project-architecture)
 - [🎯 About the Project](#-about-the-project)
 - [🌟 Why use PetID?](#-why-use-petid)
 - [✨ Key Features](#-key-features)
@@ -27,20 +27,14 @@
 - 🚀 [Site Deployed](https://nxbta-iqaaa-aaaaj-qnskq-cai.icp0.io/)
 - 📽️ [Pitch Deck](https://www.youtube.com/watch?v=A0n8t9SHlDQ)
 - 🚀 [Live Demo](https://www.youtube.com/watch?v=GMXVu3iZdpY)
-
+- 🛠️ [Installation Guide](https://github.com/BlockChainTechBrazil/PetID-ICP/install.md)
+- 🐞 [Report an Issue](https://github.com/BlockChainTechBrazil/PetID-ICP/issues)
+- 💬 [Community / Discussions](https://github.com/BlockChainTechBrazil/PetID-ICP/discussions)
+- ✉️ [Contact](mailto:contato.davimoliveira@gmail.com)
 ---
 
-## 📦 Quick Access
 
-> !!! 🛠️ [Installation Guide](https://github.com/BlockChainTechBrazil/PetID-ICP/install.md)
-> 
-> !!! 🐞 [Report an Issue](https://github.com/BlockChainTechBrazil/PetID-ICP/issues)
-> 
-> !!! 💬 [Community / Discussions](https://github.com/BlockChainTechBrazil/PetID-ICP/discussions)
 
----
-
----
 
 ## ⚡ Project Progress
 
