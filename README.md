@@ -21,15 +21,24 @@
 
 ---
 
+
 ## 🔗 Important Links
 
 - 🚀 [Site Deployed](https://nxbta-iqaaa-aaaaj-qnskq-cai.icp0.io/)
 - 📽️ [Pitch Deck](https://www.youtube.com/watch?v=A0n8t9SHlDQ)
-- 🚀 [Live Demo](https://demo.example.com)  
-- !!! 🛠️ [Installation Guide](https://github.com/your-repo/INSTALL.md)  
-- !!! 🐞 [Report an Issue](https://github.com/your-repo/issues)  
-- !!! 💬 [Community / Discussions](https://github.com/your-repo/discussions)  
-- !!! 📧 [Contact](mailto:yourname@example.com)  
+- 🚀 [Live Demo](https://www.youtube.com/watch?v=GMXVu3iZdpY)
+
+---
+
+## 📦 Quick Access
+
+> !!! 🛠️ [Installation Guide](https://github.com/BlockChainTechBrazil/PetID-ICP/install.md)
+> 
+> !!! 🐞 [Report an Issue](https://github.com/BlockChainTechBrazil/PetID-ICP/issues)
+> 
+> !!! 💬 [Community / Discussions](https://github.com/BlockChainTechBrazil/PetID-ICP/discussions)
+
+---
 
 ---
 

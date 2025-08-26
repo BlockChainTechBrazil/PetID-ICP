@@ -1,6 +1,7 @@
 # Various IDEs and Editors
 .vscode/
 .idea/
+package-lock.json
 **/*~
 
 # Mac OSX temporary files
