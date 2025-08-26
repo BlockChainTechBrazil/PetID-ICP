@@ -1,7 +1,7 @@
 # PetID - Blockchain Pet Registry
 
 <p align="center">
-  <img src="./assets/logo_full%20(1).jpg" alt="PetID Logo" width="320"/>
+  <img src="./img/logo_full (1).jpg" alt="PetID Logo" width="320"/>
 </p>
 
 ---
@@ -9,8 +9,7 @@
 ## 📑 Table of Contents
 
 - [🔗 Important Links](#-important-links)
-- [⚡ Project Progress](project-progress)
-- [🏗️Project architecture](#project-architecture)
+- [🏗️ Project architecture](#-project-architecture)
 - [🎯 About the Project](#-about-the-project)
 - [🌟 Why use PetID?](#-why-use-petid)
 - [✨ Key Features](#-key-features)
@@ -233,25 +232,25 @@ Millions of pets go missing every year, often because they lack proper identific
 <table>
   <tr>
     <td align="center">
-      <img src="image.png" width="100" /><br/>
+      <img src="./img/Davi.png" width="100" /><br/>
       <b>Davi Marques Oliveira</b><br/>
       Backend Developer<br/>
       <a href="mailto:contato.davimoliveira@gmail.com">Email</a> | 
       <a href="https://www.linkedin.com/in/davi-oliveira-36063a357/">LinkedIn</a>
     </td>
     <td align="center">
-      <img src="image-1.png" width="100" /><br/>
+      <img src="img/Alex.png" width="100" /><br/>
       <b>Álex Joubert</b><br/>
       Frontend Developer<br/>
-      <a href="mailto:seuemail@exemplo.com">Email</a> | 
-      <a href="https://www.linkedin.com/in/davi-oliveira-36063a357/">LinkedIn</a>
+      <a href="mailto:lekinhoj@gmail.com">Email</a> | 
+      <a href="https://www.linkedin.com/in/%C3%A1lex-joubert-5451b215b/">LinkedIn</a>
     </td>
     <td align="center">
-      <img src="image-2.png" width="100" /><br/>
+      <img src="./img/Emiliano.png" width="100" /><br/>
       <b>José Emiliano</b><br/>
       Tech Leader<br/>
       <a href="mailto:Jpemiliano@gmail.com">Email</a> | 
-      <a href="https://www.linkedin.com/in/davi-oliveira-36063a357/">LinkedIn</a>
+      <a href="https://www.linkedin.com/in/jose-emiliano-004a8938/">LinkedIn</a>
     </td>
   </tr>
 </table>
