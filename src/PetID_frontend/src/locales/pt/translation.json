@@ -5,6 +5,7 @@
     "connecting": "Conectando...",
     "home": "Início",
     "profile": "Perfil",
+    "health": "Saúde",
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu"
   },
@@ -252,5 +253,48 @@
     "imgSent": "Imagem enviada",
     "unsupportedType": "Tipo de arquivo não suportado",
     "max5mb": "Máx 5MB"
+  },
+  "healthForm": {
+    "title": "Registro de Saúde e Vacinas",
+    "subtitle": "Gerencie os registros médicos e de vacinação dos seus pets",
+    "loginPrompt": "Você precisa estar autenticado para gerenciar registros de saúde",
+    "date": "Data do Atendimento",
+    "petName": "Nome do Pet",
+    "selectPet": "Selecione um pet",
+    "serviceType": "Tipo de Serviço",
+    "selectServiceType": "Selecione o tipo de serviço",
+    "veterinarianName": "Nome do Veterinário",
+    "veterinarianPlaceholder": "Dr(a). Nome do veterinário",
+    "status": "Status",
+    "descriptionField": "Descrição/Observações",
+    "descriptionPlaceholder": "Descreva detalhes do atendimento, medicamentos prescritos, recomendações...",
+    "attachments": "Anexos (Opcional)",
+    "attachmentsDescription": "Anexe comprovantes, receitas, carteira de vacinação, exames, etc.",
+    "clickToSelect": "Clique para selecionar arquivos",
+    "dragAndDrop": "ou arraste e solte aqui",
+    "filesSelected": "Arquivos selecionados:",
+    "noRecords": "Nenhum registro de saúde encontrado",
+    "addFirstRecord": "Adicione o primeiro registro usando o formulário acima",
+    "historyTitle": "Histórico de Registros de Saúde",
+    "saving": "Salvando...",
+    "uploadingFiles": "Enviando arquivos...",
+    "saveRecord": "Salvar Registro",
+    "success": "Registro de saúde adicionado com sucesso!",
+    "error": "Erro ao salvar registro de saúde. Tente novamente.",
+    "required": "* Campos obrigatórios",
+    "serviceTypes": {
+      "consulta": "Consulta Rotineira",
+      "tratamento": "Tratamento",
+      "cirurgia": "Cirurgia",
+      "vacina": "Vacinação",
+      "emergencia": "Emergência",
+      "exame": "Exames"
+    },
+    "statusOptions": {
+      "pending": "Agendado",
+      "completed": "Concluído",
+      "cancelled": "Cancelado",
+      "in_progress": "Em Andamento"
+    }
   }
 }

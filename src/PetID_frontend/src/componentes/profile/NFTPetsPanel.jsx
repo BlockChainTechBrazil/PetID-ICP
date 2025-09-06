@@ -13,7 +13,7 @@ const gateways = [
 ];
 
 const NFTPetsPanel = () => {
-  const { isAuthenticated, authClient } = useAuth();
+  const { isAuthenticated, createBackendActor } = useAuth();
   const { t } = useTranslation();
   const [actor, setActor] = useState(null);
   const [pets, setPets] = useState([]);
@@ -40,25 +40,25 @@ const NFTPetsPanel = () => {
   // Create actor when authenticated
   useEffect(() => {
     const init = async () => {
-      if (!isAuthenticated || !authClient || initializedRef.current) return;
+      if (!isAuthenticated || initializedRef.current) return;
       initializedRef.current = true;
       try {
-        const identity = authClient.getIdentity();
-        const network = import.meta.env.DFX_NETWORK || 'local';
-        const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
-        const agent = new HttpAgent({ identity, host });
-        if (network !== 'ic') {
-          try { await agent.fetchRootKey(); } catch { }
+        console.log('[NFTPetsPanel] Criando actor...');
+        const a = await createBackendActor();
+        if (a) {
+          setActor(a);
+          console.log('[NFTPetsPanel] Actor criado com sucesso');
+        } else {
+          console.warn('[NFTPetsPanel] Falha ao criar actor');
+          setError('Erro ao inicializar ator');
         }
-        const a = await createActor(backendCanisterId, { agent });
-        setActor(a);
       } catch (e) {
         console.error('[NFTPetsPanel] actor error', e);
         setError('Erro ao inicializar ator');
       }
     };
     init();
-  }, [isAuthenticated, authClient]);
+  }, [isAuthenticated, createBackendActor]);
 
   const loadPets = async () => {
     if (!actor) return;
@@ -167,8 +167,36 @@ const NFTPetsPanel = () => {
         setSelectedFile(null); setImagePreview('');
         loadPets();
         setFormOpen(false);
-      } else if ('err' in res) { setError(res.err); }
-    } catch (er) { setError(er.message); } finally { setSubmitting(false); }
+      } else if ('err' in res) { 
+        console.error('[NFTPetsPanel] Backend error:', res.err);
+        setError(res.err); 
+      }
+    } catch (er) { 
+      console.error('[NFTPetsPanel] Submit error:', er);
+      const errorMsg = er.message || er.toString();
+      
+      if (errorMsg.includes('Invalid signature') || errorMsg.includes('signature')) {
+        setError('Erro de assinatura. Tentando recriar conexão...');
+        // Tentar recriar o actor
+        try {
+          const newActor = await createBackendActor();
+          if (newActor) {
+            setActor(newActor);
+            setError('Conexão reestabelecida. Tente novamente.');
+          } else {
+            setError('Erro de assinatura. Faça logout e login novamente.');
+          }
+        } catch {
+          setError('Erro de assinatura. Faça logout e login novamente.');
+        }
+      } else if (errorMsg.includes('verification failed')) {
+        setError('Falha na verificação. Faça logout e login novamente.');
+      } else {
+        setError(errorMsg);
+      }
+    } finally { 
+      setSubmitting(false); 
+    }
   };
 
   const formatDate = (dateString) => {

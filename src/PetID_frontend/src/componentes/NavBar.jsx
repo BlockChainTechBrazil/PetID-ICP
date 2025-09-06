@@ -72,6 +72,9 @@ const NavBar = () => {
                 <Link to="/perfil" className="px-4 py-2 rounded-full bg-gradient-to-r from-brand-500 to-petPurple-500 text-white font-semibold shadow hover:shadow-md transition">
                   {t('navbar.profile', 'Perfil')}
                 </Link>
+                <Link to="/saude" className="px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold shadow hover:shadow-md transition">
+                  💊 {t('navbar.health', 'Saúde')}
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="px-5 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
@@ -133,13 +136,18 @@ const NavBar = () => {
                 )}
               </button>
               {isAuthenticated ? (
-                <div className="flex w-full gap-2">
-                  <Link onClick={() => setMobileOpen(false)} to="/perfil" className="flex-1 px-4 py-2 rounded-full bg-gradient-to-r from-brand-500 to-petPurple-500 text-white font-semibold shadow hover:shadow-md transition">
-                    {t('navbar.profile', 'Perfil')}
-                  </Link>
+                <div className="flex flex-col w-full gap-2">
+                  <div className="flex gap-2">
+                    <Link onClick={() => setMobileOpen(false)} to="/perfil" className="flex-1 px-4 py-2 rounded-full bg-gradient-to-r from-brand-500 to-petPurple-500 text-white font-semibold shadow hover:shadow-md transition text-center">
+                      {t('navbar.profile', 'Perfil')}
+                    </Link>
+                    <Link onClick={() => setMobileOpen(false)} to="/saude" className="flex-1 px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold shadow hover:shadow-md transition text-center">
+                      💊 {t('navbar.health', 'Saúde')}
+                    </Link>
+                  </div>
                   <button
                     onClick={() => { handleLogout(); setMobileOpen(false); }}
-                    className="flex-1 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
+                    className="w-full px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
                   >
                     {t('navbar.logout', 'Logout')}
                   </button>
