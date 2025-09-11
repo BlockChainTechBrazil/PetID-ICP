@@ -8,20 +8,17 @@ import dotenv from 'dotenv';
 // Carregar .env da raiz do projeto
 dotenv.config({ path: '../../.env' });
 
-// Carregar .env local do frontend também
-dotenv.config();
-
 // Determine if we're in development mode
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
   define: {
     // Garantir que as variáveis de ambiente estejam disponíveis
-    'import.meta.env.REACT_APP_PINATA_JWT': JSON.stringify(process.env.REACT_APP_PINATA_JWT || process.env.VITE_REACT_APP_PINATA_JWT),
-    'import.meta.env.CANISTER_ID_PETID_BACKEND': JSON.stringify(process.env.CANISTER_ID_PETID_BACKEND || process.env.VITE_CANISTER_ID_PETID_BACKEND),
-    'import.meta.env.CANISTER_ID_PETID_FRONTEND': JSON.stringify(process.env.CANISTER_ID_PETID_FRONTEND || process.env.VITE_CANISTER_ID_PETID_FRONTEND),
-    'import.meta.env.CANISTER_ID_INTERNET_IDENTITY': JSON.stringify(process.env.CANISTER_ID_INTERNET_IDENTITY || process.env.VITE_CANISTER_ID_INTERNET_IDENTITY),
-    'import.meta.env.DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK || process.env.VITE_DFX_NETWORK),
+    'import.meta.env.REACT_APP_PINATA_JWT': JSON.stringify(process.env.REACT_APP_PINATA_JWT),
+    'import.meta.env.CANISTER_ID_PETID_BACKEND': JSON.stringify(process.env.CANISTER_ID_PETID_BACKEND),
+    'import.meta.env.CANISTER_ID_PETID_FRONTEND': JSON.stringify(process.env.CANISTER_ID_PETID_FRONTEND),
+    'import.meta.env.CANISTER_ID_INTERNET_IDENTITY': JSON.stringify(process.env.CANISTER_ID_INTERNET_IDENTITY),
+    'import.meta.env.DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK),
   },
   build: {
     emptyOutDir: true,

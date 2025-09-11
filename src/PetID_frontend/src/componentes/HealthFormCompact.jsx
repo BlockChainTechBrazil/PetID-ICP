@@ -7,14 +7,15 @@ import { useAuth } from '../context/AuthContext';
 
 const HealthFormCompact = ({ onSuccess }) => {
   const { t } = useTranslation();
-  const { isAuthenticated, authClient, addHealthRecord } = useAuth();
+  const { isAuthenticated, authClient } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [authenticatedActor, setAuthenticatedActor] = useState(null);
   const [formData, setFormData] = useState({
     date: '',
-    petName: '',
+    petId: '', // Mudança: usar petId em vez de petName
     serviceType: '',
     veterinarianName: '',
+    local: '',
     status: 'pending',
     description: '',
     attachments: []
@@ -185,48 +186,58 @@ const HealthFormCompact = ({ onSuccess }) => {
       // Upload dos arquivos primeiro
       const attachments = await uploadFilesToIPFS();
 
-      // Dados do registro de saúde
-      const healthRecord = {
+      // Dados do registro de saúde para o backend
+      const healthRecordPayload = {
+        petId: parseInt(formData.petId),
         date: formData.date,
-        petName: formData.petName,
         serviceType: formData.serviceType,
         veterinarianName: formData.veterinarianName,
+        local: formData.local && formData.local.trim() !== '' ? [formData.local] : null,
         status: formData.status,
-        description: formData.description,
-        attachments: attachments,
-        createdAt: Date.now()
+        description: formData.description && formData.description.trim() !== '' ? [formData.description] : null,
+        attachments: attachments.map(file => file.cid || '') // CIDs dos arquivos
       };
 
-      // Aqui você chamaria a função do backend para salvar o registro
-      // const result = await authenticatedActor.createHealthRecord(healthRecord);
-      
-      // Salvar no estado global e localStorage
-      const savedRecord = addHealthRecord(healthRecord);
-      console.log('Registro de saúde criado:', savedRecord);
-      
-      setSuccess(t('healthForm.success', 'Registro de saúde adicionado com sucesso!'));
-      
-      // Limpar formulário
-      setFormData({
-        date: '',
-        petName: '',
-        serviceType: '',
-        veterinarianName: '',
-        status: 'pending',
-        description: '',
-        attachments: []
-      });
-      setSelectedFiles([]);
-      setFilePreviews([]);
+      console.log('📋 Enviando registro para o backend:', healthRecordPayload);
 
-      // Chamar callback de sucesso se fornecido (sem passar o registro para evitar duplicação)
-      if (onSuccess) {
-        onSuccess(); // Não passar o registro, apenas indicar sucesso
+      // Salvar no backend usando o ator autenticado
+      const result = await authenticatedActor.createHealthRecord(healthRecordPayload);
+      
+      if ('ok' in result) {
+        console.log('✅ Registro de saúde criado com sucesso:', result.ok);
+        setSuccess(t('healthForm.success', 'Registro de saúde adicionado com sucesso!'));
+        
+        // Limpar formulário
+        setFormData({
+          date: '',
+          petId: '',
+          serviceType: '',
+          veterinarianName: '',
+          local: '',
+          status: 'pending',
+          description: '',
+          attachments: []
+        });
+        setSelectedFiles([]);
+        setFilePreviews([]);
+
+        // Chamar callback de sucesso se fornecido
+        if (onSuccess) {
+          onSuccess(result.ok);
+        }
+      } else {
+        console.error('❌ Erro do backend:', result.err);
+        setError(result.err || t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
       }
 
     } catch (error) {
-      console.error('Erro ao criar registro:', error);
-      setError(t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
+      console.error('❌ Erro ao criar registro:', error);
+      const errorMessage = error.message || error.toString();
+      if (errorMessage.includes('Invalid delegation')) {
+        setError('Sessão expirada. Faça logout e login novamente.');
+      } else {
+        setError(t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -300,23 +311,23 @@ const HealthFormCompact = ({ onSuccess }) => {
             />
           </div>
 
-          {/* Nome do Pet */}
+          {/* Seleção do Pet */}
           <div>
-            <label htmlFor="petName" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-              {t('healthForm.petName', 'Nome do Pet')} *
+            <label htmlFor="petId" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+              {t('healthForm.petName', 'Selecionar Pet')} *
             </label>
             <select
-              id="petName"
-              name="petName"
-              value={formData.petName}
+              id="petId"
+              name="petId"
+              value={formData.petId}
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-surface-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-surface-75 text-gray-900 dark:text-white"
             >
               <option value="">{t('healthForm.selectPet', 'Selecione um pet')}</option>
               {myPets.map((pet) => (
-                <option key={pet.id} value={pet.nickname}>
-                  {pet.nickname}
+                <option key={pet.id} value={pet.id.toString()}>
+                  {pet.nickname} ({pet.species})
                 </option>
               ))}
             </select>
@@ -363,6 +374,22 @@ const HealthFormCompact = ({ onSuccess }) => {
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-surface-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-surface-75 text-gray-900 dark:text-white"
               placeholder={t('healthForm.veterinarianPlaceholder', 'Dr(a). Nome do veterinário')}
+            />
+          </div>
+
+          {/* Local */}
+          <div>
+            <label htmlFor="local" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+              {t('healthForm.local', 'Local do Atendimento')}
+            </label>
+            <input
+              type="text"
+              id="local"
+              name="local"
+              value={formData.local}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-surface-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-surface-75 text-gray-900 dark:text-white"
+              placeholder={t('healthForm.localPlaceholder', 'Clínica, hospital veterinário...')}
             />
           </div>
 

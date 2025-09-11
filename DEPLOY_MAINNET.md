@@ -119,6 +119,7 @@ dfx canister --network ic logs PetID_backend
 - **Armazenamento**: ~0.0001 ICP por MB/mês
 - **Compute**: ~0.0000004 ICP por instrução
 
+
 ## Troubleshooting
 
 ### Erro: Insufficient Cycles

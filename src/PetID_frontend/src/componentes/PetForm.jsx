@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createActor } from 'declarations/PetID_backend';
+import { AuthClient } from '@dfinity/auth-client';
 import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
 import { HttpAgent } from '@dfinity/agent';
-import { useAuth } from '../context/AuthContext';
 
 const PetForm = () => {
   const { t } = useTranslation();
-  const { isAuthenticated, authClient } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authClient, setAuthClient] = useState(null);
   const [authenticatedActor, setAuthenticatedActor] = useState(null);
   const [formData, setFormData] = useState({
     photo: '', // CID da imagem no IPFS
@@ -27,32 +28,38 @@ const PetForm = () => {
   const [success, setSuccess] = useState('');
   const [myPets, setMyPets] = useState([]);
 
-  // Criar ator autenticado quando o authClient estiver disponível
+  // Inicializar o AuthClient
   useEffect(() => {
-    const createAuthenticatedActor = async () => {
-      if (!authClient || !isAuthenticated) return;
-
-      const identity = authClient.getIdentity();
-      const network = import.meta.env.DFX_NETWORK || 'local';
-      const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
-      console.log('[AuthActor] Criando agent', { network, host, backendCanisterId });
-      
-      const agent = new HttpAgent({ identity, host });
-      if (network !== 'ic') {
-        try {
-          await agent.fetchRootKey();
-          console.log('[AuthActor] Root key obtida');
-        } catch (e) {
-          console.warn('[AuthActor] Falha ao obter root key', e);
-        }
+    const initAuth = async () => {
+      const client = await AuthClient.create();
+      const authenticated = await client.isAuthenticated();
+      setAuthClient(client);
+      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        await createAuthenticatedActor(client);
       }
-      
-      const actor = createActor(backendCanisterId, { agent });
-      setAuthenticatedActor(actor);
     };
+    initAuth();
+  }, []);
 
-    createAuthenticatedActor();
-  }, [authClient, isAuthenticated]);
+  // Criar ator autenticado
+  const createAuthenticatedActor = async (client) => {
+    const identity = client.getIdentity();
+    const network = import.meta.env.DFX_NETWORK || 'local';
+    const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
+    console.log('[AuthActor] Criando agent', { network, host, backendCanisterId });
+    const agent = new HttpAgent({ identity, host });
+    if (network !== 'ic') {
+      try {
+        await agent.fetchRootKey();
+        console.log('[AuthActor] Root key obtida');
+      } catch (e) {
+        console.warn('[AuthActor] Falha ao obter root key', e);
+      }
+    }
+    const actor = await createActor(backendCanisterId, { agent });
+    setAuthenticatedActor(actor);
+  };
 
   // Função para carregar pets do usuário
   const loadPets = async () => {
@@ -244,13 +251,7 @@ const PetForm = () => {
     console.log('📤 Iniciando upload para Pinata...');
     console.log('🔑 Verificando JWT...');
 
-    // Debug das variáveis de ambiente
-    console.log('🔍 Debug das variáveis de ambiente:');
-    console.log('- REACT_APP_PINATA_JWT:', import.meta.env.REACT_APP_PINATA_JWT ? 'DEFINIDO' : 'NÃO DEFINIDO');
-    console.log('- VITE_REACT_APP_PINATA_JWT:', import.meta.env.VITE_REACT_APP_PINATA_JWT ? 'DEFINIDO' : 'NÃO DEFINIDO');
-    console.log('- Todas as variáveis import.meta.env:', Object.keys(import.meta.env));
-
-    const jwtToken = import.meta.env.REACT_APP_PINATA_JWT || import.meta.env.VITE_REACT_APP_PINATA_JWT;
+    const jwtToken = import.meta.env.REACT_APP_PINATA_JWT;
     console.log('🔑 JWT presente:', jwtToken ? `Sim (${jwtToken.substring(0, 20)}...)` : 'NÃO ENCONTRADO!');
 
     if (!jwtToken) {
@@ -476,27 +477,10 @@ const PetForm = () => {
     }
 
     try {
-      // Verificações de segurança e logs para diagnóstico
+      // Enviar dados para o backend usando o ator autenticado
       if (!authenticatedActor) {
         throw new Error('Ator autenticado ainda não inicializado. Refaça login.');
       }
-      
-      if (!authClient) {
-        throw new Error('AuthClient não disponível. Refaça login.');
-      }
-      
-      if (!isAuthenticated) {
-        throw new Error('Usuário não está autenticado. Refaça login.');
-      }
-      
-      console.log('[PetForm] Tentando criar pet:', {
-        photo: formData.photo,
-        nickname: formData.nickname,
-        birthDate: formData.birthDate,
-        isAuthenticated,
-        hasActor: !!authenticatedActor
-      });
-      
       const actor = authenticatedActor;
       const result = await actor.createPet({
         photo: formData.photo,
@@ -519,21 +503,15 @@ const PetForm = () => {
         loadPets();
       } else if ('err' in result) {
         // Erro retornado pelo backend
-        console.error('[PetForm] Erro do backend:', result.err);
         setError(result.err);
       }
     } catch (err) {
-      console.error('[PetForm] Erro ao criar pet:', err);
+      console.error('Error creating pet:', err);
       const msg = String(err?.message || err);
-      
-      if (msg.includes('Invalid delegation') || msg.includes('delegation')) {
+      if (msg.includes('Invalid delegation')) {
         setError('Sessão expirada (delegação inválida). Faça logout e login novamente.');
-      } else if (msg.includes('Invalid signature') || msg.includes('signature')) {
-        setError('Erro de assinatura. Tente fazer logout e login novamente.');
-      } else if (msg.includes('verification failed')) {
-        setError('Falha na verificação. Tente fazer logout e login novamente.');
       } else {
-        setError(`Erro ao registrar o pet: ${msg}`);
+        setError('Ocorreu um erro ao registrar o pet. Tente novamente.');
       }
     }
 
