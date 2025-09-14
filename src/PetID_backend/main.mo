@@ -34,33 +34,6 @@ persistent actor PetID {
         color: Text;
         isLost: Bool;
     };
-
-    // Tipo para representar um Registro Médico
-    public type HealthRecord = {
-        id: Nat;
-        petId: Nat;
-        date: Text;
-        serviceType: Text; // consulta, tratamento, cirurgia, vacina, emergencia, exame
-        veterinarianName: Text;
-        local: ?Text; // Local da consulta (opcional)
-        status: Text; // pending, completed, cancelled, in_progress
-        description: ?Text; // Observações (opcional)
-        attachments: [Text]; // Array de CIDs do IPFS para arquivos anexados
-        createdAt: Int; // Timestamp
-        createdBy: Principal; // Quem criou o registro
-    };
-
-    // Tipo para entrada de dados do registro médico
-    public type HealthRecordPayload = {
-        petId: Nat;
-        date: Text;
-        serviceType: Text;
-        veterinarianName: Text;
-        local: ?Text;
-        status: Text;
-        description: ?Text;
-        attachments: [Text];
-    };
     
     // Estrutura para armazenar erros
     public type Error = {
@@ -68,6 +41,32 @@ persistent actor PetID {
         #NotFound;
         #AlreadyExists;
         #InvalidInput;
+    };
+
+    // Tipo para registro médico
+    public type HealthRecord = {
+        id: Nat;
+        petId: Nat;
+        date: Text;
+        serviceType: Text;
+        veterinarianName: Text;
+        local: ?Text;
+        status: Text;
+        description: ?Text;
+        attachments: [Text]; // CIDs do IPFS
+        timestamp: Int;
+        owner: Principal;
+    };
+
+    // Tipo para entrada de dados do registro médico
+    public type HealthRecordPayload = {
+        date: Text;
+        serviceType: Text;
+        veterinarianName: Text;
+        local: ?Text;
+        status: Text;
+        description: ?Text;
+        attachments: [Text];
     };
 
     // Contador de IDs de pets
@@ -210,196 +209,6 @@ persistent actor PetID {
         };
     };
     
-    // ===== FUNÇÕES DE REGISTROS MÉDICOS =====
-    
-    // Função para criar um novo registro médico
-    public shared(msg) func createHealthRecord(payload : HealthRecordPayload) : async Result.Result<HealthRecord, Text> {
-        let caller = msg.caller;
-        
-        // Verificar se o usuário está autenticado
-        if (Principal.isAnonymous(caller)) {
-            return #err("Você precisa estar conectado à sua Internet Identity para criar registros médicos.");
-        };
-        
-        // Verificar se o pet existe
-        switch (pets.get(payload.petId)) {
-            case (null) {
-                return #err("Pet não encontrado.");
-            };
-            case (?pet) {
-                // Verificar se o usuário é o proprietário do pet
-                if (pet.owner != caller) {
-                    return #err("Você só pode criar registros médicos para seus próprios pets.");
-                };
-            };
-        };
-        
-        // Validar campos obrigatórios
-        if (Text.size(payload.date) == 0) {
-            return #err("A data do atendimento é obrigatória.");
-        };
-        
-        if (Text.size(payload.serviceType) == 0) {
-            return #err("O tipo de serviço é obrigatório.");
-        };
-        
-        if (Text.size(payload.veterinarianName) == 0) {
-            return #err("O nome do veterinário é obrigatório.");
-        };
-        
-        if (Text.size(payload.status) == 0) {
-            return #err("O status do atendimento é obrigatório.");
-        };
-        
-        // Criar o novo registro médico
-        let recordId = nextHealthRecordId;
-        nextHealthRecordId += 1;
-        
-        let now = Time.now();
-        
-        let newRecord : HealthRecord = {
-            id = recordId;
-            petId = payload.petId;
-            date = payload.date;
-            serviceType = payload.serviceType;
-            veterinarianName = payload.veterinarianName;
-            local = payload.local;
-            status = payload.status;
-            description = payload.description;
-            attachments = payload.attachments;
-            createdAt = now;
-            createdBy = caller;
-        };
-        
-        // Salvar o registro médico
-        healthRecords.put(recordId, newRecord);
-        
-        // Atualizar a lista de registros do pet
-        switch (healthRecordsByPet.get(payload.petId)) {
-            case (null) {
-                healthRecordsByPet.put(payload.petId, [recordId]);
-            };
-            case (?petRecords) {
-                let newPetRecords = Array.append(petRecords, [recordId]);
-                healthRecordsByPet.put(payload.petId, newPetRecords);
-            };
-        };
-        
-        return #ok(newRecord);
-    };
-    
-    // Função para buscar todos os registros médicos de um pet
-    public shared(msg) func getPetHealthRecords(petId : Nat) : async Result.Result<[HealthRecord], Text> {
-        let caller = msg.caller;
-        
-        // Verificar se o usuário está autenticado
-        if (Principal.isAnonymous(caller)) {
-            return #err("Você precisa estar conectado à sua Internet Identity para visualizar registros médicos.");
-        };
-        
-        // Verificar se o pet existe e se o usuário é o proprietário
-        switch (pets.get(petId)) {
-            case (null) {
-                return #err("Pet não encontrado.");
-            };
-            case (?pet) {
-                if (pet.owner != caller) {
-                    return #err("Você só pode visualizar registros médicos de seus próprios pets.");
-                };
-            };
-        };
-        
-        // Buscar os registros médicos do pet
-        switch (healthRecordsByPet.get(petId)) {
-            case (null) {
-                return #ok([]);
-            };
-            case (?recordIds) {
-                var petRecords = Buffer.Buffer<HealthRecord>(0);
-                
-                for (recordId in Iter.fromArray(recordIds)) {
-                    switch (healthRecords.get(recordId)) {
-                        case (null) {};
-                        case (?record) {
-                            petRecords.add(record);
-                        };
-                    };
-                };
-                
-                return #ok(Buffer.toArray(petRecords));
-            };
-        };
-    };
-    
-    // Função para buscar todos os registros médicos do usuário (todos os pets)
-    public shared(msg) func getMyHealthRecords() : async Result.Result<[HealthRecord], Text> {
-        let caller = msg.caller;
-        
-        // Verificar se o usuário está autenticado
-        if (Principal.isAnonymous(caller)) {
-            return #err("Você precisa estar conectado à sua Internet Identity para visualizar registros médicos.");
-        };
-        
-        // Buscar todos os pets do usuário
-        switch (petsByOwner.get(caller)) {
-            case (null) {
-                return #ok([]);
-            };
-            case (?petIds) {
-                var allRecords = Buffer.Buffer<HealthRecord>(0);
-                
-                // Para cada pet, buscar seus registros médicos
-                for (petId in Iter.fromArray(petIds)) {
-                    switch (healthRecordsByPet.get(petId)) {
-                        case (null) {};
-                        case (?recordIds) {
-                            for (recordId in Iter.fromArray(recordIds)) {
-                                switch (healthRecords.get(recordId)) {
-                                    case (null) {};
-                                    case (?record) {
-                                        allRecords.add(record);
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
-                
-                return #ok(Buffer.toArray(allRecords));
-            };
-        };
-    };
-    
-    // Função para buscar um registro médico específico por ID
-    public shared(msg) func getHealthRecord(recordId : Nat) : async Result.Result<HealthRecord, Text> {
-        let caller = msg.caller;
-        
-        // Verificar se o usuário está autenticado
-        if (Principal.isAnonymous(caller)) {
-            return #err("Você precisa estar conectado à sua Internet Identity para visualizar registros médicos.");
-        };
-        
-        switch (healthRecords.get(recordId)) {
-            case (null) {
-                return #err("Registro médico não encontrado.");
-            };
-            case (?record) {
-                // Verificar se o usuário é o proprietário do pet
-                switch (pets.get(record.petId)) {
-                    case (null) {
-                        return #err("Pet associado não encontrado.");
-                    };
-                    case (?pet) {
-                        if (pet.owner != caller) {
-                            return #err("Você só pode visualizar registros médicos de seus próprios pets.");
-                        };
-                        return #ok(record);
-                    };
-                };
-            };
-        };
-    };
-    
     // Verificar se o usuário está conectado (para o frontend)
     public shared(msg) func isAuthenticated() : async Bool {
         return not Principal.isAnonymous(msg.caller);
@@ -412,6 +221,133 @@ persistent actor PetID {
             allPets.add(pet);
         };
         return Buffer.toArray(allPets);
+    };
+
+    // ========== FUNÇÕES DE REGISTROS MÉDICOS ==========
+    
+    // Função para criar um novo registro médico
+    public shared(msg) func createHealthRecord(petId : Nat, payload : HealthRecordPayload) : async Result.Result<HealthRecord, Text> {
+        let caller = msg.caller;
+        
+        // Verificar se o usuário está autenticado
+        if (Principal.isAnonymous(caller)) {
+            return #err("Você precisa estar conectado à sua Internet Identity para criar um registro médico.");
+        };
+        
+        // Verificar se o pet existe e pertence ao usuário
+        switch (pets.get(petId)) {
+            case (null) {
+                return #err("Pet não encontrado.");
+            };
+            case (?pet) {
+                if (pet.owner != caller) {
+                    return #err("Você não tem permissão para criar registros médicos para este pet.");
+                };
+            };
+        };
+        
+        // Validar dados básicos
+        if (Text.size(payload.date) == 0 or Text.size(payload.serviceType) == 0 or Text.size(payload.veterinarianName) == 0) {
+            return #err("Data, tipo de serviço e nome do veterinário são obrigatórios.");
+        };
+        
+        let recordId = nextHealthRecordId;
+        nextHealthRecordId += 1;
+        let now = Time.now();
+        
+        let newHealthRecord : HealthRecord = {
+            id = recordId;
+            petId = petId;
+            date = payload.date;
+            serviceType = payload.serviceType;
+            veterinarianName = payload.veterinarianName;
+            local = payload.local;
+            status = payload.status;
+            description = payload.description;
+            attachments = payload.attachments;
+            timestamp = now;
+            owner = caller;
+        };
+        
+        // Salvar o registro médico
+        healthRecords.put(recordId, newHealthRecord);
+        
+        // Atualizar a lista de registros do pet
+        switch (healthRecordsByPet.get(petId)) {
+            case (null) {
+                healthRecordsByPet.put(petId, [recordId]);
+            };
+            case (?petRecords) {
+                let newPetRecords = Array.append(petRecords, [recordId]);
+                healthRecordsByPet.put(petId, newPetRecords);
+            };
+        };
+        
+        return #ok(newHealthRecord);
+    };
+    
+    // Função para buscar todos os registros médicos de um pet
+    public shared(msg) func getPetHealthRecords(petId : Nat) : async Result.Result<[HealthRecord], Text> {
+        let caller = msg.caller;
+        
+        // Verificar se o usuário está autenticado
+        if (Principal.isAnonymous(caller)) {
+            return #err("Você precisa estar conectado à sua Internet Identity.");
+        };
+        
+        // Verificar se o pet existe e pertence ao usuário
+        switch (pets.get(petId)) {
+            case (null) {
+                return #err("Pet não encontrado.");
+            };
+            case (?pet) {
+                if (pet.owner != caller) {
+                    return #err("Você não tem permissão para ver os registros médicos deste pet.");
+                };
+            };
+        };
+        
+        // Buscar os registros do pet
+        switch (healthRecordsByPet.get(petId)) {
+            case (null) {
+                return #ok([]);
+            };
+            case (?recordIds) {
+                var petHealthRecords = Buffer.Buffer<HealthRecord>(0);
+                
+                for (recordId in Iter.fromArray(recordIds)) {
+                    switch (healthRecords.get(recordId)) {
+                        case (null) {};
+                        case (?record) {
+                            petHealthRecords.add(record);
+                        };
+                    };
+                };
+                
+                return #ok(Buffer.toArray(petHealthRecords));
+            };
+        };
+    };
+    
+    // Função para buscar todos os registros médicos do usuário
+    public shared(msg) func getMyHealthRecords() : async Result.Result<[HealthRecord], Text> {
+        let caller = msg.caller;
+        
+        // Verificar se o usuário está autenticado
+        if (Principal.isAnonymous(caller)) {
+            return #err("Você precisa estar conectado à sua Internet Identity.");
+        };
+        
+        var userHealthRecords = Buffer.Buffer<HealthRecord>(0);
+        
+        // Buscar todos os registros do usuário
+        for ((_, record) in healthRecords.entries()) {
+            if (record.owner == caller) {
+                userHealthRecords.add(record);
+            };
+        };
+        
+        return #ok(Buffer.toArray(userHealthRecords));
     };
 
     // Função system para preservar o estado

@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 const HealthFormCompact = ({ onSuccess }) => {
   const { t } = useTranslation();
-  const { isAuthenticated, authClient } = useAuth();
+  const { isAuthenticated, authClient, createBackendActor } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [authenticatedActor, setAuthenticatedActor] = useState(null);
   const [formData, setFormData] = useState({
@@ -186,25 +186,28 @@ const HealthFormCompact = ({ onSuccess }) => {
       // Upload dos arquivos primeiro
       const attachments = await uploadFilesToIPFS();
 
-      // Dados do registro de saúde para o backend
+      // Criar o actor autenticado para chamar o backend
+      const actor = await createBackendActor();
+      if (!actor) {
+        throw new Error('Não foi possível criar conexão com o backend');
+      }
+
+      // Dados do registro de saúde para o backend Motoko
       const healthRecordPayload = {
-        petId: parseInt(formData.petId),
         date: formData.date,
         serviceType: formData.serviceType,
         veterinarianName: formData.veterinarianName,
-        local: formData.local && formData.local.trim() !== '' ? [formData.local] : null,
+        local: formData.local && formData.local.trim() !== '' ? [formData.local] : [], // Opcional como array (Candid)
         status: formData.status,
-        description: formData.description && formData.description.trim() !== '' ? [formData.description] : null,
-        attachments: attachments.map(file => file.cid || '') // CIDs dos arquivos
+        description: formData.description && formData.description.trim() !== '' ? [formData.description] : [], // Opcional como array (Candid)
+        attachments: attachments.map(file => file.cid || '') // CIDs do IPFS
       };
 
-      console.log('📋 Enviando registro para o backend:', healthRecordPayload);
-
-      // Salvar no backend usando o ator autenticado
-      const result = await authenticatedActor.createHealthRecord(healthRecordPayload);
+      // Chamar a função do backend
+      const result = await actor.createHealthRecord(parseInt(formData.petId), healthRecordPayload);
       
       if ('ok' in result) {
-        console.log('✅ Registro de saúde criado com sucesso:', result.ok);
+        console.log('Registro de saúde criado:', result.ok);
         setSuccess(t('healthForm.success', 'Registro de saúde adicionado com sucesso!'));
         
         // Limpar formulário
@@ -226,18 +229,12 @@ const HealthFormCompact = ({ onSuccess }) => {
           onSuccess(result.ok);
         }
       } else {
-        console.error('❌ Erro do backend:', result.err);
         setError(result.err || t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
       }
 
     } catch (error) {
-      console.error('❌ Erro ao criar registro:', error);
-      const errorMessage = error.message || error.toString();
-      if (errorMessage.includes('Invalid delegation')) {
-        setError('Sessão expirada. Faça logout e login novamente.');
-      } else {
-        setError(t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
-      }
+      console.error('Erro ao criar registro:', error);
+      setError(t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
     } finally {
       setIsLoading(false);
     }
