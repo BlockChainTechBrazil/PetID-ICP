@@ -6,19 +6,19 @@ const Features = () => {
 
   const features = [
     {
-      icon: <FiLock className="w-8 h-8" />,
+      icon: <FiLock className="w-8 h-8 text-[#8A8BED]" />,
       key: "secureRegistry",
       title: t('features.secureRegistry.title'),
       description: t('features.secureRegistry.description')
     },
     {
-      icon: <FiSmartphone className="w-8 h-8" />,
+      icon: <FiSmartphone className="w-8 h-8 text-[#8A8BED]" />,
       key: "universalAccess",
       title: t('features.universalAccess.title'),
       description: t('features.universalAccess.description')
     },
     {
-      icon: <FiFileText className="w-8 h-8" />,
+      icon: <FiFileText className="w-8 h-8 text-[#8A8BED]" />,
       key: "completeHistory",
       title: t('features.completeHistory.title'),
       description: t('features.completeHistory.description')
@@ -42,7 +42,7 @@ const Features = () => {
             {t('features.description')}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {features.map((feature, i) => (
             <div
               key={feature.key}

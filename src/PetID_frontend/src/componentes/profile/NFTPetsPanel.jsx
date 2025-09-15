@@ -4,6 +4,7 @@ import { createActor } from 'declarations/PetID_backend';
 import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
 import { HttpAgent } from '@dfinity/agent';
 import { useTranslation } from 'react-i18next';
+import { GiPawPrint } from 'react-icons/gi';
 
 const gateways = [
   (cid) => `https://ipfs.io/ipfs/${cid}`,
@@ -200,7 +201,7 @@ const NFTPetsPanel = () => {
       {/* Header + botão adicionar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          🐾 {t('petForm.myPets', 'Meus Pets')}
+          <GiPawPrint className="text-xl text-[#8A8BED]" /> {t('petForm.myPets', 'Meus Pets')}
           {loadingPets && <svg className="animate-spin h-4 w-4 text-indigo-500" viewBox="0 0 24 24" />}
         </h2>
         {isAuthenticated && (

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -369,7 +368,7 @@ const MedicalPanel = () => {
                   </h3>
                   <div className="flex items-center space-x-4 text-blue-100">
                     <span className="flex items-center">
-                      <GiPawPrint className="w-4 h-4 mr-1" />
+                      <GiPawPrint className="w-6 h-6 text-[#8A8BED]" />
                       {petNames[selectedRecord.petId] || `Pet #${selectedRecord.petId}`}
                     </span>
                     <span className="flex items-center">

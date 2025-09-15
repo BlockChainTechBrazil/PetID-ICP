@@ -1,10 +1,9 @@
-
 import { useTranslation } from 'react-i18next';
 import { FiMapPin, FiGitBranch, FiHeart, FiMessageCircle, FiSettings } from 'react-icons/fi';
 import { GiPawPrint } from 'react-icons/gi';
 
 const navItemsBase = [
-  { key: 'nfts', icon: <GiPawPrint className="w-5 h-5" /> },
+  { key: 'nfts', icon: <GiPawPrint className="w-6 h-6" /> }, // Ajustei o tamanho para 6x6
   { key: 'map', icon: <FiMapPin className="w-5 h-5" /> },
   { key: 'genealogy', icon: <FiGitBranch className="w-5 h-5" /> },
   { key: 'medical', icon: <FiHeart className="w-5 h-5" /> },
