@@ -198,7 +198,7 @@ const HealthFormCompact = ({ onSuccess }) => {
         attachments: attachments.map(file => file.cid || '') // CIDs dos arquivos
       };
 
-      console.log('📋 Enviando registro para o backend:', healthRecordPayload);
+      console.log('Enviando registro para o backend:', healthRecordPayload);
 
       // Salvar no backend usando o ator autenticado
       const result = await authenticatedActor.createHealthRecord(healthRecordPayload);

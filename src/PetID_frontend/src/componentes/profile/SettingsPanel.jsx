@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FiSettings } from 'react-icons/fi';
 
 const SettingsPanel = () => {
   const { t, i18n } = useTranslation();
@@ -37,7 +38,9 @@ const SettingsPanel = () => {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">⚙️ {t('profile.settings.title')}</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <FiSettings className="w-5 h-5" /> {t('profile.settings.title')}
+          </h2>
           <p className="text-[11px] md:text-xs text-gray-600 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{t('profile.settings.apiKeyHint')}</p>
         </div>
         <button type="submit" disabled={saving} className="px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-brand-500 to-petPurple-500 text-white shadow hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">

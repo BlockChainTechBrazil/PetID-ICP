@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Logo from '../assets/logo/logo.jpg';
+import { FiShield } from 'react-icons/fi';
 
 const LoginPage = () => {
   const { isAuthenticated, login, loginLoading, loading, error } = useAuth();
@@ -54,7 +55,7 @@ const LoginPage = () => {
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    <span>🛡️</span>
+                    <FiShield className="w-5 h-5" />
                     {t('login.ctaICP', 'Entrar com Internet Identity')}
                   </span>
                 )}

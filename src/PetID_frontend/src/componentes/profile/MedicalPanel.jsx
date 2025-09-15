@@ -3,6 +3,30 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import HealthFormCompact from '../HealthFormCompact';
+// React Icons
+import { 
+  FiLock,           // Cadeado
+  FiSmartphone,     // Celular
+  FiClock,          // Histórico
+  FiMapPin,         // Mapa
+  FiGitBranch,      // Árvore
+  FiHeart,          // Medicamento (coração para saúde)
+  FiMessageCircle,  // Communication
+  FiSettings,       // Settings
+  FiCalendar,       // Data
+  FiUser,           // Usuário
+  FiFileText,       // Documento
+  FiImage,          // Imagem
+  FiEye,            // Ver
+  FiEdit3,          // Editar
+  FiDownload,       // Download
+  FiShare2,         // Compartilhar
+  FiPrinter,        // Imprimir
+  FiX,              // Fechar
+  FiExternalLink,   // Link externo
+  FiPlus            // Adicionar
+} from 'react-icons/fi';
+import { GiPawPrint } from 'react-icons/gi'; // Pata de pet
 
 const MedicalPanel = () => {
   const { t } = useTranslation();
@@ -191,9 +215,7 @@ const MedicalPanel = () => {
           onClick={() => setShowForm(!showForm)}
           className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
         >
-          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
+          <FiHeart className="mr-2 h-5 w-5" />
           {showForm ? 'Ocultar Formulário' : 'Novo Registro'}
         </button>
       </div>
@@ -221,9 +243,7 @@ const MedicalPanel = () => {
         ) : healthRecords.length === 0 ? (
           /* Estado vazio */
           <div className="text-center py-12">
-            <svg className="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <FiFileText className="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500 mb-4" />
             <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               Nenhum registro médico encontrado
             </h4>
@@ -234,9 +254,7 @@ const MedicalPanel = () => {
               onClick={() => setShowForm(true)}
               className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
             >
-              <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+              <FiHeart className="mr-2 h-5 w-5" />
               Adicionar Primeiro Registro
             </button>
           </div>
@@ -351,15 +369,11 @@ const MedicalPanel = () => {
                   </h3>
                   <div className="flex items-center space-x-4 text-blue-100">
                     <span className="flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
+                      <GiPawPrint className="w-4 h-4 mr-1" />
                       {petNames[selectedRecord.petId] || `Pet #${selectedRecord.petId}`}
                     </span>
                     <span className="flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V9a2 2 0 00-2-2m-6 0V7" />
-                      </svg>
+                      <FiCalendar className="w-4 h-4 mr-1" />
                       {formatDate(selectedRecord.date)}
                     </span>
                   </div>
@@ -368,9 +382,7 @@ const MedicalPanel = () => {
                   onClick={handleCloseDetails}
                   className="text-white hover:text-blue-200 transition-colors p-1"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <FiX className="w-6 h-6" />
                 </button>
               </div>
             </div>
@@ -386,9 +398,7 @@ const MedicalPanel = () => {
                   {/* Card de Informações Básicas */}
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-blue-200 dark:border-surface-200">
                     <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
+                      <FiFileText className="w-5 h-5 mr-2" />
                       Informações do Atendimento
                     </h4>
                     
@@ -438,9 +448,7 @@ const MedicalPanel = () => {
                   {getOptionalValue(selectedRecord?.description) && (
                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-green-200 dark:border-surface-200">
                       <h4 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4 flex items-center">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                        <FiMessageCircle className="w-5 h-5 mr-2" />
                         Observações e Diagnóstico
                       </h4>
                       <div className="bg-white dark:bg-surface-50 p-4 rounded-lg shadow-sm">
@@ -454,9 +462,7 @@ const MedicalPanel = () => {
                   {/* Card de Informações Técnicas */}
                   <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-purple-200 dark:border-surface-200">
                     <h4 className="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-4 flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                      </svg>
+                      <FiLock className="w-5 h-5 mr-2" />
                       Informações Técnicas da Blockchain
                     </h4>
                     
@@ -506,64 +512,135 @@ const MedicalPanel = () => {
                   {selectedRecord?.attachments && selectedRecord.attachments.length > 0 && (
                     <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-orange-200 dark:border-surface-200">
                       <h4 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-4 flex items-center">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+                        <FiImage className="w-5 h-5 mr-2" />
                         Anexos ({selectedRecord.attachments.length})
                       </h4>
                       
                       <div className="space-y-3">
                         {selectedRecord.attachments.map((attachment, index) => {
-                          const isImage = attachment.includes('.jpg') || attachment.includes('.png') || attachment.includes('.jpeg') || attachment.includes('.webp');
+                          // Verificar se o CID está válido e completo
+                          const isValidCID = attachment && attachment.length > 10;
+                          const isImage = attachment.includes('.jpg') || attachment.includes('.png') || attachment.includes('.jpeg') || attachment.includes('.webp') || attachment.includes('.gif');
+                          
+                          // URLs de gateway com fallbacks múltiplos
+                          const primaryUrl = `https://gateway.pinata.cloud/ipfs/${attachment}`;
+                          const fallbackUrls = [
+                            `https://ipfs.io/ipfs/${attachment}`,
+                            `https://cloudflare-ipfs.com/ipfs/${attachment}`,
+                            `https://dweb.link/ipfs/${attachment}`
+                          ];
+                          
+                          if (!isValidCID) {
+                            return (
+                              <div key={index} className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                <div className="flex items-center space-x-3">
+                                  <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                  </svg>
+                                  <div>
+                                    <p className="text-red-800 dark:text-red-200 font-medium text-sm">
+                                      Anexo inválido #{index + 1}
+                                    </p>
+                                    <p className="text-red-600 dark:text-red-400 text-xs">
+                                      CID: {attachment || 'Não informado'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
                           
                           return (
-                            <div key={index} className="bg-white dark:bg-surface-50 rounded-lg overflow-hidden shadow-sm">
+                            <div key={index} className="bg-white dark:bg-surface-50 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-surface-100">
                               {isImage ? (
                                 <div className="aspect-square relative group">
                                   <img
-                                    src={`https://gateway.pinata.cloud/ipfs/${attachment}`}
+                                    src={primaryUrl}
                                     alt={`Anexo ${index + 1}`}
                                     className="w-full h-full object-cover cursor-pointer transition-transform group-hover:scale-105"
                                     onError={(e) => {
-                                      // Fallback para outro gateway
-                                      e.target.src = `https://ipfs.io/ipfs/${attachment}`;
+                                      // Tentar fallbacks em sequência
+                                      const currentSrc = e.target.src;
+                                      const currentFallbackIndex = fallbackUrls.findIndex(url => url === currentSrc);
+                                      
+                                      if (currentFallbackIndex < fallbackUrls.length - 1) {
+                                        e.target.src = fallbackUrls[currentFallbackIndex + 1];
+                                      } else if (!fallbackUrls.includes(currentSrc)) {
+                                        e.target.src = fallbackUrls[0];
+                                      } else {
+                                        // Todos os fallbacks falharam
+                                        e.target.style.display = 'none';
+                                        e.target.parentElement.innerHTML = `
+                                          <div class="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-surface-75">
+                                            <div class="text-center">
+                                              <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                              </svg>
+                                              <p class="text-xs text-gray-500 dark:text-slate-400">Imagem não encontrada</p>
+                                            </div>
+                                          </div>
+                                        `;
+                                      }
                                     }}
-                                    onClick={() => window.open(`https://gateway.pinata.cloud/ipfs/${attachment}`, '_blank')}
+                                    onClick={() => window.open(primaryUrl, '_blank')}
                                   />
                                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
-                                    <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
+                                    <FiExternalLink className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </div>
                                 </div>
                               ) : (
                                 <div className="p-4 flex items-center space-x-3">
                                   <div className="flex-shrink-0">
-                                    <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
+                                    <FiFileText className="w-8 h-8 text-blue-500" />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                                       Documento #{index + 1}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-slate-400">
-                                      IPFS: {attachment.substring(0, 12)}...
+                                      CID: {attachment.substring(0, 20)}...{attachment.substring(attachment.length - 8)}
+                                    </p>
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                      {attachment.length} caracteres
                                     </p>
                                   </div>
                                 </div>
                               )}
                               
                               <div className="p-3 bg-gray-50 dark:bg-surface-75 border-t border-gray-100 dark:border-surface-100">
-                                <button
-                                  onClick={() => window.open(`https://gateway.pinata.cloud/ipfs/${attachment}`, '_blank')}
-                                  className="w-full text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center justify-center space-x-1"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                  </svg>
-                                  <span>Abrir</span>
-                                </button>
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => window.open(primaryUrl, '_blank')}
+                                    className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center justify-center space-x-1 py-1"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    <span>Pinata</span>
+                                  </button>
+                                  
+                                  <button
+                                    onClick={() => window.open(fallbackUrls[0], '_blank')}
+                                    className="flex-1 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 text-sm font-medium flex items-center justify-center space-x-1 py-1"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                    <span>IPFS.io</span>
+                                  </button>
+                                </div>
+                                
+                                <div className="mt-2 text-center">
+                                  <button
+                                    onClick={() => navigator.clipboard.writeText(attachment)}
+                                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300 flex items-center justify-center space-x-1"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    <span>Copiar CID</span>
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );
@@ -575,31 +652,23 @@ const MedicalPanel = () => {
                   {/* Card de Ações Rápidas */}
                   <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-gray-200 dark:border-surface-200">
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                      <FiSettings className="w-5 h-5 mr-2" />
                       Ações Rápidas
                     </h4>
                     
                     <div className="space-y-3">
                       <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
+                        <FiEdit3 className="w-4 h-4" />
                         <span>Editar Registro</span>
                       </button>
                       
                       <button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                        <FiDownload className="w-4 h-4" />
                         <span>Baixar PDF</span>
                       </button>
                       
                       <button className="w-full bg-purple-500 hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                        </svg>
+                        <FiShare2 className="w-4 h-4" />
                         <span>Compartilhar</span>
                       </button>
                     </div>
@@ -620,8 +689,9 @@ const MedicalPanel = () => {
                 >
                   Fechar
                 </button>
-                <button className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all font-medium shadow-lg">
-                  Imprimir Receituário
+                <button className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all font-medium shadow-lg flex items-center space-x-2">
+                  <FiPrinter className="w-4 h-4" />
+                  <span>Imprimir Receituário</span>
                 </button>
               </div>
             </div>

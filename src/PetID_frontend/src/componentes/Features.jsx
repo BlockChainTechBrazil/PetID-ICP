@@ -1,23 +1,24 @@
 import { useTranslation } from 'react-i18next';
+import { FiLock, FiSmartphone, FiFileText } from 'react-icons/fi';
 
 const Features = () => {
   const { t } = useTranslation();
 
   const features = [
     {
-      icon: "🔒",
+      icon: <FiLock className="w-8 h-8" />,
       key: "secureRegistry",
       title: t('features.secureRegistry.title'),
       description: t('features.secureRegistry.description')
     },
     {
-      icon: "📱",
+      icon: <FiSmartphone className="w-8 h-8" />,
       key: "universalAccess",
       title: t('features.universalAccess.title'),
       description: t('features.universalAccess.description')
     },
     {
-      icon: "📋",
+      icon: <FiFileText className="w-8 h-8" />,
       key: "completeHistory",
       title: t('features.completeHistory.title'),
       description: t('features.completeHistory.description')
@@ -50,7 +51,7 @@ const Features = () => {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-brand-50 via-accent-50 to-white dark:from-petPurple-500/10 dark:via-petPink-500/10 dark:to-petMint-500/10" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="text-3xl sm:text-4xl drop-shadow-sm animate-wiggle-slow flex-shrink-0">{feature.icon}</div>
+                  <div className="text-3xl sm:text-4xl drop-shadow-sm animate-wiggle-slow flex-shrink-0 text-brand-600 dark:text-petPink-500">{feature.icon}</div>
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white leading-snug bg-gradient-to-r from-brand-600 to-accent-500 dark:from-petPink-500 dark:to-petPurple-500 bg-clip-text text-transparent">{feature.title}</h3>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">{feature.description}</p>

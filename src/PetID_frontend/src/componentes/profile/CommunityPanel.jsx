@@ -1,8 +1,11 @@
 
+import { FiUser } from 'react-icons/fi';
+import { GiPawPrint } from 'react-icons/gi';
+
 const posts = [
-  { id: 1, user: 'Ana', avatar: '🐶', type: 'Evento', title: 'Passeio no Parque Ibirapuera', date: '2025-06-20', content: 'Vamos reunir os pets para socializar e brincar. Leve água e brinquedos!', tags: ['passeio', 'social'] },
-  { id: 2, user: 'Carlos', avatar: '🐱', type: 'Dica', title: 'Hidratação no Inverno', date: '2025-06-18', content: 'Mesmo no frio, incentive seu pet a beber água. Use fontes circulantes.', tags: ['saúde'] },
-  { id: 3, user: 'Marina', avatar: '🐾', type: 'Encontro', title: 'Socialização de Filhotes', date: '2025-06-17', content: 'Filhotes aprendem muito nos primeiros meses. Traga o seu para interagir.', tags: ['filhotes', 'treinamento'] },
+  { id: 1, user: 'Ana', avatar: <FiUser className="w-5 h-5" />, type: 'Evento', title: 'Passeio no Parque Ibirapuera', date: '2025-06-20', content: 'Vamos reunir os pets para socializar e brincar. Leve água e brinquedos!', tags: ['passeio', 'social'] },
+  { id: 2, user: 'Carlos', avatar: <FiUser className="w-5 h-5" />, type: 'Dica', title: 'Hidratação no Inverno', date: '2025-06-18', content: 'Mesmo no frio, incentive seu pet a beber água. Use fontes circulantes.', tags: ['saúde'] },
+  { id: 3, user: 'Marina', avatar: <GiPawPrint className="w-5 h-5" />, type: 'Encontro', title: 'Socialização de Filhotes', date: '2025-06-17', content: 'Filhotes aprendem muito nos primeiros meses. Traga o seu para interagir.', tags: ['filhotes', 'treinamento'] },
 ];
 
 const CommunityPanel = () => {
@@ -13,7 +16,7 @@ const CommunityPanel = () => {
           <div key={p.id} className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5 shadow-sm">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-500 to-petPurple-500 flex items-center justify-center text-xl">{p.avatar}</div>
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-500 to-petPurple-500 flex items-center justify-center text-white">{p.avatar}</div>
                 <div>
                   <h4 className="text-sm font-semibold text-gray-800 dark:text-white">{p.title}</h4>
                   <p className="text-[11px] text-gray-500 dark:text-slate-400">{p.user} • {p.date}</p>

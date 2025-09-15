@@ -414,6 +414,61 @@ persistent actor PetID {
         return Buffer.toArray(allPets);
     };
 
+    // Função para atualizar um registro médico
+    public shared(msg) func updateHealthRecord(recordId : Nat, payload : HealthRecordPayload) : async Result.Result<HealthRecord, Text> {
+        let caller = msg.caller;
+        
+        // Verificar se o usuário está autenticado
+        if (Principal.isAnonymous(caller)) {
+            return #err("Você precisa estar conectado à sua Internet Identity para atualizar registros médicos.");
+        };
+        
+        // Buscar o registro existente
+        switch (healthRecords.get(recordId)) {
+            case (null) {
+                return #err("Registro médico não encontrado.");
+            };
+            case (?existingRecord) {
+                // Verificar se o usuário é o proprietário do pet
+                switch (pets.get(existingRecord.petId)) {
+                    case (null) {
+                        return #err("Pet associado não encontrado.");
+                    };
+                    case (?pet) {
+                        if (pet.owner != caller) {
+                            return #err("Você só pode editar registros médicos de seus próprios pets.");
+                        };
+                        
+                        // Validar dados básicos
+                        if (Text.size(payload.date) == 0 or Text.size(payload.serviceType) == 0 or Text.size(payload.veterinarianName) == 0) {
+                            return #err("Data, tipo de serviço e nome do veterinário são obrigatórios.");
+                        };
+                        
+                        // Criar registro atualizado (mantém ID, petId, timestamp e createdBy originais)
+                        let updatedRecord : HealthRecord = {
+                            id = existingRecord.id;
+                            petId = existingRecord.petId;
+                            date = payload.date;
+                            serviceType = payload.serviceType;
+                            veterinarianName = payload.veterinarianName;
+                            local = payload.local;
+                            status = payload.status;
+                            description = payload.description;
+                            attachments = payload.attachments;
+                            createdAt = existingRecord.createdAt; // Manter timestamp original
+                            createdBy = existingRecord.createdBy; // Manter criador original
+                        };
+                        
+                        // Atualizar o registro
+                        healthRecords.put(recordId, updatedRecord);
+                        
+                        return #ok(updatedRecord);
+                    };
+                };
+            };
+        };
+    };
+
     // Função system para preservar o estado
     system func preupgrade() {
         petsEntries := Iter.toArray(pets.entries());

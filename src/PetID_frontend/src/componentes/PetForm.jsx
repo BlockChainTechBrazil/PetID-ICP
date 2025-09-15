@@ -203,7 +203,7 @@ const PetForm = () => {
         throw new Error('O arquivo é muito grande. Máximo permitido: 5MB.');
       }
 
-      console.log('🚀 Iniciando upload para IPFS...');
+      console.log('Iniciando upload para IPFS...');
       console.log('📁 Arquivo:', file.name, 'Tamanho:', (file.size / 1024).toFixed(2) + 'KB');
 
       // Método 1: Tentar Pinata primeiro (temos a chave configurada)
@@ -322,7 +322,7 @@ const PetForm = () => {
       throw new Error('Resposta do Pinata não é JSON válido');
     }
 
-    console.log('🎯 CID retornado:', result.IpfsHash);
+    console.log('CID retornado:', result.IpfsHash);
 
     if (!result.IpfsHash) {
       console.error('❌ Resposta não contém IpfsHash:', result);
@@ -375,7 +375,7 @@ const PetForm = () => {
     for (const cid of knownCIDs) {
       const verification = await verifyCIDAvailability(cid);
       if (verification.available) {
-        console.log(`🎯 Usando CID verificado: ${cid}`);
+        console.log(`Usando CID verificado: ${cid}`);
         return cid;
       }
     }
@@ -403,14 +403,14 @@ const PetForm = () => {
     setSuccess('');
 
     try {
-      console.log('🚀 === INICIANDO PROCESSO DE UPLOAD ===');
+      console.log('=== INICIANDO PROCESSO DE UPLOAD ===');
       console.log('📁 Arquivo selecionado:', selectedFile.name, selectedFile.type, selectedFile.size);
 
       setSuccess('🔄 Processando imagem...');
 
       const cid = await uploadToIPFS(selectedFile);
 
-      console.log('🎯 CID RECEBIDO DO UPLOAD:', cid);
+      console.log('CID RECEBIDO DO UPLOAD:', cid);
 
       if (!cid || cid.length < 10) {
         throw new Error('CID inválido recebido');
@@ -426,7 +426,7 @@ const PetForm = () => {
           photo: cid
         };
         console.log('💾 Salvando CID no formulário:', cid);
-        console.log('📋 FormData atualizado:', newFormData);
+        console.log('FormData atualizado:', newFormData);
         return newFormData;
       });
 
