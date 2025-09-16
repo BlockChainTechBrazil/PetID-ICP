@@ -198,6 +198,65 @@ persistent actor PetID {
         };
     };
     
+    // Função para atualizar informações de um pet
+    public shared(msg) func updatePet(petId: Nat, payload: PetPayload) : async Result.Result<Pet, Text> {
+        let caller = msg.caller;
+        
+        // Verificar se o usuário está autenticado
+        if (Principal.isAnonymous(caller)) {
+            return #err("Você precisa estar conectado à sua Internet Identity para atualizar um pet.");
+        };
+        
+        // Buscar o pet existente
+        switch (pets.get(petId)) {
+            case (null) {
+                return #err("Pet não encontrado.");
+            };
+            case (?existingPet) {
+                // Verificar se o usuário é o proprietário
+                if (existingPet.owner != caller) {
+                    return #err("Você não tem permissão para atualizar este pet.");
+                };
+                
+                // Validar os dados básicos
+                if (Text.size(payload.nickname) == 0) {
+                    return #err("O apelido do pet é obrigatório.");
+                };
+                
+                if (Text.size(payload.species) == 0) {
+                    return #err("A espécie do pet é obrigatória.");
+                };
+                
+                if (Text.size(payload.gender) == 0) {
+                    return #err("O gênero do pet é obrigatório.");
+                };
+                
+                if (Text.size(payload.color) == 0) {
+                    return #err("A cor do pet é obrigatória.");
+                };
+                
+                // Criar o pet atualizado (mantendo dados que não podem ser alterados)
+                let updatedPet : Pet = {
+                    id = existingPet.id;
+                    photo = if (Text.size(payload.photo) > 0) { payload.photo } else { existingPet.photo };
+                    nickname = payload.nickname;
+                    birthDate = if (Text.size(payload.birthDate) > 0) { payload.birthDate } else { existingPet.birthDate };
+                    species = payload.species;
+                    gender = payload.gender;
+                    color = payload.color;
+                    isLost = payload.isLost;
+                    owner = existingPet.owner; // Não pode ser alterado
+                    createdAt = existingPet.createdAt; // Não pode ser alterado
+                };
+                
+                // Salvar as alterações
+                pets.put(petId, updatedPet);
+                
+                return #ok(updatedPet);
+            };
+        };
+    };
+    
     // Função para buscar um pet específico por ID
     public query func getPet(petId : Nat) : async Result.Result<Pet, Text> {
         switch (pets.get(petId)) {
