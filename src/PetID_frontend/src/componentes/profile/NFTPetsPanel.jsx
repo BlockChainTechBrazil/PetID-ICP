@@ -6,6 +6,7 @@ import { HttpAgent } from '@dfinity/agent';
 import { useTranslation } from 'react-i18next';
 import { GiPawPrint } from 'react-icons/gi';
 import { FiFileText, FiDownload } from 'react-icons/fi';
+import jsPDF from 'jspdf';
 
 const gateways = [
   (cid) => `https://ipfs.io/ipfs/${cid}`,
@@ -202,7 +203,7 @@ const NFTPetsPanel = () => {
           
           body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #4b6e90;
             min-height: 100vh;
             padding: 20px;
           }
@@ -217,7 +218,7 @@ const NFTPetsPanel = () => {
           }
           
           .header {
-            background: linear-gradient(135deg, #8A8BED 0%, #667eea 100%);
+            background: #4b6e90;
             color: white;
             padding: 30px;
             text-align: center;
@@ -230,6 +231,7 @@ const NFTPetsPanel = () => {
             margin-bottom: 10px;
             position: relative;
             z-index: 1;
+            color: black;
           }
           
           .header p {
@@ -237,10 +239,12 @@ const NFTPetsPanel = () => {
             opacity: 0.9;
             position: relative;
             z-index: 1;
+            color: black;
           }
           
           .content {
             padding: 40px;
+            background: #abc3c2;
           }
           
           .pet-info {
@@ -259,13 +263,13 @@ const NFTPetsPanel = () => {
             height: 180px;
             object-fit: cover;
             border-radius: 20px;
-            border: 4px solid #8A8BED;
-            box-shadow: 0 10px 25px rgba(138, 139, 237, 0.3);
+            border: 4px solid #4b6e90;
+            box-shadow: 0 10px 25px rgba(75, 110, 144, 0.3);
           }
           
           .pet-photo .id-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #8A8BED, #667eea);
+            background: #4b6e90;
             color: white;
             padding: 8px 16px;
             border-radius: 25px;
@@ -275,11 +279,11 @@ const NFTPetsPanel = () => {
           }
           
           .pet-details h2 {
-            color: #333;
+            color: black;
             font-size: 2rem;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 3px solid #8A8BED;
+            border-bottom: 3px solid #4b6e90;
           }
           
           .details-grid {
@@ -289,16 +293,16 @@ const NFTPetsPanel = () => {
           }
           
           .detail-item {
-            background: #f8f9ff;
+            background: #809286;
             padding: 20px;
             border-radius: 15px;
-            border-left: 4px solid #8A8BED;
+            border-left: 4px solid #4b6e90;
           }
           
           .detail-item label {
             display: block;
             font-weight: bold;
-            color: #555;
+            color: gray;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -307,7 +311,7 @@ const NFTPetsPanel = () => {
           
           .detail-item .value {
             font-size: 1.1rem;
-            color: #333;
+            color: black;
             font-weight: 500;
           }
           
@@ -330,7 +334,7 @@ const NFTPetsPanel = () => {
           }
           
           .blockchain-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #4b6e90;
             color: white;
             padding: 30px;
             border-radius: 15px;
@@ -343,6 +347,7 @@ const NFTPetsPanel = () => {
             display: flex;
             align-items: center;
             gap: 10px;
+            color: black;
           }
           
           .blockchain-grid {
@@ -352,39 +357,39 @@ const NFTPetsPanel = () => {
           }
           
           .blockchain-item {
-            background: rgba(255,255,255,0.1);
+            background: #809286;
             padding: 15px;
             border-radius: 10px;
-            backdrop-filter: blur(10px);
           }
           
           .blockchain-item label {
             display: block;
             font-size: 0.8rem;
-            opacity: 0.8;
             margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: gray;
           }
           
           .blockchain-item .value {
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
             word-break: break-all;
+            color: black;
           }
           
           .footer {
             text-align: center;
             padding: 30px;
-            background: #f8f9ff;
-            color: #666;
+            background: #abc3c2;
+            color: black;
             font-size: 0.9rem;
           }
           
           .footer .logo {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #8A8BED;
+            color: #4b6e90;
             margin-bottom: 10px;
           }
           
