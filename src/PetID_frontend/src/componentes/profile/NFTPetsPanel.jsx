@@ -5,6 +5,7 @@ import { canisterId as backendCanisterId } from 'declarations/PetID_backend/inde
 import { HttpAgent } from '@dfinity/agent';
 import { useTranslation } from 'react-i18next';
 import { GiPawPrint } from 'react-icons/gi';
+import { FiFileText, FiDownload } from 'react-icons/fi';
 
 const gateways = [
   (cid) => `https://ipfs.io/ipfs/${cid}`,
@@ -177,6 +178,328 @@ const NFTPetsPanel = () => {
   };
   const formatTimestamp = (ts) => { try { return new Date(Number(ts) / 1_000_000).toLocaleString(); } catch { return '—'; } };
   const formatPrincipal = (p) => { const s = p.toString(); return s.slice(0, 6) + '...' + s.slice(-6); };
+
+  // Função para gerar documento do pet
+  const generatePetDocument = (pet) => {
+    // Criar um novo documento HTML para impressão
+    const printWindow = window.open('', '_blank');
+    const doc = printWindow.document;
+    
+    // Template HTML do documento
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Documento Pet - ${pet.nickname}</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+          }
+          
+          .document {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+          }
+          
+          .header {
+            background: linear-gradient(135deg, #8A8BED 0%, #667eea 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+          }
+          
+          .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+          }
+          
+          .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+          }
+          
+          .content {
+            padding: 40px;
+          }
+          
+          .pet-info {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+          }
+          
+          .pet-photo {
+            text-align: center;
+          }
+          
+          .pet-photo img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 4px solid #8A8BED;
+            box-shadow: 0 10px 25px rgba(138, 139, 237, 0.3);
+          }
+          
+          .pet-photo .id-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #8A8BED, #667eea);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 0.9rem;
+          }
+          
+          .pet-details h2 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #8A8BED;
+          }
+          
+          .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+          }
+          
+          .detail-item {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #8A8BED;
+          }
+          
+          .detail-item label {
+            display: block;
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+          }
+          
+          .detail-item .value {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+          }
+          
+          .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+          }
+          
+          .status-normal {
+            background: #d4edda;
+            color: #155724;
+          }
+          
+          .status-lost {
+            background: #f8d7da;
+            color: #721c24;
+          }
+          
+          .blockchain-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 40px;
+          }
+          
+          .blockchain-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          
+          .blockchain-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+          }
+          
+          .blockchain-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+          }
+          
+          .blockchain-item label {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          
+          .blockchain-item .value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+          }
+          
+          .footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9ff;
+            color: #666;
+            font-size: 0.9rem;
+          }
+          
+          .footer .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #8A8BED;
+            margin-bottom: 10px;
+          }
+          
+          @media print {
+            body {
+              background: white;
+              padding: 0;
+            }
+            
+            .document {
+              box-shadow: none;
+              border-radius: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="document">
+          <div class="header">
+            <h1>🐾 Documento Pet</h1>
+            <p>Carteira Digital de Identidade</p>
+          </div>
+          
+          <div class="content">
+            <div class="pet-info">
+              <div class="pet-photo">
+                ${pet.photo ? `<img src="${gateways[0](pet.photo)}" alt="${pet.nickname}" onerror="this.style.display='none'">` : '<div style="width: 180px; height: 180px; background: #f0f0f0; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #999;">Sem Foto</div>'}
+                <div class="id-badge">ID #${pet.id}</div>
+              </div>
+              
+              <div class="pet-details">
+                <h2>${pet.nickname}</h2>
+                
+                <div class="details-grid">
+                  <div class="detail-item">
+                    <label>Data de Nascimento</label>
+                    <div class="value">${formatDate(pet.birthDate)}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <label>Espécie</label>
+                    <div class="value">${t(`petForm.${pet.species}`, pet.species)}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <label>Gênero</label>
+                    <div class="value">${t(`petForm.${pet.gender}`, pet.gender)}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <label>Cor</label>
+                    <div class="value">${t(`petForm.${pet.color}`, pet.color)}</div>
+                  </div>
+                  
+                  <div class="detail-item" style="grid-column: 1 / -1;">
+                    <label>Status</label>
+                    <div class="value">
+                      <span class="status-badge ${pet.isLost ? 'status-lost' : 'status-normal'}">
+                        ${pet.isLost ? t('petForm.lost') : t('petForm.notLost')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="blockchain-info">
+              <h3>
+                🔗 Informações da Blockchain
+              </h3>
+              
+              <div class="blockchain-grid">
+                <div class="blockchain-item">
+                  <label>ID na Blockchain</label>
+                  <div class="value">#${pet.id}</div>
+                </div>
+                
+                <div class="blockchain-item">
+                  <label>Data de Criação</label>
+                  <div class="value">${formatTimestamp(pet.createdAt)}</div>
+                </div>
+                
+                <div class="blockchain-item">
+                  <label>Proprietário</label>
+                  <div class="value">${formatPrincipal(pet.owner)}</div>
+                </div>
+                
+                ${pet.photo ? `
+                <div class="blockchain-item">
+                  <label>Hash IPFS da Foto</label>
+                  <div class="value">${pet.photo}</div>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <div class="logo">PetID</div>
+            <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
+            <p>Identidade digital segura e descentralizada para pets</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    doc.write(htmlContent);
+    doc.close();
+    
+    // Auto-imprimir após 1 segundo para garantir que as imagens carreguem
+    setTimeout(() => {
+      printWindow.print();
+    }, 1000);
+  };
 
   return (
     <div className="space-y-8">
@@ -380,6 +703,17 @@ const NFTPetsPanel = () => {
               <p><span className="font-medium">{t('petPanel.created')}:</span> {formatTimestamp(pet.createdAt)}</p>
               <p><span className="font-medium">{t('petPanel.owner')}:</span> {formatPrincipal(pet.owner)}</p>
               {pet.photo && <p className="truncate"><span className="font-medium">{t('petPanel.cidLabel')}:</span> {pet.photo}</p>}
+            </div>
+            
+            {/* Botão Document */}
+            <div className="mt-4 pt-3 border-t border-gray-200 dark:border-surface-100">
+              <button
+                onClick={() => generatePetDocument(pet)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+              >
+                <FiFileText className="w-4 h-4" />
+                Document
+              </button>
             </div>
           </div>
         ))}
