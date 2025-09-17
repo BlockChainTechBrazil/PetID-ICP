@@ -64,19 +64,51 @@ const NFTPetsPanel = () => {
   }, [isAuthenticated, authClient]);
 
   const loadPets = async () => {
-    if (!actor) return;
     setLoadingPets(true);
     try {
-      const res = await actor.getMyPets();
-      if ('ok' in res) setPets(res.ok);
+      // Primeiro, tentar carregar do localStorage como fallback
+      const cachedPets = localStorage.getItem('userPets');
+      if (cachedPets) {
+        const parsedPets = JSON.parse(cachedPets);
+        setPets(parsedPets);
+        console.log('✅ Pets carregados do localStorage cache:', parsedPets);
+      }
+      
+      // Se temos actor, tentar carregar do backend
+      if (actor) {
+        const res = await actor.getMyPets();
+        if ('ok' in res) {
+          // Converter BigInts para strings antes de salvar
+          const petsWithStringIds = res.ok.map(pet => ({
+            ...pet,
+            id: pet.id.toString(), // Converter BigInt para string
+            createdAt: pet.createdAt ? pet.createdAt.toString() : pet.createdAt,
+            updatedAt: pet.updatedAt ? pet.updatedAt.toString() : pet.updatedAt
+          }));
+          
+          setPets(petsWithStringIds);
+          // Salvar no localStorage para cache
+          localStorage.setItem('userPets', JSON.stringify(petsWithStringIds));
+          console.log('✅ Pets carregados do ICP e salvos no cache:', petsWithStringIds);
+        }
+      }
     } catch (e) {
       console.error('[NFTPetsPanel] load pets error', e);
+      // Em caso de erro, tentar carregar do localStorage
+      const cachedPets = localStorage.getItem('userPets');
+      if (cachedPets) {
+        const parsedPets = JSON.parse(cachedPets);
+        setPets(parsedPets);
+        console.log('💾 Usando pets do localStorage devido a erro:', parsedPets);
+      }
     } finally {
       setLoadingPets(false);
     }
   };
 
-  useEffect(() => { loadPets(); }, [actor]);
+  useEffect(() => { 
+    loadPets(); 
+  }, [actor]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
