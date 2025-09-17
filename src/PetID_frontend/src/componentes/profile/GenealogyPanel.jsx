@@ -248,8 +248,50 @@ const GenealogyPanel = () => {
     }
   };
 
+  // Função para calcular posição sem sobreposição
+  const calculateNewPosition = () => {
+    const cardWidth = 320; // largura do card do pet
+    const cardHeight = 200; // altura do card do pet
+    const margin = 50; // margem entre cards
+    
+    // Se não há pets, posição inicial central
+    if (genealogyNodes.length === 0) {
+      return { x: 100, y: 100 };
+    }
+    
+    // Tentar várias posições até encontrar uma livre
+    for (let attempts = 0; attempts < 50; attempts++) {
+      const x = Math.random() * (canvasSize.width - cardWidth - 200) + 100;
+      const y = Math.random() * (canvasSize.height - cardHeight - 200) + 100;
+      
+      // Verificar se a nova posição não sobrepõe com pets existentes
+      const hasOverlap = genealogyNodes.some(node => {
+        const distanceX = Math.abs(node.position.x - x);
+        const distanceY = Math.abs(node.position.y - y);
+        return distanceX < (cardWidth + margin) && distanceY < (cardHeight + margin);
+      });
+      
+      if (!hasOverlap) {
+        return { x, y };
+      }
+    }
+    
+    // Se não encontrou posição livre, usar grade
+    const cols = Math.floor(canvasSize.width / (cardWidth + margin));
+    const currentIndex = genealogyNodes.length;
+    const row = Math.floor(currentIndex / cols);
+    const col = currentIndex % cols;
+    
+    return {
+      x: 100 + col * (cardWidth + margin),
+      y: 100 + row * (cardHeight + margin)
+    };
+  };
+
   // Função para adicionar um nó ao canvas
-  const addNodeToCanvas = (pet, position = { x: 200, y: 200 }) => {
+  const addNodeToCanvas = (pet, position = null) => {
+    console.log('🐕 addNodeToCanvas chamada com pet:', pet);
+    
     // Converter BigInt para string para evitar erro de serialização
     const serializedPet = {
       ...pet,
@@ -257,19 +299,38 @@ const GenealogyPanel = () => {
       createdAt: pet.createdAt?.toString()
     };
     
+    // Calcular posição sem sobreposição
+    const newPosition = position || calculateNewPosition();
+    
     const newNode = {
       id: `node-${pet.id?.toString()}-${Date.now()}`,
       petId: pet.id?.toString(),
       petData: serializedPet,
-      position: position,
-      type: 'pet', // pode ser 'pet', 'father', 'mother', 'offspring'
+      position: newPosition,
+      type: 'pet',
       isSelected: false
     };
     
-    console.log('Adicionando nó ao canvas:', newNode);
-    setGenealogyNodes(prev => [...prev, newNode]);
+    console.log('✅ Novo nó criado na posição:', newPosition);
+    setGenealogyNodes(prev => {
+      console.log('📊 Nodes anteriores:', prev.length);
+      const newNodes = [...prev, newNode];
+      console.log('📊 Nodes após adição:', newNodes.length);
+      return newNodes;
+    });
+    
+    // Fechar modal
+    console.log('🔒 Fechando modal de seleção');
     setShowPetSelector(false);
     setSelectedPet(null);
+  };
+
+  // Função para abrir seletor de pets
+  const openPetSelector = () => {
+    console.log('🔓 Abrindo seletor de pets...');
+    console.log('📊 Estado atual - showPetSelector:', showPetSelector);
+    console.log('📊 Estado atual - pets disponíveis:', pets.length);
+    setShowPetSelector(true);
   };
 
   // Função para remover um nó
@@ -289,14 +350,16 @@ const GenealogyPanel = () => {
 
   // Função para adicionar parentesco
   const addParentage = (nodeId) => {
-    console.log('Função addParentage chamada com nodeId:', nodeId);
+    console.log('❤️ Função addParentage chamada com nodeId:', nodeId);
+    console.log('🔗 Estado atual - connectionStart:', connectionStart);
+    console.log('🔗 Estado atual - isConnecting:', isConnecting);
     
     if (!connectionStart) {
       // Primeira seleção para parentesco
       setConnectionStart(nodeId);
       setIsConnecting(true);
       
-      console.log('Primeiro nó selecionado para conexão:', nodeId);
+      console.log('🎯 Primeiro nó selecionado para conexão:', nodeId);
       
       // Mostrar feedback visual
       setGenealogyNodes(prev => prev.map(node => ({
@@ -305,12 +368,13 @@ const GenealogyPanel = () => {
       })));
     } else if (connectionStart !== nodeId) {
       // Segunda seleção - mostrar modal de seleção de parentesco
-      console.log('Segundo nó selecionado. Mostrando modal de parentesco');
+      console.log('🎯 Segundo nó selecionado. Mostrando modal de parentesco');
+      console.log('🔗 Conexão será de:', connectionStart, 'para:', nodeId);
       setPendingConnection({ from: connectionStart, to: nodeId });
       setShowRelationshipModal(true);
     } else {
       // Cancelar se clicar no mesmo nó
-      console.log('Mesmo nó clicado. Cancelando conexão');
+      console.log('❌ Mesmo nó clicado. Cancelando conexão');
       setIsConnecting(false);
       setConnectionStart(null);
       setGenealogyNodes(prev => prev.map(node => ({
@@ -462,6 +526,7 @@ const GenealogyPanel = () => {
 
   // Função para atualizar posição do nó
   const updateNodePosition = (nodeId, newPosition) => {
+    console.log('📍 Atualizando posição do nó:', nodeId, 'para:', newPosition);
     setGenealogyNodes(prev => prev.map(node =>
       node.id === nodeId 
         ? { ...node, position: newPosition }
@@ -477,33 +542,52 @@ const GenealogyPanel = () => {
     return (
       <Draggable
         position={node.position}
-        onStop={(e, data) => updateNodePosition(node.id, { x: data.x, y: data.y })}
+        onStop={(e, data) => {
+          console.log('🎯 Pet arrastado para:', data.x, data.y);
+          updateNodePosition(node.id, { x: data.x, y: data.y });
+        }}
         bounds="parent"
-        cancel=".no-drag" // Permite que elementos com classe no-drag não ativem o drag
+        cancel=".no-drag, .button-area" // Impede drag nos botões
+        handle=".drag-handle" // Só permite drag na área específica
       >
         <div
-          className={`absolute cursor-move select-none ${
-            isSelected ? 'ring-4 ring-blue-500' : ''
+          className={`absolute select-none transition-all duration-300 ${
+            isSelected ? 'ring-4 ring-green-400 scale-105 z-50' : 'hover:scale-102 z-10'
           }`}
           style={{ 
-            transform: `translate(${node.position.x}px, ${node.position.y}px)`,
-            zIndex: isSelected ? 10 : 1
+            left: node.position.x,
+            top: node.position.y,
+            zIndex: isSelected ? 50 : 10
           }}
         >
-          <div className={`bg-gradient-to-br from-white to-gray-50 dark:from-surface-50 dark:to-surface-75 rounded-xl shadow-lg border-2 p-4 min-w-[280px] max-w-[320px] hover:shadow-xl transition-all duration-200 ${
-            node.isSelected 
-              ? 'border-green-400 shadow-green-200 scale-105' 
-              : 'border-gray-200 dark:border-surface-200'
+          <div className={`bg-gradient-to-br rounded-xl shadow-lg border-2 p-4 w-[320px] transition-all duration-300 ${
+            isSelected 
+              ? 'from-green-50 to-emerald-100 border-green-400 shadow-green-200 dark:from-green-900/20 dark:to-emerald-900/30 dark:border-green-400' 
+              : node.isSelected 
+                ? 'from-blue-50 to-indigo-100 border-blue-400 shadow-blue-200 dark:from-blue-900/20 dark:to-indigo-900/30 dark:border-blue-400'
+                : 'from-white to-gray-50 border-gray-200 hover:shadow-xl dark:from-surface-50 dark:to-surface-75 dark:border-surface-200'
           }`}>
-            {/* Header do cartão com status */}
-            <div className="flex items-center justify-between mb-3">
+            
+            {/* Indicador de Seleção */}
+            {isSelected && (
+              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg animate-pulse z-10">
+                SELECIONADO
+              </div>
+            )}
+            
+            {/* Header do cartão com status - área clicável para drag */}
+            <div className="drag-handle cursor-move flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <div className="relative">
-                  <GiPawPrint className="w-6 h-6 text-[#8A8BED]" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                  <GiPawPrint className={`w-6 h-6 ${isSelected ? 'text-green-600' : 'text-[#8A8BED]'}`} />
+                  <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+                    isSelected ? 'bg-green-500 animate-pulse' : 'bg-blue-500'
+                  }`}></div>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-800 dark:text-white text-base">
+                  <span className={`font-bold text-base ${
+                    isSelected ? 'text-green-800 dark:text-green-200' : 'text-gray-800 dark:text-white'
+                  }`}>
                     {pet.nickname}
                   </span>
                   <p className="text-xs text-gray-500 dark:text-slate-400">
@@ -512,16 +596,16 @@ const GenealogyPanel = () => {
                 </div>
               </div>
               
-              {/* Menu de ações */}
-              <div className="flex space-x-1 no-drag">
+              {/* Menu de ações - área não arrastável */}
+              <div className="button-area flex space-x-1 no-drag">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    console.log('Editando nó:', node.id);
+                    console.log('✏️ Editando nó:', node.id);
                     setEditingNode(node.id);
                   }}
-                  className="p-1.5 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors cursor-pointer no-drag"
+                  className="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors cursor-pointer"
                   title="Editar informações"
                 >
                   <FiEdit3 className="w-4 h-4" />
@@ -530,22 +614,28 @@ const GenealogyPanel = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    console.log('Adicionando parentesco para:', node.id);
+                    console.log('❤️ Botão coração clicado para:', node.id);
                     addParentage(node.id);
                   }}
-                  className="p-1.5 text-green-500 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-lg transition-colors cursor-pointer no-drag"
-                  title="Adicionar parentesco"
+                  className={`p-2 rounded-lg transition-all cursor-pointer transform hover:scale-110 ${
+                    isSelected 
+                      ? 'text-white bg-green-500 shadow-lg animate-pulse' 
+                      : isConnecting && !isSelected
+                        ? 'text-green-600 bg-green-100 dark:bg-green-900/30 shadow-md border-2 border-green-300 animate-bounce'
+                        : 'text-green-500 hover:bg-green-100 dark:hover:bg-green-900/20'
+                  }`}
+                  title={isSelected ? "Pet selecionado - clique em outro" : "Criar conexão genealógica"}
                 >
-                  <FiHeart className="w-4 h-4" />
+                  <FiHeart className={`w-4 h-4 ${isSelected ? 'animate-pulse' : ''}`} />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    console.log('Removendo nó:', node.id);
+                    console.log('🗑️ Removendo nó:', node.id);
                     removeNode(node.id);
                   }}
-                  className="p-1.5 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer no-drag"
+                  className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
                   title="Remover da árvore"
                 >
                   <FiTrash2 className="w-4 h-4" />
@@ -684,10 +774,11 @@ const GenealogyPanel = () => {
           
           if (!fromNode || !toNode) return null;
           
-          const fromX = fromNode.position.x + 140; // centro do nó expandido
-          const fromY = fromNode.position.y + 100;
-          const toX = toNode.position.x + 140;
-          const toY = toNode.position.y + 100;
+          // Calcular centro dos cards (320px width, ~180px height)
+          const fromX = fromNode.position.x + 160; // centro do card
+          const fromY = fromNode.position.y + 90;
+          const toX = toNode.position.x + 160;
+          const toY = toNode.position.y + 90;
           
           // Calcular pontos de controle para curva
           const midX = (fromX + toX) / 2;
@@ -817,22 +908,43 @@ const GenealogyPanel = () => {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-6 h-[600px] flex flex-col">
+    <div className="p-6 max-w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center space-x-2">
-          <FiUsers className="w-5 h-5 text-[#8A8BED]" />
-          <span>Árvore Genealógica Interativa</span>
-        </h3>
-        
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setShowPetSelector(true)}
-            className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all text-sm font-medium"
-          >
-            <FiPlus className="w-4 h-4" />
-            <span>Adicionar Pet</span>
-          </button>
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center space-x-2">
+            <FiUsers className="w-5 h-5 text-[#8A8BED]" />
+            <span>Árvore Genealógica Interativa</span>
+          </h3>
+          
+          <div className="flex flex-wrap gap-2">
+            {/* Botão principal para adicionar pets - sempre visível */}
+            <button
+              onClick={openPetSelector}
+              className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all text-sm font-medium shadow-lg transform hover:scale-105"
+            >
+              <FiPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">+ Adicionar Pet</span>
+              <span className="sm:hidden">+ Pet</span>
+            </button>
+
+          {/* Botão para cancelar conexão se estiver ativo */}
+          {isConnecting && (
+            <button
+              onClick={() => {
+                setIsConnecting(false);
+                setConnectionStart(null);
+                setGenealogyNodes(prev => prev.map(node => ({
+                  ...node,
+                  isSelected: false
+                })));
+              }}
+              className="flex items-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm font-medium animate-pulse"
+            >
+              <FiX className="w-4 h-4" />
+              <span>Cancelar Conexão</span>
+            </button>
+          )}
           
           <button
             onClick={() => {
@@ -853,53 +965,52 @@ const GenealogyPanel = () => {
         </div>
       </div>
 
-      {/* Instruções de uso */}
-      {genealogyNodes.length === 0 && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-4 border border-blue-200 dark:border-blue-800">
-          <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2 flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Como usar a árvore genealógica:
-          </h4>
-          <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-            <p>• <strong>Adicionar Pet:</strong> Clique em "Adicionar Pet" para selecionar um pet registrado</p>
-            <p>• <strong>Criar Parentesco:</strong> Clique no ícone ❤️ em um pet, depois em outro para conectá-los</p>
-            <p>• <strong>Editar Informações:</strong> Use o ícone ✏️ para editar dados do pet na árvore</p>
-            <p>• <strong>Remover:</strong> Use o ícone 🗑️ para remover pets da árvore</p>
-            <p>• <strong>Navegar:</strong> Arraste para mover, use o scroll para zoom</p>
-          </div>
+      {/* Instruções Dinâmicas - Fixas */}
+      <div className="flex-shrink-0 px-6 py-2">
+        <div className="p-3 rounded-lg border transition-all">
+          {genealogyNodes.length === 0 ? (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 p-3 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center">
+                <FiPlus className="w-4 h-4 mr-2" />
+                🚀 Comece clicando em <strong>"+ Adicionar Pet"</strong> para criar sua árvore genealógica
+              </p>
+            </div>
+          ) : isConnecting && connectionStart ? (
+            <div className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 p-3 rounded-lg">
+              <p className="text-sm text-green-800 dark:text-green-200 flex items-center">
+                <FiHeart className="w-4 h-4 mr-2" />
+                💚 Agora clique no <strong>❤️</strong> de outro pet para conectá-los
+              </p>
+            </div>
+          ) : genealogyNodes.length === 1 ? (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 p-3 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-200 flex items-center">
+                <FiPlus className="w-4 h-4 mr-2" />
+                👨‍👩‍👧‍👦 <strong>Adicione mais pets</strong> clicando em "+ Adicionar Pet" ou no botão ➕ flutuante
+              </p>
+            </div>
+          ) : (
+            <div className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 p-3 rounded-lg">
+              <p className="text-sm text-purple-800 dark:text-purple-200 flex items-center">
+                <FiHeart className="w-4 h-4 mr-2" />
+                🌳 Clique no <strong>❤️</strong> dos pets para criar conexões genealógicas | <FiPlus className="w-3 h-3 mx-1" /> <strong>Adicionar Pet</strong> para mais membros
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Status de conexão */}
-      {isConnecting && (
-        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 mb-4 border border-green-200 dark:border-green-800">
-          <p className="text-sm text-green-800 dark:text-green-200 flex items-center">
-            <div className="animate-pulse w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-            <strong>Modo Conexão:</strong> Selecione outro pet para criar o parentesco
-            <button 
-              onClick={() => {
-                setIsConnecting(false);
-                setConnectionStart(null);
-                setGenealogyNodes(prev => prev.map(node => ({ ...node, isSelected: false })));
-              }}
-              className="ml-auto text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
-            >
-              <FiX className="w-4 h-4" />
-            </button>
-          </p>
-        </div>
-      )}
-
-      {/* Canvas Principal */}
-      <div className="flex-1 border border-gray-300 dark:border-surface-200 rounded-xl overflow-hidden bg-gray-50 dark:bg-surface-100 relative">
+      {/* Canvas Principal com TransformWrapper */}
+      <div className="flex-1 w-full border border-gray-300 dark:border-surface-200 rounded-xl overflow-hidden bg-gray-50 dark:bg-surface-100 relative min-h-0">
         <TransformWrapper
           initialScale={0.8}
           minScale={0.3}
           maxScale={2}
           limitToBounds={false}
           centerOnInit={true}
+          wheel={{ step: 0.1 }}
+          pan={{ disabled: false }}
+          doubleClick={{ disabled: false }}
         >
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>
@@ -922,6 +1033,17 @@ const GenealogyPanel = () => {
                   className="p-2 bg-white dark:bg-surface-50 rounded-lg shadow-md hover:shadow-lg transition-shadow"
                 >
                   <FiMove className="w-4 h-4 text-gray-600 dark:text-slate-300" />
+                </button>
+              </div>
+
+              {/* Botão flutuante para adicionar pets */}
+              <div className="absolute bottom-4 right-4 z-20">
+                <button
+                  onClick={openPetSelector}
+                  className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 animate-bounce"
+                  title="Adicionar Pet ao Canvas"
+                >
+                  <FiPlus className="w-6 h-6" />
                 </button>
               </div>
 
@@ -962,7 +1084,149 @@ const GenealogyPanel = () => {
                           Adicione seus pets para começar a criar a árvore genealógica
                         </p>
                         <button
-                          onClick={() => setShowPetSelector(true)}
+                          onClick={openPetSelector}
+                          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                        >
+                          Adicionar Primeiro Pet
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
+      </div>
+      {isConnecting && connectionStart && (
+        <div className="flex-shrink-0 p-4 bg-blue-100 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center">
+              <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse mr-2"></div>
+              <strong>Modo Conexão Ativado:</strong> Selecione outro pet para criar parentesco
+            </p>
+            <button
+              onClick={() => {
+                setIsConnecting(false);
+                setConnectionStart(null);
+                setGenealogyNodes(prev => prev.map(node => ({
+                  ...node,
+                  isSelected: false
+                })));
+              }}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Status de conexão */}
+      {isConnecting && (
+        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 mb-4 border border-green-200 dark:border-green-800">
+          <p className="text-sm text-green-800 dark:text-green-200 flex items-center">
+            <div className="animate-pulse w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+            <strong>Modo Conexão:</strong> Selecione outro pet para criar o parentesco
+            <button 
+              onClick={() => {
+                setIsConnecting(false);
+                setConnectionStart(null);
+                setGenealogyNodes(prev => prev.map(node => ({ ...node, isSelected: false })));
+              }}
+              className="ml-auto text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
+            >
+              <FiX className="w-4 h-4" />
+            </button>
+          </p>
+        </div>
+      )}
+
+      {/* Canvas Principal */}
+      <div className="h-96 border border-gray-300 dark:border-surface-200 rounded-xl overflow-hidden bg-gray-50 dark:bg-surface-100 relative">
+        <TransformWrapper
+          initialScale={0.8}
+          minScale={0.3}
+          maxScale={2}
+          limitToBounds={false}
+          centerOnInit={true}
+          wheel={{ step: 0.1 }}
+          pan={{ disabled: false }}
+          doubleClick={{ disabled: false }}
+        >
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              {/* Controles de zoom */}
+              <div className="absolute top-4 right-4 z-20 flex flex-col space-y-2">
+                <button
+                  onClick={() => zoomIn()}
+                  className="p-2 bg-white dark:bg-surface-50 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <FiZoomIn className="w-4 h-4 text-gray-600 dark:text-slate-300" />
+                </button>
+                <button
+                  onClick={() => zoomOut()}
+                  className="p-2 bg-white dark:bg-surface-50 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <FiZoomOut className="w-4 h-4 text-gray-600 dark:text-slate-300" />
+                </button>
+                <button
+                  onClick={() => resetTransform()}
+                  className="p-2 bg-white dark:bg-surface-50 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <FiMove className="w-4 h-4 text-gray-600 dark:text-slate-300" />
+                </button>
+              </div>
+
+              {/* Botão flutuante para adicionar pets */}
+              <div className="absolute bottom-4 right-4 z-20">
+                <button
+                  onClick={openPetSelector}
+                  className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 animate-bounce"
+                  title="Adicionar Pet ao Canvas"
+                >
+                  <FiPlus className="w-6 h-6" />
+                </button>
+              </div>
+
+              <TransformComponent
+                wrapperClass="!w-full !h-full"
+                contentClass="!w-full !h-full"
+              >
+                <div
+                  ref={canvasRef}
+                  className="relative bg-gradient-to-br from-blue-50 to-purple-50 dark:from-surface-75 dark:to-surface-100"
+                  style={{ 
+                    width: canvasSize.width, 
+                    height: canvasSize.height,
+                    backgroundImage: `
+                      radial-gradient(circle at 20px 20px, rgba(138, 139, 237, 0.1) 1px, transparent 0),
+                      radial-gradient(circle at 80px 80px, rgba(138, 139, 237, 0.05) 1px, transparent 0)
+                    `,
+                    backgroundSize: '100px 100px'
+                  }}
+                >
+                  {/* Linhas de conexão */}
+                  <ConnectionLines />
+                  
+                  {/* Nós dos pets */}
+                  {genealogyNodes.map(node => (
+                    <PetNode key={node.id} node={node} />
+                  ))}
+                  
+                  {/* Área vazia para adicionar nós */}
+                  {genealogyNodes.length === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center p-8 bg-white/80 dark:bg-surface-50/80 rounded-xl shadow-lg">
+                        <GiPawPrint className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h4 className="text-lg font-medium text-gray-600 dark:text-slate-300 mb-2">
+                          Canvas Vazio
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
+                          Adicione seus pets para começar a criar a árvore genealógica
+                        </p>
+                        <button
+                          onClick={openPetSelector}
                           className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
                         >
                           Adicionar Primeiro Pet
@@ -978,20 +1242,36 @@ const GenealogyPanel = () => {
       </div>
 
       {/* Status de conexão */}
-      {isConnecting && (
-        <div className="mt-2 p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg text-center">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            Selecione outro pet para criar uma conexão de parentesco
-          </p>
-          <button
-            onClick={() => {
-              setIsConnecting(false);
-              setConnectionStart(null);
-            }}
-            className="mt-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            Cancelar conexão
-          </button>
+      {isConnecting && connectionStart && (
+        <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                <FiHeart className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 dark:text-green-200">
+                  Modo Conexão Ativado
+                </h4>
+                <p className="text-sm text-green-600 dark:text-green-300">
+                  Clique no ❤️ de outro pet para criar conexão genealógica
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setIsConnecting(false);
+                setConnectionStart(null);
+                setGenealogyNodes(prev => prev.map(node => ({
+                  ...node,
+                  isSelected: false
+                })));
+              }}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       )}
 
@@ -1001,12 +1281,20 @@ const GenealogyPanel = () => {
           <div className="bg-white dark:bg-surface-50 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  Selecionar Pet para Adicionar
-                </h4>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Selecionar Pet para Adicionar à Árvore
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
+                    Clique em qualquer pet para adicioná-lo ao canvas genealógico
+                  </p>
+                </div>
                 <button
-                  onClick={() => setShowPetSelector(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300"
+                  onClick={() => {
+                    console.log('🔒 Fechando modal pelo X');
+                    setShowPetSelector(false);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors"
                 >
                   <FiX className="w-5 h-5" />
                 </button>
@@ -1031,41 +1319,51 @@ const GenealogyPanel = () => {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                  {pets.map(pet => (
-                    <div
-                      key={pet.id}
-                      className="border border-gray-200 dark:border-surface-200 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-surface-75 cursor-pointer transition-colors"
-                      onClick={() => addNodeToCanvas(pet)}
-                    >
-                      {pet.photo && (
-                        <img
-                          src={`https://gateway.pinata.cloud/ipfs/${pet.photo}`}
-                          alt={pet.nickname}
-                          className="w-full h-24 object-cover rounded-lg mb-3"
-                          onError={(e) => {
-                            console.log('Erro ao carregar imagem do pet:', pet.photo);
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      )}
-                      <h5 className="font-medium text-gray-800 dark:text-white mb-1">
-                        {pet.nickname}
-                      </h5>
-                      <p className="text-sm text-gray-600 dark:text-slate-300">
-                        {pet.species} • {pet.gender}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        ID: #{pet.id}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">
-                        Cor: {pet.color}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">
-                        Nascimento: {pet.birthDate}
-                      </p>
-                    </div>
-                  ))}
+                <div>
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+                      🎯 <strong>{pets.length} pet(s)</strong> disponível(is) para adicionar à árvore genealógica
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                    {pets.map(pet => (
+                      <div
+                        key={pet.id}
+                        className="border-2 border-gray-200 dark:border-surface-200 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-all transform hover:scale-105 shadow-sm hover:shadow-lg"
+                        onClick={() => {
+                          console.log('🐕 Pet clicado no modal:', pet.nickname);
+                          addNodeToCanvas(pet);
+                        }}
+                      >
+                        {pet.photo && (
+                          <img
+                            src={`https://gateway.pinata.cloud/ipfs/${pet.photo}`}
+                            alt={pet.nickname}
+                            className="w-full h-24 object-cover rounded-lg mb-3"
+                            onError={(e) => {
+                              console.log('Erro ao carregar imagem do pet:', pet.photo);
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        )}
+                        <h5 className="font-medium text-gray-800 dark:text-white mb-1">
+                          {pet.nickname}
+                        </h5>
+                        <p className="text-sm text-gray-600 dark:text-slate-300">
+                          {pet.species} • {pet.gender}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                          ID: #{pet.id}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                          Cor: {pet.color}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                          Nascimento: {pet.birthDate}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -1164,6 +1462,7 @@ const GenealogyPanel = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };
