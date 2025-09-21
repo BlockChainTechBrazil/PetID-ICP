@@ -48,23 +48,40 @@ const HealthFormCompact = ({ onSuccess }) => {
   // Criar ator autenticado quando o authClient estiver disponível
   useEffect(() => {
     const createAuthenticatedActor = async () => {
-      if (!authClient || !isAuthenticated) return;
-
-      const identity = authClient.getIdentity();
-      const network = import.meta.env.DFX_NETWORK || 'local';
-      const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
-      
-      const agent = new HttpAgent({ identity, host });
-      if (network !== 'ic') {
-        try {
-          await agent.fetchRootKey();
-        } catch (e) {
-          console.warn('Erro ao buscar root key:', e);
+      try {
+        if (!authClient || !isAuthenticated) {
+          console.log('[HealthForm] Auth not ready:', { authClient: !!authClient, isAuthenticated });
+          return;
         }
-      }
 
-      const actor = createActor(backendCanisterId, { agent });
-      setAuthenticatedActor(actor);
+        const identity = authClient.getIdentity();
+        const network = import.meta.env.DFX_NETWORK || 'local';
+        const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
+        
+        console.log('[HealthForm] Creating actor with:', { network, host });
+        
+        const agent = new HttpAgent({ identity, host });
+        if (network !== 'ic') {
+          try {
+            await agent.fetchRootKey();
+          } catch (e) {
+            console.warn('[HealthForm] Root key warning (not critical):', e);
+          }
+        }
+
+        const actor = createActor(backendCanisterId, { agent });
+        setAuthenticatedActor(actor);
+        console.log('[HealthForm] Actor created successfully');
+      } catch (error) {
+        console.error('[HealthForm] Error creating actor (not critical):', error);
+        // NUNCA fazer logout - apenas definir erro suave
+        setError('Conectando ao servidor... Pode levar alguns segundos.');
+        
+        // Tentar novamente depois de um delay
+        setTimeout(() => {
+          setError('');
+        }, 3000);
+      }
     };
 
     createAuthenticatedActor();
@@ -73,19 +90,22 @@ const HealthFormCompact = ({ onSuccess }) => {
   // Função para carregar pets do usuário
   const loadPets = async () => {
     try {
-      const actor = authenticatedActor;
-      if (!actor) return;
-      const result = await actor.getMyPets();
+      if (!isAuthenticated || !authenticatedActor) {
+        console.log('[HealthForm] Not ready to load pets yet');
+        return;
+      }
+      
+      console.log('[HealthForm] Loading pets...');
+      const result = await authenticatedActor.getMyPets();
       if ('ok' in result) {
+        console.log('[HealthForm] Pets loaded successfully:', result.ok.length);
         setMyPets(result.ok);
+      } else {
+        console.warn('[HealthForm] Backend error loading pets:', result.err);
       }
     } catch (err) {
-      console.error('Error loading pets:', err);
-      if (err?.message?.includes('Invalid delegation')) {
-        setIsAuthenticated(false);
-        setAuthenticatedActor(null);
-        setError(t('login.error', 'Sessão inválida. Faça login novamente.'));
-      }
+      console.error('[HealthForm] Error loading pets (not critical):', err);
+      // NUNCA fazer logout aqui - apenas ignorar o erro
     }
   };
 
@@ -93,8 +113,17 @@ const HealthFormCompact = ({ onSuccess }) => {
   const petsLoadedRef = useRef(false);
   useEffect(() => {
     if (isAuthenticated && authenticatedActor && !petsLoadedRef.current) {
-      petsLoadedRef.current = true;
-      loadPets();
+      // Aguardar para garantir estabilidade no mobile
+      const timer = setTimeout(() => {
+        if (isAuthenticated && authenticatedActor) {
+          petsLoadedRef.current = true;
+          loadPets().catch(err => {
+            console.warn('[HealthForm] Pet loading failed in useEffect, ignoring:', err);
+          });
+        }
+      }, 500); // Delay maior para mobile
+      
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, authenticatedActor]);
 
@@ -173,8 +202,19 @@ const HealthFormCompact = ({ onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!isAuthenticated || !authenticatedActor) {
+    // Validação de autenticação mais robusta
+    if (!isAuthenticated) {
       setError(t('healthForm.loginPrompt', 'Você precisa estar logado para registrar informações de saúde.'));
+      return;
+    }
+
+    if (!authenticatedActor) {
+      setError('Conectando ao servidor... Tente novamente em alguns segundos.');
+      return;
+    }
+
+    // Prevenir cliques duplos
+    if (isLoading) {
       return;
     }
 
@@ -232,12 +272,8 @@ const HealthFormCompact = ({ onSuccess }) => {
 
     } catch (error) {
       console.error('❌ Erro ao criar registro:', error);
-      const errorMessage = error.message || error.toString();
-      if (errorMessage.includes('Invalid delegation')) {
-        setError('Sessão expirada. Faça logout e login novamente.');
-      } else {
-        setError(t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
-      }
+      // NUNCA fazer logout no mobile - apenas mostrar erro
+      setError(t('healthForm.error', 'Erro ao salvar registro de saúde. Tente novamente.'));
     } finally {
       setIsLoading(false);
     }
@@ -508,8 +544,12 @@ const HealthFormCompact = ({ onSuccess }) => {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isLoading || uploadingToIPFS}
-            className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading || uploadingToIPFS || !isAuthenticated}
+            onClick={(e) => {
+              console.log('[HealthForm] Submit button clicked');
+              // Permitir que o handleSubmit seja chamado normalmente
+            }}
+            className="w-full sm:w-auto px-4 py-3 sm:px-6 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-h-[44px] touch-manipulation"
           >
             {isLoading || uploadingToIPFS ? (
               <span className="flex items-center justify-center">

@@ -65,7 +65,9 @@ const NFTPetsPanel = () => {
   }, [isAuthenticated, authClient]);
 
   const loadPets = async () => {
+    console.log('[NFTPetsPanel] Loading pets...');
     setLoadingPets(true);
+    
     try {
       // Primeiro, tentar carregar do localStorage como fallback
       const cachedPets = localStorage.getItem('userPets');
@@ -75,32 +77,51 @@ const NFTPetsPanel = () => {
         console.log('✅ Pets carregados do localStorage cache:', parsedPets);
       }
       
-      // Se temos actor, tentar carregar do backend
+      // Verificar se temos autenticação válida antes de tentar o backend
+      if (!isAuthenticated) {
+        console.log('[NFTPetsPanel] User not authenticated, skipping backend call');
+        return;
+      }
+      
+      // Se temos actor, tentar carregar do backend COM PROTEÇÃO EXTRA
       if (actor) {
-        const res = await actor.getMyPets();
-        if ('ok' in res) {
-          // Converter BigInts para strings antes de salvar
-          const petsWithStringIds = res.ok.map(pet => ({
-            ...pet,
-            id: pet.id.toString(), // Converter BigInt para string
-            createdAt: pet.createdAt ? pet.createdAt.toString() : pet.createdAt,
-            updatedAt: pet.updatedAt ? pet.updatedAt.toString() : pet.updatedAt
-          }));
-          
-          setPets(petsWithStringIds);
-          // Salvar no localStorage para cache
-          localStorage.setItem('userPets', JSON.stringify(petsWithStringIds));
-          console.log('✅ Pets carregados do ICP e salvos no cache:', petsWithStringIds);
+        try {
+          console.log('[NFTPetsPanel] Attempting backend call...');
+          const res = await actor.getMyPets();
+          if ('ok' in res) {
+            // Converter BigInts para strings antes de salvar
+            const petsWithStringIds = res.ok.map(pet => ({
+              ...pet,
+              id: pet.id.toString(), // Converter BigInt para string
+              createdAt: pet.createdAt ? pet.createdAt.toString() : pet.createdAt,
+              updatedAt: pet.updatedAt ? pet.updatedAt.toString() : pet.updatedAt
+            }));
+            
+            setPets(petsWithStringIds);
+            // Salvar no localStorage para cache
+            localStorage.setItem('userPets', JSON.stringify(petsWithStringIds));
+            console.log('✅ Pets carregados do ICP e salvos no cache:', petsWithStringIds);
+          } else {
+            console.warn('[NFTPetsPanel] Backend returned error:', res.err);
+          }
+        } catch (backendError) {
+          console.warn('[NFTPetsPanel] Backend call failed (using cache):', backendError.message || backendError);
+          // NÃO fazer logout - apenas usar cache
         }
       }
     } catch (e) {
-      console.error('[NFTPetsPanel] load pets error', e);
+      console.error('[NFTPetsPanel] General error (not critical):', e.message || e);
       // Em caso de erro, tentar carregar do localStorage
       const cachedPets = localStorage.getItem('userPets');
       if (cachedPets) {
-        const parsedPets = JSON.parse(cachedPets);
-        setPets(parsedPets);
-        console.log('💾 Usando pets do localStorage devido a erro:', parsedPets);
+        try {
+          const parsedPets = JSON.parse(cachedPets);
+          setPets(parsedPets);
+          console.log('💾 Usando pets do localStorage devido a erro:', parsedPets);
+        } catch (parseError) {
+          console.warn('[NFTPetsPanel] Cache parse error:', parseError);
+          setPets([]); // Array vazio se não conseguir parsear
+        }
       }
     } finally {
       setLoadingPets(false);
