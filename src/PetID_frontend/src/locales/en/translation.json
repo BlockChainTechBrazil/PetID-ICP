@@ -252,5 +252,17 @@
     "imgSent": "Image uploaded",
     "unsupportedType": "Unsupported file type",
     "max5mb": "Max 5MB"
+  },
+  "document": {
+    "title": "Pet Document",
+    "digitalIdentity": "Digital Identity Card",
+    "birthDate": "Birth Date",
+    "species": "Species",
+    "gender": "Gender",
+    "color": "Color",
+    "verification": "Verification",
+    "issuedOn": "Issued on",
+    "digitalIdentityVerified": "Verified digital identity",
+    "petId": "PetID"
   }
 }

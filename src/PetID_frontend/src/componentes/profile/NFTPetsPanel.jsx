@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { GiPawPrint } from 'react-icons/gi';
 import { FiFileText, FiDownload } from 'react-icons/fi';
 import jsPDF from 'jspdf';
+import petidLogo from '../../assets/logo/logo.jpg';
 
 const gateways = [
   (cid) => `https://ipfs.io/ipfs/${cid}`,
@@ -17,7 +18,7 @@ const gateways = [
 
 const NFTPetsPanel = () => {
   const { isAuthenticated, authClient } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [actor, setActor] = useState(null);
   const [pets, setPets] = useState([]);
   const [loadingPets, setLoadingPets] = useState(false);
@@ -212,21 +213,37 @@ const NFTPetsPanel = () => {
   const formatTimestamp = (ts) => { try { return new Date(Number(ts) / 1_000_000).toLocaleString(); } catch { return '—'; } };
   const formatPrincipal = (p) => { const s = p.toString(); return s.slice(0, 6) + '...' + s.slice(-6); };
 
-  // Função para gerar documento do pet
+  // Função para gerar cartão de identidade digital do pet
   const generatePetDocument = (pet) => {
     // Criar um novo documento HTML para impressão
     const printWindow = window.open('', '_blank');
     const doc = printWindow.document;
     
-    // Template HTML do documento
+    // Obter idioma atual do i18n
+    const currentLanguage = i18n.language;
+    const isEnglish = currentLanguage.startsWith('en');
+    
+    // Gerar hash fictício simplificado
+    const generateSimpleHash = () => {
+      const chars = '0123456789abcdef';
+      let hash = '';
+      for (let i = 0; i < 8; i++) {
+        hash += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return hash;
+    };
+
+    // Template HTML do cartão de identidade
     const htmlContent = `
       <!DOCTYPE html>
-      <html lang="pt-BR">
+      <html lang="${isEnglish ? 'en' : 'pt-BR'}">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Documento Pet - ${pet.nickname}</title>
+        <title>PetID - ${pet.nickname}</title>
         <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+          
           * {
             margin: 0;
             padding: 0;
@@ -234,195 +251,228 @@ const NFTPetsPanel = () => {
           }
           
           body {
-            font-family: 'Arial', sans-serif;
-            background: #4b6e90;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
           }
           
-          .document {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+          .pet-card {
+            width: 420px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.12);
             overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.04);
           }
           
-          .header {
-            background: #4b6e90;
-            color: white;
-            padding: 30px;
+          .card-header {
+            position: relative;
+            padding: 24px 24px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #f1f3f4;
+          }
+          
+          .pet-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-align: left;
+            letter-spacing: -0.02em;
+          }
+          
+          .card-content {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 20px;
+            align-items: start;
+          }
+          
+          .pet-photo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+          }
+          
+          .pet-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid #e8eaed;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5f6368;
+            font-size: 12px;
             text-align: center;
+            font-weight: 400;
             position: relative;
           }
           
-          .header h1 {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
-            color: black;
+          .status-icon {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 10;
           }
           
-          .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
-            color: black;
+          .status-home {
+            background: #4caf50;
+            color: white;
           }
           
-          .content {
-            padding: 40px;
-            background: #abc3c2;
+          .status-lost {
+            background: #ff9800;
+            color: white;
+          }
+          
+          .pet-id {
+            margin-top: 8px;
+            background: #f1f3f4;
+            color: #5f6368;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            letter-spacing: 0.5px;
           }
           
           .pet-info {
             display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
           }
           
-          .pet-photo {
-            text-align: center;
+          .info-box {
+            background: #fafbfc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e8eaed;
           }
           
-          .pet-photo img {
-            width: 180px;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 20px;
-            border: 4px solid #4b6e90;
-            box-shadow: 0 10px 25px rgba(75, 110, 144, 0.3);
-          }
-          
-          .pet-photo .id-badge {
-            display: inline-block;
-            background: #4b6e90;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-weight: bold;
-            margin-top: 15px;
-            font-size: 0.9rem;
-          }
-          
-          .pet-details h2 {
-            color: black;
-            font-size: 2rem;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #4b6e90;
-          }
-          
-          .details-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-          }
-          
-          .detail-item {
-            background: #809286;
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 4px solid #4b6e90;
-          }
-          
-          .detail-item label {
-            display: block;
-            font-weight: bold;
-            color: gray;
-            font-size: 0.9rem;
+          .info-label {
+            font-size: 11px;
+            color: #70757a;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+          }
+          
+          .info-value {
+            font-size: 14px;
+            color: #202124;
+            font-weight: 500;
+            line-height: 1.3;
+          }
+          
+          .status-section {
+            grid-column: 1 / -1;
+            margin-top: 16px;
+            background: #fafbfc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e8eaed;
+          }
+          
+          .status-label {
+            font-size: 11px;
+            color: #70757a;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
             margin-bottom: 8px;
           }
           
-          .detail-item .value {
-            font-size: 1.1rem;
-            color: black;
-            font-weight: 500;
-          }
-          
-          .status-badge {
+          .status-hash {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            color: #1565c0;
+            background: #e3f2fd;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #bbdefb;
             display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
+            letter-spacing: 1px;
           }
           
-          .status-normal {
-            background: #d4edda;
-            color: #155724;
+          .card-footer {
+            background: #fafbfc;
+            padding: 20px 24px;
+            border-top: 1px solid #e8eaed;
           }
           
-          .status-lost {
-            background: #f8d7da;
-            color: #721c24;
-          }
-          
-          .blockchain-info {
-            background: #4b6e90;
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-top: 40px;
-          }
-          
-          .blockchain-info h3 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+          .logo-section {
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: black;
+            justify-content: space-between;
+            margin-bottom: 12px;
           }
           
-          .blockchain-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+          .petid-logo {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1565c0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: -0.02em;
           }
           
-          .blockchain-item {
-            background: #809286;
-            padding: 15px;
-            border-radius: 10px;
+          .petid-logo img {
+            width: 14px;
+            height: 14px;
+            opacity: 0.8;
+            object-fit: contain;
           }
           
-          .blockchain-item label {
-            display: block;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-            text-transform: uppercase;
+          .logo-badge {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
             letter-spacing: 0.5px;
-            color: gray;
           }
           
-          .blockchain-item .value {
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            word-break: break-all;
-            color: black;
+          .footer-text {
+            font-size: 11px;
+            color: #70757a;
+            line-height: 1.5;
           }
           
-          .footer {
-            text-align: center;
-            padding: 30px;
-            background: #abc3c2;
-            color: black;
-            font-size: 0.9rem;
+          .generation-date {
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 2px;
           }
           
-          .footer .logo {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #4b6e90;
-            margin-bottom: 10px;
+          .footer-description {
+            opacity: 0.8;
           }
           
           @media print {
@@ -431,98 +481,72 @@ const NFTPetsPanel = () => {
               padding: 0;
             }
             
-            .document {
+            .pet-card {
               box-shadow: none;
-              border-radius: 0;
+              border: 1px solid #e8eaed;
             }
           }
         </style>
       </head>
       <body>
-        <div class="document">
-          <div class="header">
-            <h1>🐾 Documento Pet</h1>
-            <p>Carteira Digital de Identidade</p>
+        <div class="pet-card">
+          <div class="card-header">
+            <div class="pet-name">${pet.nickname}</div>
           </div>
           
-          <div class="content">
+          <div class="card-content">
+            <div class="pet-photo-container">
+              ${pet.photo ? 
+                `<img src="${gateways[0](pet.photo)}" alt="${pet.nickname}" class="pet-photo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="pet-photo" style="display: none;">${isEnglish ? 'No photo' : 'Sem foto'}</div>` : 
+                `<div class="pet-photo">${isEnglish ? 'No photo' : 'Sem foto'}</div>`
+              }
+              <div class="status-icon ${pet.isLost ? 'status-lost' : 'status-home'}">
+                ${pet.isLost ? '❓' : '🏠'}
+              </div>
+              <div class="pet-id">ID ${pet.id}</div>
+            </div>
+            
             <div class="pet-info">
-              <div class="pet-photo">
-                ${pet.photo ? `<img src="${gateways[0](pet.photo)}" alt="${pet.nickname}" onerror="this.style.display='none'">` : '<div style="width: 180px; height: 180px; background: #f0f0f0; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #999;">Sem Foto</div>'}
-                <div class="id-badge">ID #${pet.id}</div>
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Birth Date' : 'Nascimento'}</div>
+                <div class="info-value">${formatDate(pet.birthDate)}</div>
               </div>
               
-              <div class="pet-details">
-                <h2>${pet.nickname}</h2>
-                
-                <div class="details-grid">
-                  <div class="detail-item">
-                    <label>Data de Nascimento</label>
-                    <div class="value">${formatDate(pet.birthDate)}</div>
-                  </div>
-                  
-                  <div class="detail-item">
-                    <label>Espécie</label>
-                    <div class="value">${t(`petForm.${pet.species}`, pet.species)}</div>
-                  </div>
-                  
-                  <div class="detail-item">
-                    <label>Gênero</label>
-                    <div class="value">${t(`petForm.${pet.gender}`, pet.gender)}</div>
-                  </div>
-                  
-                  <div class="detail-item">
-                    <label>Cor</label>
-                    <div class="value">${t(`petForm.${pet.color}`, pet.color)}</div>
-                  </div>
-                  
-                  <div class="detail-item" style="grid-column: 1 / -1;">
-                    <label>Status</label>
-                    <div class="value">
-                      <span class="status-badge ${pet.isLost ? 'status-lost' : 'status-normal'}">
-                        ${pet.isLost ? t('petForm.lost') : t('petForm.notLost')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Species' : 'Espécie'}</div>
+                <div class="info-value">${t(`petForm.${pet.species}`, pet.species)}</div>
+              </div>
+              
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Gender' : 'Gênero'}</div>
+                <div class="info-value">${t(`petForm.${pet.gender}`, pet.gender)}</div>
+              </div>
+              
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Color' : 'Cor'}</div>
+                <div class="info-value">${t(`petForm.${pet.color}`, pet.color)}</div>
               </div>
             </div>
             
-            <div class="blockchain-info">
-              <h3>
-                🔗 Informações da Blockchain
-              </h3>
-              
-              <div class="blockchain-grid">
-                <div class="blockchain-item">
-                  <label>ID na Blockchain</label>
-                  <div class="value">#${pet.id}</div>
-                </div>
-                
-                <div class="blockchain-item">
-                  <label>Data de Criação</label>
-                  <div class="value">${formatTimestamp(pet.createdAt)}</div>
-                </div>
-                
-                <div class="blockchain-item">
-                  <label>Proprietário</label>
-                  <div class="value">${formatPrincipal(pet.owner)}</div>
-                </div>
-                
-                ${pet.photo ? `
-                <div class="blockchain-item">
-                  <label>Hash IPFS da Foto</label>
-                  <div class="value">${pet.photo}</div>
-                </div>
-                ` : ''}
-              </div>
+            <div class="status-section">
+              <div class="status-label">${isEnglish ? 'Verification' : 'Verificação'}</div>
+              <div class="status-hash">${generateSimpleHash()}</div>
             </div>
           </div>
           
-          <div class="footer">
-            <div class="logo">PetID</div>
-            <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
-            <p>Identidade digital segura e descentralizada para pets</p>
+          <div class="card-footer">
+            <div class="logo-section">
+              <div class="petid-logo">
+                <img src="${petidLogo}" alt="PetID" style="width: 20px; height: 20px; opacity: 0.8;" />
+                PetID
+              </div>
+              <div class="logo-badge">ID</div>
+            </div>
+            <div class="footer-text">
+              <div class="generation-date">${isEnglish ? 'Issued on' : 'Emitido em'} ${new Date().toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR')}</div>
+              <div class="footer-description">${isEnglish ? 'Verified digital identity' : 'Identidade digital verificada'}</div>
+            </div>
           </div>
         </div>
       </body>
@@ -544,9 +568,9 @@ const NFTPetsPanel = () => {
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
         {[
           { key: 'totalPets', value: pets.length, color: 'from-petPink-400 to-petPurple-500' },
-          { key: 'upcomingEvents', value: 2, color: 'from-emerald-400 to-teal-500' }, // mock
-          { key: 'medicalPendings', value: 1, color: 'from-amber-400 to-orange-500' }, // mock
-          { key: 'partnerClinics', value: 3, color: 'from-indigo-400 to-accent-500' }, // mock
+          { key: 'upcomingEvents', value: 0, color: 'from-emerald-400 to-teal-500' }, // mock
+          { key: 'medicalPendings', value: 0, color: 'from-amber-400 to-orange-500' }, // mock
+          { key: 'partnerClinics', value: 0, color: 'from-indigo-400 to-accent-500' }, // mock
         ].map(c => (
           <div key={c.key} className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-white/70 to-white/40 dark:from-surface-75/70 dark:to-surface-100/40 backdrop-blur group border border-gray-200 dark:border-surface-100">
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-r ${c.color} mix-blend-overlay`} />
