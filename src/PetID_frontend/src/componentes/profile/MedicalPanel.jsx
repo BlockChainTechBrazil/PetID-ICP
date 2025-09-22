@@ -205,60 +205,72 @@ const MedicalPanel = () => {
 
   // Função segura para alternar formulário
   const handleToggleForm = useCallback((e) => {
-    // Prevenir QUALQUER comportamento padrão
-    if (e) {
+    // Prevenir comportamento padrão apenas se o evento existir
+    if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
+    }
+    if (e && typeof e.stopPropagation === 'function') {
       e.stopPropagation();
-      e.stopImmediatePropagation();
     }
     
-    console.log('[MedicalPanel] handleToggleForm called - isAuthenticated:', isAuthenticated, 'showForm:', showForm);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    console.log('[MedicalPanel] Botão clicado - Mobile:', isMobile, 'Autenticado:', isAuthenticated, 'FormVisible:', showForm);
     
-    // Verificação simples e segura
+    // Verificação simples
     if (!isAuthenticated) {
-      console.warn('[MedicalPanel] Usuário não autenticado - não mostrando formulário');
-      return false;
+      console.warn('[MedicalPanel] Não autenticado');
+      return;
     }
     
-    // Usar setTimeout para garantir que não há conflito com outros eventos
-    setTimeout(() => {
-      setShowForm(prev => {
-        const newState = !prev;
-        console.log('[MedicalPanel] Formulário alternado para:', newState);
-        return newState;
-      });
-    }, 0);
-    
-    return false; // Garantir que não há navegação
+    // Alternar estado diretamente
+    setShowForm(prev => {
+      const newState = !prev;
+      console.log('[MedicalPanel] SUCESSO - Formulário:', prev, '→', newState);
+      
+      // Scroll no mobile se abrindo o formulário
+      if (isMobile && newState) {
+        setTimeout(() => {
+          const form = document.querySelector('[data-health-form]');
+          if (form) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+      
+      return newState;
+    });
   }, [isAuthenticated]);
 
   return (
     <div className="space-y-6">
-      {/* Botão para mostrar/ocultar formulário */}
+      {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
           {t('healthForm.title', 'Registro de Saúde e Vacinas')}
         </h2>
+        {/* Botão principal - oculto no mobile, visível no desktop */}
         <button
           type="button"
-          role="button"
           onClick={handleToggleForm}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
           disabled={!isAuthenticated}
-          className={`w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 touch-manipulation select-none ${
+          className={`hidden sm:inline-flex w-auto items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 ${
             !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          style={{ minHeight: '44px', userSelect: 'none', WebkitUserSelect: 'none' }}
+          } ${showForm ? 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : ''}`}
+          style={{ minHeight: '48px', touchAction: 'manipulation' }}
         >
-          <FiHeart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="text-sm sm:text-base">{showForm ? 'Ocultar Formulário' : 'Novo Registro'}</span>
+          <FiHeart className={`mr-2 h-4 w-4 sm:h-5 sm:w-5 ${showForm ? 'rotate-180' : ''} transition-transform`} />
+          <span className="text-sm sm:text-base font-semibold">
+            {showForm ? 'Fechar Formulário' : 'Novo Registro'}
+          </span>
         </button>
       </div>
 
       {/* Formulário de saúde (condicional) */}
       {showForm && isAuthenticated && (
-        <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-4 sm:p-5">
+        <div 
+          data-health-form
+          className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-4 sm:p-5"
+        >
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
             <p className="text-sm text-blue-700 dark:text-blue-300">
               📝 Formulário de registro médico carregando...
@@ -302,15 +314,12 @@ const MedicalPanel = () => {
             </p>
             <button
               type="button"
-              role="button"
               onClick={handleToggleForm}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
               disabled={!isAuthenticated}
-              className={`w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 touch-manipulation select-none ${
+              className={`hidden sm:inline-flex w-auto items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 ${
                 !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
               }`}
-              style={{ minHeight: '44px', userSelect: 'none', WebkitUserSelect: 'none' }}
+              style={{ minHeight: '48px', touchAction: 'manipulation' }}
             >
               <FiHeart className="mr-2 h-5 w-5" />
               Adicionar Primeiro Registro
@@ -760,6 +769,34 @@ const MedicalPanel = () => {
           </div>
         </div>
       )}
+      
+      {/* Botão Flutuante para Mobile - ÚNICO controle no mobile */}
+      <div className="sm:hidden fixed bottom-20 right-4 z-40">
+        <button
+          type="button"
+          onClick={handleToggleForm}
+          disabled={!isAuthenticated}
+          className={`w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-2xl hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 flex items-center justify-center ${
+            !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
+          } ${showForm ? 'rotate-45 from-red-500 to-red-600' : ''}`}
+          style={{ touchAction: 'manipulation' }}
+          title={showForm ? 'Fechar Formulário' : 'Adicionar Novo Registro'}
+        >
+          <FiPlus className="w-6 h-6" />
+        </button>
+        
+        {/* Tooltip melhorado */}
+        {!showForm && (
+          <div className="absolute bottom-16 right-0 mb-2 px-3 py-1 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg whitespace-nowrap opacity-75 pointer-events-none">
+            Novo Registro
+          </div>
+        )}
+        {showForm && (
+          <div className="absolute bottom-16 right-0 mb-2 px-3 py-1 bg-red-600 text-white text-xs rounded-lg whitespace-nowrap opacity-75 pointer-events-none">
+            Fechar
+          </div>
+        )}
+      </div>
     </div>
   );
 };
