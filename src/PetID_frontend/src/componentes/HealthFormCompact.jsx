@@ -50,7 +50,7 @@ const HealthFormCompact = ({ onSuccess }) => {
     const createAuthenticatedActor = async () => {
       try {
         if (!authClient || !isAuthenticated) {
-          console.log('[HealthForm] Auth not ready:', { authClient: !!authClient, isAuthenticated });
+          // Auth logs removidos para produção
           return;
         }
 
@@ -58,7 +58,7 @@ const HealthFormCompact = ({ onSuccess }) => {
         const network = import.meta.env.DFX_NETWORK || 'local';
         const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
         
-        console.log('[HealthForm] Creating actor with:', { network, host });
+        // Actor creation logs removidos para produção
         
         const agent = new HttpAgent({ identity, host });
         if (network !== 'ic') {
@@ -71,7 +71,7 @@ const HealthFormCompact = ({ onSuccess }) => {
 
         const actor = createActor(backendCanisterId, { agent });
         setAuthenticatedActor(actor);
-        console.log('[HealthForm] Actor created successfully');
+        // Success log removido para produção
       } catch (error) {
         console.error('[HealthForm] Error creating actor (not critical):', error);
         // NUNCA fazer logout - apenas definir erro suave
@@ -91,14 +91,14 @@ const HealthFormCompact = ({ onSuccess }) => {
   const loadPets = async () => {
     try {
       if (!isAuthenticated || !authenticatedActor) {
-        console.log('[HealthForm] Not ready to load pets yet');
+        // Loading logs removidos para produção
         return;
       }
       
-      console.log('[HealthForm] Loading pets...');
+      // Loading log removido para produção
       const result = await authenticatedActor.getMyPets();
       if ('ok' in result) {
-        console.log('[HealthForm] Pets loaded successfully:', result.ok.length);
+        // Success log removido para produção
         setMyPets(result.ok);
       } else {
         console.warn('[HealthForm] Backend error loading pets:', result.err);
@@ -238,13 +238,13 @@ const HealthFormCompact = ({ onSuccess }) => {
         attachments: attachments.map(file => file.cid || '') // CIDs dos arquivos
       };
 
-      console.log('Enviando registro para o backend:', healthRecordPayload);
+      // Backend submission log removido para produção
 
       // Salvar no backend usando o ator autenticado
       const result = await authenticatedActor.createHealthRecord(healthRecordPayload);
       
       if ('ok' in result) {
-        console.log('✅ Registro de saúde criado com sucesso:', result.ok);
+        // Success log removido para produção
         setSuccess(t('healthForm.success', 'Registro de saúde adicionado com sucesso!'));
         
         // Limpar formulário
@@ -546,7 +546,7 @@ const HealthFormCompact = ({ onSuccess }) => {
             type="submit"
             disabled={isLoading || uploadingToIPFS || !isAuthenticated}
             onClick={(e) => {
-              console.log('[HealthForm] Submit button clicked');
+              // Submit log removido para produção
               // Permitir que o handleSubmit seja chamado normalmente
             }}
             className="w-full sm:w-auto px-4 py-3 sm:px-6 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-h-[44px] touch-manipulation"

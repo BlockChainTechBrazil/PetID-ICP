@@ -77,8 +77,7 @@ const MedicalPanel = () => {
           
           setPetNames(petNameCache);
           setHealthRecords(sortedRecords);
-          console.log('✅ Registros médicos carregados:', sortedRecords);
-          console.log('✅ Nomes dos pets:', petNameCache);
+          // Logs removidos para produção
         } else {
           console.error('❌ Erro ao carregar registros:', result.err);
           setHealthRecords([]);
@@ -214,7 +213,7 @@ const MedicalPanel = () => {
     }
     
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-    console.log('[MedicalPanel] Botão clicado - Mobile:', isMobile, 'Autenticado:', isAuthenticated, 'FormVisible:', showForm);
+    // Log removido para produção
     
     // Verificação simples
     if (!isAuthenticated) {
@@ -225,7 +224,7 @@ const MedicalPanel = () => {
     // Alternar estado diretamente
     setShowForm(prev => {
       const newState = !prev;
-      console.log('[MedicalPanel] SUCESSO - Formulário:', prev, '→', newState);
+      // Log removido para produção
       
       // Scroll no mobile se abrindo o formulário
       if (isMobile && newState) {

@@ -65,7 +65,7 @@ const NFTPetsPanel = () => {
   }, [isAuthenticated, authClient]);
 
   const loadPets = async () => {
-    console.log('[NFTPetsPanel] Loading pets...');
+    // Loading log removido para produção
     setLoadingPets(true);
     
     try {
@@ -74,19 +74,19 @@ const NFTPetsPanel = () => {
       if (cachedPets) {
         const parsedPets = JSON.parse(cachedPets);
         setPets(parsedPets);
-        console.log('✅ Pets carregados do localStorage cache:', parsedPets);
+        // Cache log removido para produção
       }
       
       // Verificar se temos autenticação válida antes de tentar o backend
       if (!isAuthenticated) {
-        console.log('[NFTPetsPanel] User not authenticated, skipping backend call');
+        // Auth log removido para produção
         return;
       }
       
       // Se temos actor, tentar carregar do backend COM PROTEÇÃO EXTRA
       if (actor) {
         try {
-          console.log('[NFTPetsPanel] Attempting backend call...');
+          // Backend call log removido para produção
           const res = await actor.getMyPets();
           if ('ok' in res) {
             // Converter BigInts para strings antes de salvar
@@ -100,7 +100,7 @@ const NFTPetsPanel = () => {
             setPets(petsWithStringIds);
             // Salvar no localStorage para cache
             localStorage.setItem('userPets', JSON.stringify(petsWithStringIds));
-            console.log('✅ Pets carregados do ICP e salvos no cache:', petsWithStringIds);
+            // ICP load success log removido para produção
           } else {
             console.warn('[NFTPetsPanel] Backend returned error:', res.err);
           }
@@ -117,7 +117,7 @@ const NFTPetsPanel = () => {
         try {
           const parsedPets = JSON.parse(cachedPets);
           setPets(parsedPets);
-          console.log('💾 Usando pets do localStorage devido a erro:', parsedPets);
+          // Fallback log removido para produção
         } catch (parseError) {
           console.warn('[NFTPetsPanel] Cache parse error:', parseError);
           setPets([]); // Array vazio se não conseguir parsear
