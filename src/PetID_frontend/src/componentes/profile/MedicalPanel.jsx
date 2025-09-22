@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import HealthFormCompact from '../HealthFormCompact';
@@ -203,26 +203,77 @@ const MedicalPanel = () => {
     return `Pet #${petId}`;
   };
 
+  // Função segura para alternar formulário
+  const handleToggleForm = useCallback((e) => {
+    // Prevenir QUALQUER comportamento padrão
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    }
+    
+    console.log('[MedicalPanel] handleToggleForm called - isAuthenticated:', isAuthenticated, 'showForm:', showForm);
+    
+    // Verificação simples e segura
+    if (!isAuthenticated) {
+      console.warn('[MedicalPanel] Usuário não autenticado - não mostrando formulário');
+      return false;
+    }
+    
+    // Usar setTimeout para garantir que não há conflito com outros eventos
+    setTimeout(() => {
+      setShowForm(prev => {
+        const newState = !prev;
+        console.log('[MedicalPanel] Formulário alternado para:', newState);
+        return newState;
+      });
+    }, 0);
+    
+    return false; // Garantir que não há navegação
+  }, [isAuthenticated]);
+
   return (
     <div className="space-y-6">
       {/* Botão para mostrar/ocultar formulário */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
           {t('healthForm.title', 'Registro de Saúde e Vacinas')}
         </h2>
         <button
-          onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          type="button"
+          role="button"
+          onClick={handleToggleForm}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          disabled={!isAuthenticated}
+          className={`w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 touch-manipulation select-none ${
+            !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          style={{ minHeight: '44px', userSelect: 'none', WebkitUserSelect: 'none' }}
         >
-          <FiHeart className="mr-2 h-5 w-5" />
-          {showForm ? 'Ocultar Formulário' : 'Novo Registro'}
+          <FiHeart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="text-sm sm:text-base">{showForm ? 'Ocultar Formulário' : 'Novo Registro'}</span>
         </button>
       </div>
 
       {/* Formulário de saúde (condicional) */}
-      {showForm && (
+      {showForm && isAuthenticated && (
         <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-4 sm:p-5">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              📝 Formulário de registro médico carregando...
+            </p>
+          </div>
           <HealthFormCompact onSuccess={handleNewRecord} />
+        </div>
+      )}
+      
+      {/* Mensagem de erro se não autenticado */}
+      {showForm && !isAuthenticated && (
+        <div className="rounded-2xl border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4 sm:p-5">
+          <p className="text-red-700 dark:text-red-300 text-center">
+            ⚠️ Você precisa estar logado para acessar o formulário de registro médico.
+          </p>
         </div>
       )}
 
@@ -250,8 +301,16 @@ const MedicalPanel = () => {
               Comece adicionando o primeiro registro de saúde do seu pet
             </p>
             <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+              type="button"
+              role="button"
+              onClick={handleToggleForm}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              disabled={!isAuthenticated}
+              className={`w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 touch-manipulation select-none ${
+                !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              style={{ minHeight: '44px', userSelect: 'none', WebkitUserSelect: 'none' }}
             >
               <FiHeart className="mr-2 h-5 w-5" />
               Adicionar Primeiro Registro
