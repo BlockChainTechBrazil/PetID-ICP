@@ -23,7 +23,7 @@ if ('serviceWorker' in navigator) {
         return; // evita tentativa de registro quebrada
       }
       const reg = await navigator.serviceWorker.register(swUrl);
-      // PWA log removido para produção
+      console.log('[PWA] SW registrado', reg.scope);
     } catch (err) {
       console.warn('[PWA] Falha ao registrar SW', err);
     }

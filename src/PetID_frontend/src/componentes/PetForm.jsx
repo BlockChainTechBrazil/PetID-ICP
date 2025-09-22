@@ -47,12 +47,12 @@ const PetForm = () => {
     const identity = client.getIdentity();
     const network = import.meta.env.DFX_NETWORK || 'local';
     const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
-    // Logs removidos para produção
+    console.log('[AuthActor] Criando agent', { network, host, backendCanisterId });
     const agent = new HttpAgent({ identity, host });
     if (network !== 'ic') {
       try {
         await agent.fetchRootKey();
-        // Root key log removido para produção
+        console.log('[AuthActor] Root key obtida');
       } catch (e) {
         console.warn('[AuthActor] Falha ao obter root key', e);
       }
@@ -102,14 +102,14 @@ const PetForm = () => {
     const identityProvider = network === 'ic'
       ? 'https://identity.ic0.app/#authorize'
       : `http://${iiCanister}.localhost:4943/#authorize`;
-    // Login logs removidos para produção
+    console.log('[Login] identityProvider', identityProvider);
 
     await authClient?.login({
       identityProvider,
       onSuccess: async () => {
         setIsAuthenticated(true);
         await createAuthenticatedActor(authClient);
-        // Principal log removido para produção
+        console.log('[Login] Principal autenticado:', authClient.getIdentity().getPrincipal().toString());
         await loadPets();
         setIsLoading(false);
       },

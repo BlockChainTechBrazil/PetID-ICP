@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import HealthFormCompact from '../HealthFormCompact';
@@ -77,7 +77,8 @@ const MedicalPanel = () => {
           
           setPetNames(petNameCache);
           setHealthRecords(sortedRecords);
-          // Logs removidos para produção
+          console.log('✅ Registros médicos carregados:', sortedRecords);
+          console.log('✅ Nomes dos pets:', petNameCache);
         } else {
           console.error('❌ Erro ao carregar registros:', result.err);
           setHealthRecords([]);
@@ -202,95 +203,32 @@ const MedicalPanel = () => {
     return `Pet #${petId}`;
   };
 
-  // Função segura para alternar formulário
-  const handleToggleForm = useCallback((e) => {
-    // Prevenir comportamento padrão apenas se o evento existir
-    if (e && typeof e.preventDefault === 'function') {
-      e.preventDefault();
-    }
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
-    }
-    
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-    // Log removido para produção
-    
-    // Verificação simples
-    if (!isAuthenticated) {
-      console.warn('[MedicalPanel] Não autenticado');
-      return;
-    }
-    
-    // Alternar estado diretamente
-    setShowForm(prev => {
-      const newState = !prev;
-      // Log removido para produção
-      
-      // Scroll no mobile se abrindo o formulário
-      if (isMobile && newState) {
-        setTimeout(() => {
-          const form = document.querySelector('[data-health-form]');
-          if (form) {
-            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 100);
-      }
-      
-      return newState;
-    });
-  }, [isAuthenticated]);
-
   return (
     <div className="space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
+      {/* Botão para mostrar/ocultar formulário */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
           {t('healthForm.title', 'Registro de Saúde e Vacinas')}
         </h2>
-        {/* Botão principal - oculto no mobile, visível no desktop */}
         <button
-          type="button"
-          onClick={handleToggleForm}
-          disabled={!isAuthenticated}
-          className={`hidden sm:inline-flex w-auto items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 ${
-            !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
-          } ${showForm ? 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : ''}`}
-          style={{ minHeight: '48px', touchAction: 'manipulation' }}
+          onClick={() => setShowForm(!showForm)}
+          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
         >
-          <FiHeart className={`mr-2 h-4 w-4 sm:h-5 sm:w-5 ${showForm ? 'rotate-180' : ''} transition-transform`} />
-          <span className="text-sm sm:text-base font-semibold">
-            {showForm ? 'Fechar Formulário' : 'Novo Registro'}
-          </span>
+          <FiHeart className="mr-2 h-5 w-5" />
+          {showForm ? 'Ocultar Formulário' : 'Novo Registro'}
         </button>
       </div>
 
       {/* Formulário de saúde (condicional) */}
-      {showForm && isAuthenticated && (
-        <div 
-          data-health-form
-          className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-4 sm:p-5"
-        >
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-              📝 Formulário de registro médico carregando...
-            </p>
-          </div>
+      {showForm && (
+        <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5">
           <HealthFormCompact onSuccess={handleNewRecord} />
-        </div>
-      )}
-      
-      {/* Mensagem de erro se não autenticado */}
-      {showForm && !isAuthenticated && (
-        <div className="rounded-2xl border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4 sm:p-5">
-          <p className="text-red-700 dark:text-red-300 text-center">
-            ⚠️ Você precisa estar logado para acessar o formulário de registro médico.
-          </p>
         </div>
       )}
 
       {/* Histórico médico dinâmico */}
-      <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-4 sm:p-5">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white mb-4">Histórico Médico</h3>
+      <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Histórico Médico</h3>
         
         {loading ? (
           /* Estado de carregamento */
@@ -312,13 +250,8 @@ const MedicalPanel = () => {
               Comece adicionando o primeiro registro de saúde do seu pet
             </p>
             <button
-              type="button"
-              onClick={handleToggleForm}
-              disabled={!isAuthenticated}
-              className={`hidden sm:inline-flex w-auto items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 ${
-                !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              style={{ minHeight: '48px', touchAction: 'manipulation' }}
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
             >
               <FiHeart className="mr-2 h-5 w-5" />
               Adicionar Primeiro Registro
@@ -380,39 +313,37 @@ const MedicalPanel = () => {
             {/* Versão mobile em cards */}
             <div className="sm:hidden space-y-3">
               {healthRecords.map((record, index) => (
-                <div key={record.id || index} className="rounded-xl border border-gray-200 dark:border-surface-100 bg-white/80 dark:bg-surface-75/90 p-3 sm:p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow">
+                <div key={record.id || index} className="rounded-xl border border-gray-200 dark:border-surface-100 bg-white/80 dark:bg-surface-75/90 p-4 flex flex-col gap-3 shadow-sm">
                   <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0 mr-2">
+                    <div>
                       <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
                         {formatDate(record.date)}
                       </p>
-                      <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-100 flex items-center gap-2 flex-wrap">
-                        <span className="truncate">{petNames[record.petId] || `Pet #${record.petId}`}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getServiceTypeColor(record.serviceType)} flex-shrink-0`}>
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-100 flex items-center gap-2">
+                        {petNames[record.petId] || `Pet #${record.petId}`}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getServiceTypeColor(record.serviceType)}`}>
                           {translateServiceType(record.serviceType)}
                         </span>
                       </h4>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium self-start ${getStatusColor(record.status)} flex-shrink-0`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium self-start ${getStatusColor(record.status)}`}>
                       {translateStatus(record.status)}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-slate-300 space-y-1">
+                  <div className="text-[11px] text-gray-600 dark:text-slate-300 space-y-1">
                     <p className="leading-snug">
-                      <span className="font-medium text-gray-700 dark:text-slate-200">Veterinário:</span> 
-                      <span className="ml-1">{record.veterinarianName}</span>
+                      <span className="font-medium text-gray-700 dark:text-slate-200">Veterinário:</span> {record.veterinarianName}
                     </p>
                     {getOptionalValue(record.description) && (
                       <p className="leading-snug">
-                        <span className="font-medium text-gray-700 dark:text-slate-200">Observações:</span> 
-                        <span className="ml-1 line-clamp-2">{getOptionalValue(record.description)}</span>
+                        <span className="font-medium text-gray-700 dark:text-slate-200">Observações:</span> {getOptionalValue(record.description)}
                       </p>
                     )}
                   </div>
-                  <div className="flex justify-end pt-1 border-t border-gray-100 dark:border-surface-100">
+                  <div className="flex justify-end">
                     <button 
                       onClick={() => handleViewDetails(record)}
-                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium transition-colors px-3 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium transition-colors"
                     >
                       Ver Detalhes
                     </button>
@@ -426,19 +357,19 @@ const MedicalPanel = () => {
 
       {/* Modal de Detalhes Abrangente */}
       {showDetailsModal && selectedRecord && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-6xl w-full max-h-[98vh] sm:max-h-[95vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto shadow-2xl">
             {/* Header do Modal com Informações do Pet */}
-            <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 sm:px-6 py-3 sm:py-4 rounded-t-xl">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-t-xl">
               <div className="flex justify-between items-start">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold mb-2">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold mb-2">
                     Registro Médico Completo
                   </h3>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-blue-100">
+                  <div className="flex items-center space-x-4 text-blue-100">
                     <span className="flex items-center">
-                      <GiPawPrint className="w-5 h-5 sm:w-6 sm:h-6 text-[#8A8BED] mr-2" />
-                      <span className="truncate">{petNames[selectedRecord.petId] || `Pet #${selectedRecord.petId}`}</span>
+                      <GiPawPrint className="w-6 h-6 text-[#8A8BED]" />
+                      {petNames[selectedRecord.petId] || `Pet #${selectedRecord.petId}`}
                     </span>
                     <span className="flex items-center">
                       <FiCalendar className="w-4 h-4 mr-1" />
@@ -448,7 +379,7 @@ const MedicalPanel = () => {
                 </div>
                 <button
                   onClick={handleCloseDetails}
-                  className="text-white hover:text-blue-200 transition-colors p-1 ml-2 flex-shrink-0"
+                  className="text-white hover:text-blue-200 transition-colors p-1"
                 >
                   <FiX className="w-6 h-6" />
                 </button>
@@ -456,26 +387,26 @@ const MedicalPanel = () => {
             </div>
 
             {/* Conteúdo Principal */}
-            <div className="p-3 sm:p-6">
+            <div className="p-6">
               {/* Layout em Grid Responsivo */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {/* Coluna Principal - Informações Médicas */}
-                <div className="xl:col-span-2 space-y-4 sm:space-y-6">
+                <div className="lg:col-span-2 space-y-6">
                   
                   {/* Card de Informações Básicas */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-surface-200">
-                    <h4 className="text-base sm:text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3 sm:mb-4 flex items-center">
-                      <FiFileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-blue-200 dark:border-surface-200">
+                    <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center">
+                      <FiFileText className="w-5 h-5 mr-2" />
                       Informações do Atendimento
                     </h4>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div className="bg-white dark:bg-surface-50 p-3 sm:p-4 rounded-lg shadow-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white dark:bg-surface-50 p-4 rounded-lg shadow-sm">
                         <label className="block text-xs font-medium text-blue-600 dark:text-blue-400 mb-1 uppercase tracking-wide">
                           Tipo de Serviço
                         </label>
-                        <p className="text-sm sm:text-base text-gray-900 dark:text-white font-medium">
+                        <p className="text-gray-900 dark:text-white font-medium">
                           {translateServiceType(selectedRecord?.serviceType)}
                         </p>
                       </div>
@@ -575,17 +506,16 @@ const MedicalPanel = () => {
                 </div>
 
                 {/* Coluna Lateral - Galeria de Anexos */}
-                <div className="space-y-4 sm:space-y-6">
+                <div className="space-y-6">
                   {/* Galeria de Fotos/Anexos */}
                   {selectedRecord?.attachments && selectedRecord.attachments.length > 0 && (
-                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-4 sm:p-6 border border-orange-200 dark:border-surface-200">
-                      <h4 className="text-base sm:text-lg font-semibold text-orange-900 dark:text-orange-100 mb-3 sm:mb-4 flex items-center">
-                        <FiImage className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                        <span className="hidden sm:inline">Anexos ({selectedRecord.attachments.length})</span>
-                        <span className="sm:hidden">Anexos ({selectedRecord.attachments.length})</span>
+                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-orange-200 dark:border-surface-200">
+                      <h4 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-4 flex items-center">
+                        <FiImage className="w-5 h-5 mr-2" />
+                        Anexos ({selectedRecord.attachments.length})
                       </h4>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3">
+                      <div className="space-y-3">
                         {selectedRecord.attachments.map((attachment, index) => {
                           // Verificar se o CID está válido e completo
                           const isValidCID = attachment && attachment.length > 10;
@@ -676,13 +606,13 @@ const MedicalPanel = () => {
                                 </div>
                               )}
                               
-                              <div className="p-2 sm:p-3 bg-gray-50 dark:bg-surface-75 border-t border-gray-100 dark:border-surface-100">
-                                <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
+                              <div className="p-3 bg-gray-50 dark:bg-surface-75 border-t border-gray-100 dark:border-surface-100">
+                                <div className="flex space-x-2">
                                   <button
                                     onClick={() => window.open(primaryUrl, '_blank')}
-                                    className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs sm:text-sm font-medium flex items-center justify-center space-x-1 py-1 px-2 rounded"
+                                    className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center justify-center space-x-1 py-1"
                                   >
-                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                     </svg>
                                     <span>Pinata</span>
@@ -690,19 +620,19 @@ const MedicalPanel = () => {
                                   
                                   <button
                                     onClick={() => window.open(fallbackUrls[0], '_blank')}
-                                    className="flex-1 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 text-xs sm:text-sm font-medium flex items-center justify-center space-x-1 py-1 px-2 rounded"
+                                    className="flex-1 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 text-sm font-medium flex items-center justify-center space-x-1 py-1"
                                   >
-                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                     </svg>
-                                    <span>IPFS</span>
+                                    <span>IPFS.io</span>
                                   </button>
                                 </div>
                                 
                                 <div className="mt-2 text-center">
                                   <button
                                     onClick={() => navigator.clipboard.writeText(attachment)}
-                                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300 flex items-center justify-center space-x-1 w-full py-1"
+                                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300 flex items-center justify-center space-x-1"
                                   >
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -719,24 +649,24 @@ const MedicalPanel = () => {
                   )}
 
                   {/* Card de Ações Rápidas */}
-                  <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-surface-200">
-                    <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4 flex items-center">
-                      <FiSettings className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-surface-75 dark:to-surface-100 rounded-xl p-6 border border-gray-200 dark:border-surface-200">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                      <FiSettings className="w-5 h-5 mr-2" />
                       Ações Rápidas
                     </h4>
                     
-                    <div className="space-y-2 sm:space-y-3">
-                      <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base">
+                    <div className="space-y-3">
+                      <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
                         <FiEdit3 className="w-4 h-4" />
                         <span>Editar Registro</span>
                       </button>
                       
-                      <button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base">
+                      <button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
                         <FiDownload className="w-4 h-4" />
                         <span>Baixar PDF</span>
                       </button>
                       
-                      <button className="w-full bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base">
+                      <button className="w-full bg-purple-500 hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
                         <FiShare2 className="w-4 h-4" />
                         <span>Compartilhar</span>
                       </button>
@@ -747,55 +677,26 @@ const MedicalPanel = () => {
             </div>
 
             {/* Footer do Modal */}
-            <div className="sticky bottom-0 bg-white dark:bg-surface-50 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center rounded-b-xl border-t border-gray-200 dark:border-surface-100 space-y-3 sm:space-y-0">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 text-center sm:text-left">
+            <div className="sticky bottom-0 bg-white dark:bg-surface-50 px-6 py-4 flex justify-between items-center rounded-b-xl border-t border-gray-200 dark:border-surface-100">
+              <div className="text-sm text-gray-500 dark:text-slate-400">
                 Registro armazenado na blockchain ICP
               </div>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+              <div className="flex space-x-3">
                 <button
                   onClick={handleCloseDetails}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2 text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-surface-75 border border-gray-300 dark:border-surface-100 rounded-lg hover:bg-gray-200 dark:hover:bg-surface-100 transition-colors font-medium text-sm sm:text-base"
+                  className="px-6 py-2 text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-surface-75 border border-gray-300 dark:border-surface-100 rounded-lg hover:bg-gray-200 dark:hover:bg-surface-100 transition-colors font-medium"
                 >
                   Fechar
                 </button>
-                <button className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all font-medium shadow-lg flex items-center justify-center space-x-2 text-sm sm:text-base">
+                <button className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all font-medium shadow-lg flex items-center space-x-2">
                   <FiPrinter className="w-4 h-4" />
-                  <span className="hidden sm:inline">Imprimir Receituário</span>
-                  <span className="sm:hidden">Imprimir</span>
+                  <span>Imprimir Receituário</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-      
-      {/* Botão Flutuante para Mobile - ÚNICO controle no mobile */}
-      <div className="sm:hidden fixed bottom-20 right-4 z-40">
-        <button
-          type="button"
-          onClick={handleToggleForm}
-          disabled={!isAuthenticated}
-          className={`w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-2xl hover:from-blue-600 hover:to-purple-700 active:scale-95 transition-all duration-200 flex items-center justify-center ${
-            !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
-          } ${showForm ? 'rotate-45 from-red-500 to-red-600' : ''}`}
-          style={{ touchAction: 'manipulation' }}
-          title={showForm ? 'Fechar Formulário' : 'Adicionar Novo Registro'}
-        >
-          <FiPlus className="w-6 h-6" />
-        </button>
-        
-        {/* Tooltip melhorado */}
-        {!showForm && (
-          <div className="absolute bottom-16 right-0 mb-2 px-3 py-1 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg whitespace-nowrap opacity-75 pointer-events-none">
-            Novo Registro
-          </div>
-        )}
-        {showForm && (
-          <div className="absolute bottom-16 right-0 mb-2 px-3 py-1 bg-red-600 text-white text-xs rounded-lg whitespace-nowrap opacity-75 pointer-events-none">
-            Fechar
-          </div>
-        )}
-      </div>
     </div>
   );
 };

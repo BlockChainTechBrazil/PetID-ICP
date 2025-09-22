@@ -33,7 +33,7 @@ const PetNode = ({ data, selected }) => {
     <div 
       className={`
         pet-node bg-white dark:bg-surface-50 rounded-xl shadow-lg border-2 
-        min-w-[250px] max-w-[280px] sm:min-w-[300px] sm:max-w-[320px] transition-all duration-200
+        min-w-[300px] max-w-[320px] transition-all duration-200
         ${selected ? 'border-blue-500 shadow-xl' : 'border-gray-200 dark:border-surface-200'}
         ${isConnectionTarget ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : ''}
         ${isConnectionSource ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' : ''}
@@ -41,23 +41,23 @@ const PetNode = ({ data, selected }) => {
       `}
     >
       {/* Header do Pet */}
-      <div className="p-3 sm:p-4 border-b border-gray-100 dark:border-surface-200">
+      <div className="p-4 border-b border-gray-100 dark:border-surface-200">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-base sm:text-lg text-gray-800 dark:text-white truncate">
+          <h3 className="font-bold text-lg text-gray-800 dark:text-white truncate">
             {pet.nickname || `Pet #${pet.id}`}
           </h3>
-          <div className="flex space-x-1 sm:space-x-2">
+          <div className="flex space-x-2">
             <button
               onClick={() => onEdit(pet.id)}
-              className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+              className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
               title={t('genealogy.edit')}
             >
-              <FiEdit3 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <FiEdit3 className="w-4 h-4" />
             </button>
             <button
               onClick={() => onConnect(pet.id)}
               className={`
-                p-1.5 sm:p-2 rounded-lg transition-colors
+                p-2 rounded-lg transition-colors
                 ${isConnecting 
                   ? 'text-green-600 bg-green-100 dark:bg-green-900/20' 
                   : 'text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20'
@@ -65,14 +65,14 @@ const PetNode = ({ data, selected }) => {
               `}
               title={isConnecting ? t('genealogy.connect') : t('genealogy.createRelationship')}
             >
-              <FiHeart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <FiHeart className="w-4 h-4" />
             </button>
             <button
               onClick={() => onDelete(pet.id)}
-              className="p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
               title={t('genealogy.remove')}
             >
-              <FiTrash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <FiTrash2 className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -568,22 +568,20 @@ const GenealogyPanel = () => {
   return (
     <div className="p-6 max-w-full">
       {/* Header */}
-      <div className="mb-4 sm:mb-6">
+      <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white flex items-center space-x-2">
-            <FiUsers className="w-4 h-4 sm:w-5 sm:h-5 text-[#8A8BED]" />
-            <span className="hidden sm:inline">{t('genealogy.title')}</span>
-            <span className="sm:hidden">Genealogia</span>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center space-x-2">
+            <FiUsers className="w-5 h-5 text-[#8A8BED]" />
+            <span>{t('genealogy.title')}</span>
           </h3>
           
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setShowPetSelector(true)}
-              className="px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-2"
             >
               <FiPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Adicionar Pet</span>
-              <span className="sm:hidden">+ Pet</span>
+              <span>Adicionar Pet</span>
             </button>
           </div>
         </div>
@@ -591,20 +589,18 @@ const GenealogyPanel = () => {
 
       {/* Status de conexão */}
       {isConnecting && connectionStart && (
-        <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+        <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
-                <FiHeart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                <FiHeart className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h4 className="font-semibold text-green-800 dark:text-green-200 text-sm sm:text-base">
-                  <span className="hidden sm:inline">{t('genealogy.connect')} Ativado</span>
-                  <span className="sm:hidden">Conectar Pet</span>
+                <h4 className="font-semibold text-green-800 dark:text-green-200">
+                  {t('genealogy.connect')} Ativado
                 </h4>
-                <p className="text-xs sm:text-sm text-green-600 dark:text-green-300">
-                  <span className="hidden sm:inline">{t('genealogy.clickHeartToConnect')}</span>
-                  <span className="sm:hidden">Clique no ❤️ de outro pet</span>
+                <p className="text-sm text-green-600 dark:text-green-300">
+                  {t('genealogy.clickHeartToConnect')}
                 </p>
               </div>
             </div>
@@ -614,17 +610,16 @@ const GenealogyPanel = () => {
                 setConnectionStart(null);
                 updateNodesConnectionState(null, false);
               }}
-              className="px-2 py-1 sm:px-4 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs sm:text-sm font-medium"
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
             >
-              <span className="hidden sm:inline">Cancelar</span>
-              <span className="sm:hidden">✕</span>
+              Cancelar
             </button>
           </div>
         </div>
       )}
 
       {/* React Flow Canvas */}
-      <div className="h-[60vh] sm:h-96 border border-gray-300 dark:border-surface-200 rounded-xl overflow-hidden bg-gray-50 dark:bg-surface-100">
+      <div className="h-96 border border-gray-300 dark:border-surface-200 rounded-xl overflow-hidden bg-gray-50 dark:bg-surface-100">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -641,24 +636,23 @@ const GenealogyPanel = () => {
           attributionPosition="bottom-left"
         >
           <Background variant="dots" gap={20} size={1} color="#8B5CF6" />
-          <Controls className="!bottom-2 !left-2" />
+          <Controls />
           <MiniMap 
             nodeColor="#8B5CF6"
             maskColor="rgba(139, 92, 246, 0.1)"
-            className="!hidden sm:!block"
             style={{
-              height: 100,
-              width: 150,
+              height: 120,
               backgroundColor: 'rgba(255, 255, 255, 0.8)'
             }}
           />
           
           {/* Panel superior com informações */}
           <Panel position="top-center">
-            <div className="bg-white/90 dark:bg-surface-50/90 backdrop-blur-sm rounded-lg px-2 sm:px-4 py-1 sm:py-2 shadow-lg border border-gray-200 dark:border-surface-200">
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-300">
-                <span className="hidden sm:inline">🐾 <strong>{nodes.length}</strong> pet(s) • 🔗 <strong>{edges.length}</strong> conexão(ões) • ✨ Use scroll para zoom, arraste para mover</span>
-                <span className="sm:hidden">🐾 {nodes.length} • 🔗 {edges.length}</span>
+            <div className="bg-white/90 dark:bg-surface-50/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-gray-200 dark:border-surface-200">
+              <p className="text-sm text-gray-600 dark:text-slate-300">
+                🐾 <strong>{nodes.length}</strong> pet(s) • 
+                🔗 <strong>{edges.length}</strong> conexão(ões) • 
+                ✨ Use scroll para zoom, arraste para mover
               </p>
             </div>
           </Panel>
@@ -666,20 +660,19 @@ const GenealogyPanel = () => {
           {/* Canvas vazio */}
           {nodes.length === 0 && (
             <Panel position="center">
-              <div className="text-center p-4 sm:p-8 bg-white/90 dark:bg-surface-50/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-surface-200 max-w-xs sm:max-w-none">
-                <GiPawPrint className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
-                <h4 className="text-base sm:text-lg font-medium text-gray-600 dark:text-slate-300 mb-2">
+              <div className="text-center p-8 bg-white/90 dark:bg-surface-50/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-surface-200">
+                <GiPawPrint className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-600 dark:text-slate-300 mb-2">
                   Canvas Vazio
                 </h4>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-3 sm:mb-4">
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
                   {t('genealogy.addPetsToStart')}
                 </p>
                 <button
                   onClick={() => setShowPetSelector(true)}
-                  className="px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all text-sm sm:text-base"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
                 >
-                  <span className="hidden sm:inline">Adicionar Primeiro Pet</span>
-                  <span className="sm:hidden">+ Pet</span>
+                  Adicionar Primeiro Pet
                 </button>
               </div>
             </Panel>
@@ -689,9 +682,9 @@ const GenealogyPanel = () => {
 
       {/* Modal Seletor de Pet */}
       {showPetSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-4xl w-full max-h-[90vh] sm:max-h-[80vh] overflow-y-auto">
-            <div className="p-4 sm:p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -737,7 +730,7 @@ const GenealogyPanel = () => {
                       🎯 <strong>{availablePets.length} {t('genealogy.petsAvailable')}</strong>
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-h-80 sm:max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
                     {availablePets.map(pet => (
                       <div
                         key={pet.id}
@@ -781,8 +774,8 @@ const GenealogyPanel = () => {
 
       {/* Modal de Edição */}
       {editingPet && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-2xl mx-2 sm:mx-0">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-md w-full p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">
               Editar Informações do Pet
             </h3>
@@ -797,27 +790,26 @@ const GenealogyPanel = () => {
 
       {/* Modal de Seleção de Parentesco */}
       {showRelationshipModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-2xl mx-2 sm:mx-0">
-            <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mb-3 sm:mb-4 flex items-center">
-              <FiHeart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-red-500" />
-              <span className="hidden sm:inline">Selecionar Tipo de Parentesco</span>
-              <span className="sm:hidden">Tipo de Relação</span>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+              <FiHeart className="w-5 h-5 mr-2 text-red-500" />
+              Selecionar Tipo de Parentesco
             </h3>
             
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-300 mb-4 sm:mb-6">
+            <p className="text-sm text-gray-600 dark:text-slate-300 mb-6">
               {t('genealogy.relationshipQuestion')}
             </p>
             
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-3">
               <button
                 onClick={() => createConnection('parent')}
-                className="w-full p-3 sm:p-4 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg text-left transition-colors"
+                className="w-full p-4 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg text-left transition-colors"
               >
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <span className="text-xl sm:text-2xl">👨‍👩‍👧‍👦</span>
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">👨‍👩‍👧‍👦</span>
                   <div>
-                    <h4 className="font-medium text-green-800 dark:text-green-200 text-sm sm:text-base">{t('genealogy.parentTitle')}</h4>
+                    <h4 className="font-medium text-green-800 dark:text-green-200">{t('genealogy.parentTitle')}</h4>
                     <p className="text-xs text-green-600 dark:text-green-300">{t('genealogy.parentDescription')}</p>
                   </div>
                 </div>
@@ -825,12 +817,12 @@ const GenealogyPanel = () => {
               
               <button
                 onClick={() => createConnection('offspring')}
-                className="w-full p-3 sm:p-4 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg text-left transition-colors"
+                className="w-full p-4 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg text-left transition-colors"
               >
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <span className="text-xl sm:text-2xl">👶</span>
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">👶</span>
                   <div>
-                    <h4 className="font-medium text-blue-800 dark:text-blue-200 text-sm sm:text-base">{t('genealogy.childTitle')}</h4>
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200">{t('genealogy.childTitle')}</h4>
                     <p className="text-xs text-blue-600 dark:text-blue-300">{t('genealogy.childDescription')}</p>
                   </div>
                 </div>
@@ -838,19 +830,19 @@ const GenealogyPanel = () => {
               
               <button
                 onClick={() => createConnection('sibling')}
-                className="w-full p-3 sm:p-4 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg text-left transition-colors"
+                className="w-full p-4 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg text-left transition-colors"
               >
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <span className="text-xl sm:text-2xl">👫</span>
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">👫</span>
                   <div>
-                    <h4 className="font-medium text-purple-800 dark:text-purple-200 text-sm sm:text-base">{t('genealogy.siblingTitle')}</h4>
+                    <h4 className="font-medium text-purple-800 dark:text-purple-200">{t('genealogy.siblingTitle')}</h4>
                     <p className="text-xs text-purple-600 dark:text-purple-300">{t('genealogy.siblingDescription')}</p>
                   </div>
                 </div>
               </button>
             </div>
             
-            <div className="flex space-x-3 mt-4 sm:mt-6">
+            <div className="flex space-x-3 mt-6">
               <button
                 onClick={() => {
                   setShowRelationshipModal(false);
@@ -859,7 +851,7 @@ const GenealogyPanel = () => {
                   setConnectionTarget(null);
                   updateNodesConnectionState(null, false);
                 }}
-                className="flex-1 px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-surface-200 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-75 transition-colors text-sm sm:text-base"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-surface-200 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-75 transition-colors"
               >
                 {t('genealogy.cancel')}
               </button>
