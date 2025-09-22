@@ -248,7 +248,7 @@ Millions of pets go missing every year, often because they lack proper identific
 <table>
   <tr>
     <td align="center">
-      <img src="./img/team/davi.png" width="100" /><br/>
+      <img src="./img/team/Davi.png" width="100" /><br/>
       <b>Davi Marques Oliveira</b><br/>
       Backend Developer<br/>
       <a href="mailto:contato.davimoliveira@gmail.com">Email</a> | 
