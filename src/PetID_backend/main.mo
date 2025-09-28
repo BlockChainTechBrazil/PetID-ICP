@@ -8,9 +8,27 @@ import Iter "mo:base/Iter";
 import Time "mo:base/Time";
 import Result "mo:base/Result";
 import Buffer "mo:base/Buffer";
+import Option "mo:base/Option";
 
-persistent actor PetID {
-    // Tipo para representar um Pet
+// DIP721 Interface
+public type DIP721 = {
+    balanceOf : (owner: Principal) -> async Nat;
+    ownerOf : (token_id: Nat) -> async Result.Result<Principal, Text>;
+    transfer : (from: Principal, to: Principal, token_id: Nat) -> async Result.Result<(), Text>;
+    approve : (approved: Principal, token_id: Nat) -> async Result.Result<(), Text>;
+    mint : (to: Principal, metadata: TokenMetadata) -> async Result.Result<Nat, Text>;
+    burn : (token_id: Nat) -> async Result.Result<(), Text>;
+    totalSupply : () -> async Nat;
+    tokenMetadata : (token_id: Nat) -> async Result.Result<TokenMetadata, Text>;
+};
+
+persistent actor PetID : DIP721 {
+    // ==============================================
+    // PetID RWA (Real World Assets) NFT Platform
+    // DIP721 Compliant NFTs for Pet Registration
+    // ==============================================
+    
+    // Tipo para representar um Pet como RWA
     public type Pet = {
         id: Nat;
         photo: Text; // CID da imagem no IPFS
@@ -91,6 +109,88 @@ persistent actor PetID {
     // Mapeamento de registros médicos por pet
     private var healthRecordsByPetEntries : [(Nat, [Nat])] = [];
     private transient var healthRecordsByPet = HashMap.HashMap<Nat, [Nat]>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    
+    // ==============================================
+    // DIP721 RWA (Real World Assets) Implementation
+    // ==============================================
+    
+    // Estruturas e funções do padrão DIP721 para RWA de Pets
+    public type GenericValue = {
+        #Nat : Nat;
+        #Int : Int;
+        #Text : Text;
+        #Bool : Bool;
+        #Blob : Blob;
+        #Class : [Property];
+    };
+    
+    public type Property = {
+        name : Text;
+        value : GenericValue;
+        immutable : Bool;
+    };
+
+    public type TokenMetadata = {
+        token_identifier : Nat;
+        owner : ?Principal;
+        operator : ?Principal;
+        properties : [Property];
+        is_burned : Bool;
+        burned_at : ?Int;
+        burned_by : ?Principal;
+        approved_at : ?Int;
+        approved_by : ?Principal;
+        transferred_at : ?Int;
+        transferred_by : ?Principal;
+        minted_at : Int;
+        minted_by : Principal;
+    };
+
+    // Armazenamento dos NFTs RWA
+    private stable var tokens : [(Nat, TokenMetadata)] = [];
+    private var tokensMap = HashMap.HashMap<Nat, TokenMetadata>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    
+    private stable var owners : [(Nat, Principal)] = [];
+    private var ownersMap = HashMap.HashMap<Nat, Principal>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    
+    private stable var balances : [(Principal, Nat)] = [];
+    private var balancesMap = HashMap.HashMap<Principal, Nat>(0, Principal.equal, Principal.hash);
+    
+    private stable var operators : [(Nat, Principal)] = [];
+    private var operatorsMap = HashMap.HashMap<Nat, Principal>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+
+    // Função para mapear propriedades do Pet RWA para DIP721 TokenMetadata
+    private func mapPetToRWAMetadata(pet: Pet, tokenId: Nat) : TokenMetadata {
+        let properties : [Property] = [
+            { name = "asset_type"; value = #Text("pet_rwa"); immutable = true },
+            { name = "pet_id"; value = #Nat(pet.id); immutable = true },
+            { name = "photo_ipfs"; value = #Text(pet.photo); immutable = false },
+            { name = "nickname"; value = #Text(pet.nickname); immutable = false },
+            { name = "birth_date"; value = #Text(pet.birthDate); immutable = true },
+            { name = "species"; value = #Text(pet.species); immutable = true },
+            { name = "gender"; value = #Text(pet.gender); immutable = true },
+            { name = "color"; value = #Text(pet.color); immutable = false },
+            { name = "is_lost"; value = #Bool(pet.isLost); immutable = false },
+            { name = "real_world_asset"; value = #Bool(true); immutable = true },
+            { name = "created_at"; value = #Int(pet.createdAt); immutable = true },
+        ];
+        
+        return {
+            token_identifier = tokenId;
+            owner = ?pet.owner;
+            operator = null;
+            properties = properties;
+            is_burned = false;
+            burned_at = null;
+            burned_by = null;
+            approved_at = null;
+            approved_by = null;
+            transferred_at = null;
+            transferred_by = null;
+            minted_at = Time.now();
+            minted_by = pet.owner;
+        };
+    };
     
     // Função auxiliar para checar se é o próprio usuário
     private func _isCaller(caller : Principal) : Bool {
