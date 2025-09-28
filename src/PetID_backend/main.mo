@@ -610,4 +610,22 @@ persistent actor PetID {
         healthRecordsEntries := [];
         healthRecordsByPetEntries := [];
     };
+
+    // Função para mapear propriedades do Pet para GenericValue
+    public func mapPetToMetadata(pet: Pet) : TokenMetadata {
+        return {
+            properties = [
+                ("id", #nat(pet.id)),
+                ("photo", #text(pet.photo)),
+                ("nickname", #text(pet.nickname)),
+                ("birthDate", #text(pet.birthDate)),
+                ("species", #text(pet.species)),
+                ("gender", #text(pet.gender)),
+                ("color", #text(pet.color)),
+                ("isLost", #bool(pet.isLost)),
+                ("owner", #text(Principal.toText(pet.owner))),
+                ("createdAt", #nat(Nat.fromInt(pet.createdAt)))
+            ];
+        };
+    }
 };
