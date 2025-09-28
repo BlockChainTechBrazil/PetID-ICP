@@ -10,7 +10,7 @@ import jsPDF from 'jspdf';
 import petidLogo from '../../assets/logo/logo.jpg';
 
 const gateways = [
-  (cid) => `https://ipfs.io/ipfs/${cid}`,
+  (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
   (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
   (cid) => `https://cloudflare-ipfs.com/ipfs/${cid}`,
   (cid) => `https://dweb.link/ipfs/${cid}`,

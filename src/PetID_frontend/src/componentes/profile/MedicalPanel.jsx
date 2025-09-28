@@ -524,7 +524,7 @@ const MedicalPanel = () => {
                           // URLs de gateway com fallbacks múltiplos
                           const primaryUrl = `https://gateway.pinata.cloud/ipfs/${attachment}`;
                           const fallbackUrls = [
-                            `https://ipfs.io/ipfs/${attachment}`,
+                            `https://gateway.pinata.cloud/ipfs/${attachment}`,
                             `https://cloudflare-ipfs.com/ipfs/${attachment}`,
                             `https://dweb.link/ipfs/${attachment}`
                           ];

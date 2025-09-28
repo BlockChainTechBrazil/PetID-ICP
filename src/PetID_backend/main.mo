@@ -528,6 +528,69 @@ persistent actor PetID {
         };
     };
 
+    // Estruturas e funções do padrão DIP721
+    public type GenericValue = {
+        #nat : Nat;
+        #nat32 : Nat32;
+        #text : Text;
+        #bool : Bool;
+    };
+
+    public type TokenMetadata = {
+        properties: [(Text, GenericValue)];
+    };
+
+    public stable var tokens : HashMap.HashMap<Nat, TokenMetadata> = HashMap.HashMap<Nat, TokenMetadata>();
+    public stable var owners : HashMap.HashMap<Nat, Principal> = HashMap.HashMap<Nat, Principal>();
+    public stable var balances : HashMap.HashMap<Principal, Nat> = HashMap.HashMap<Principal, Nat>();
+
+    public shared(msg) func mint(to: Principal, metadata: TokenMetadata) : async Result.Result<Nat, Text> {
+        let tokenId = nextPetId;
+        nextPetId += 1;
+
+        tokens.put(tokenId, metadata);
+        owners.put(tokenId, to);
+        let balance = balances.get(to);
+        balances.put(to, Option.get(balance, 0) + 1);
+
+        return #ok(tokenId);
+    }
+
+    public shared(msg) func transfer(from: Principal, to: Principal, tokenId: Nat) : async Result.Result<(), Text> {
+        if (owners.get(tokenId) != ?from) {
+            return #err("Você não é o proprietário do token.");
+        };
+
+        owners.put(tokenId, to);
+        balances.put(from, Option.get(balances.get(from), 0) - 1);
+        balances.put(to, Option.get(balances.get(to), 0) + 1);
+
+        return #ok(());
+    }
+
+    public shared(msg) func balance_of(owner: Principal) : async Nat {
+        return Option.get(balances.get(owner), 0);
+    }
+
+    public shared(msg) func owner_of(tokenId: Nat) : async Result.Result<Principal, Text> {
+        switch (owners.get(tokenId)) {
+            case (?owner) { return #ok(owner); };
+            case null { return #err("Token não encontrado."); };
+        };
+    }
+
+    public shared(msg) func burn(tokenId: Nat) : async Result.Result<(), Text> {
+        switch (owners.get(tokenId)) {
+            case (?owner) {
+                owners.remove(tokenId);
+                tokens.remove(tokenId);
+                balances.put(owner, Option.get(balances.get(owner), 0) - 1);
+                return #ok(());
+            };
+            case null { return #err("Token não encontrado."); };
+        };
+    }
+
     // Função system para preservar o estado
     system func preupgrade() {
         petsEntries := Iter.toArray(pets.entries());

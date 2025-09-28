@@ -335,8 +335,8 @@ const PetForm = () => {
   // Função para verificar se um CID está disponível no IPFS
   const verifyCIDAvailability = async (cid) => {
     const gateways = [
-      'https://ipfs.io/ipfs/',
       'https://gateway.pinata.cloud/ipfs/',
+      'https://ipfs.io/ipfs/',
       'https://cloudflare-ipfs.com/ipfs/',
       'https://dweb.link/ipfs/'
     ];
@@ -738,7 +738,7 @@ const PetForm = () => {
                     {formData.photo && (
                       <div className="mt-4 text-center">
                         <img
-                          src={`https://ipfs.io/ipfs/${formData.photo}`}
+                          src={`https://gateway.pinata.cloud/ipfs/${formData.photo}`}
                           alt="Foto do Pet"
                           className="w-32 h-32 rounded-lg object-cover mx-auto border-2 border-green-200"
                           onError={(e) => {
@@ -998,7 +998,7 @@ const PetForm = () => {
                             </p>
                             <div className="flex flex-wrap gap-2">
                               <a
-                                href={`https://ipfs.io/ipfs/${pet.photo}`}
+                                href={`https://gateway.pinata.cloud/ipfs/${pet.photo}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-500 hover:text-blue-700 text-xs underline"

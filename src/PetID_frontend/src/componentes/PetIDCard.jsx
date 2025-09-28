@@ -34,7 +34,7 @@ const PetIDCard = ({ pet, onClose }) => {
   // Gateway para IPFS
   const gateways = [
     (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
-    (cid) => `https://ipfs.io/ipfs/${cid}`,
+    (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
     (cid) => `https://cloudflare-ipfs.com/ipfs/${cid}`
   ];
 
