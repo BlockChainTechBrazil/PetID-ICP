@@ -3,6 +3,12 @@ import { useAuth } from '../../context/AuthContext';
 import { createActor } from 'declarations/PetID_backend';
 import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
 import { HttpAgent } from '@dfinity/agent';
+import { Principal } from '@dfinity/principal';
+import { useTranslation } from 'react-i18next';
+import { GiPawPrint } from 'react-icons/gi';
+import { FiFileText, FiDownload } from 'react-icons/fi';
+import jsPDF from 'jspdf';
+import petidLogo from '../../assets/logo/logo.jpg';
 import { useTranslation } from 'react-i18next';
 import { GiPawPrint } from 'react-icons/gi';
 import { FiFileText, FiDownload } from 'react-icons/fi';
@@ -15,6 +21,167 @@ const gateways = [
   (cid) => `https://cloudflare-ipfs.com/ipfs/${cid}`,
   (cid) => `https://dweb.link/ipfs/${cid}`,
 ];
+
+// Estilos CSS para funcionalidades DIP721/NFT
+const nftStyles = `
+  .nft-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .dip721-info {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .info-badge {
+    background: #f0f4f8;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .info-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-right: 6px;
+  }
+  
+  .info-value {
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  .nft-metadata p {
+    margin: 4px 0;
+    font-size: 14px;
+  }
+  
+  .nft-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .btn-view-metadata, .btn-transfer {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .btn-view-metadata {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .btn-view-metadata:hover {
+    background: #2563eb;
+  }
+  
+  .btn-transfer {
+    background: #10b981;
+    color: white;
+  }
+  
+  .btn-transfer:hover {
+    background: #059669;
+  }
+  
+  .transfer-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .transfer-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    width: 400px;
+    max-width: 90vw;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  
+  .form-input.readonly {
+    background: #f9fafb;
+    color: #6b7280;
+  }
+  
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  
+  .btn-cancel {
+    padding: 8px 16px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .btn-cancel:hover {
+    background: #4b5563;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+  }
+`;
+
+// Adicionar estilos ao documento
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = nftStyles;
+  document.head.appendChild(styleSheet);
+}
 
 const NFTPetsPanel = () => {
   const { isAuthenticated, authClient } = useAuth();
@@ -39,6 +206,17 @@ const NFTPetsPanel = () => {
     color: '',
     isLost: false,
   });
+  // Estado para informações DIP721
+  const [nftBalance, setNftBalance] = useState(0);
+  const [totalSupply, setTotalSupply] = useState(0);
+  const [supportedInterfaces, setSupportedInterfaces] = useState([]);
+  
+  // Estados para transfer de NFTs
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferTokenId, setTransferTokenId] = useState('');
+  const [transferToAddress, setTransferToAddress] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
+
   const initializedRef = useRef(false);
 
   // Create actor when authenticated
@@ -75,7 +253,7 @@ const NFTPetsPanel = () => {
         console.log('✅ Pets carregados do localStorage cache:', parsedPets);
       }
       
-      // Se temos actor, tentar carregar do backend
+      // Se temos actor, tentar carregar do backend usando DIP721
       if (actor) {
         const res = await actor.getMyPets();
         if ('ok' in res) {
@@ -90,7 +268,21 @@ const NFTPetsPanel = () => {
           setPets(petsWithStringIds);
           // Salvar no localStorage para cache
           localStorage.setItem('userPets', JSON.stringify(petsWithStringIds));
-          console.log('✅ Pets carregados do ICP e salvos no cache:', petsWithStringIds);
+          console.log('✅ Pets NFT carregados do ICP (DIP721) e salvos no cache:', petsWithStringIds);
+        }
+
+        // ✅ CARREGAR INFORMAÇÕES DIP721
+        try {
+          const balance = await getUserNFTBalance();
+          setNftBalance(balance);
+          
+          const supply = await actor.totalSupply();
+          setTotalSupply(Number(supply));
+          
+          const interfaces = await actor.supportedInterfaces();
+          setSupportedInterfaces(interfaces);
+        } catch (e) {
+          console.error('[NFTPetsPanel] error loading DIP721 info:', e);
         }
       }
     } catch (e) {
@@ -188,7 +380,12 @@ const NFTPetsPanel = () => {
       if (!formData.nickname || !formData.birthDate || !formData.species || !formData.gender || !formData.color) {
         throw new Error(t('petPanel.fillAll'));
       }
-      const res = await actor.createPet({
+      
+      // ✅ MIGRAÇÃO: Usar mint() DIP721 ao invés de createPet()
+      const identity = authClient.getIdentity();
+      const userPrincipal = identity.getPrincipal();
+      
+      const res = await actor.mint(userPrincipal, {
         photo: formData.photo,
         nickname: formData.nickname,
         birthDate: formData.birthDate,
@@ -197,8 +394,10 @@ const NFTPetsPanel = () => {
         color: formData.color,
         isLost: formData.isLost,
       });
+      
       if ('ok' in res) {
-        setSuccess(t('petPanel.petRegistered'));
+        const tokenId = res.ok.toString();
+        setSuccess(`${t('petPanel.petRegistered')} - NFT Token ID: ${tokenId}`);
         setFormData({ photo: '', nickname: '', birthDate: '', species: '', gender: '', color: '', isLost: false });
         setSelectedFile(null); setImagePreview('');
         loadPets();
@@ -212,6 +411,90 @@ const NFTPetsPanel = () => {
   };
   const formatTimestamp = (ts) => { try { return new Date(Number(ts) / 1_000_000).toLocaleString(); } catch { return '—'; } };
   const formatPrincipal = (p) => { const s = p.toString(); return s.slice(0, 6) + '...' + s.slice(-6); };
+
+  // ✅ NOVA FUNCIONALIDADE DIP721: Buscar metadata do NFT
+  const getTokenMetadata = async (tokenId) => {
+    try {
+      if (!actor) return null;
+      const res = await actor.tokenMetadata(BigInt(tokenId));
+      if ('ok' in res) {
+        return res.ok;
+      }
+      return null;
+    } catch (e) {
+      console.error('[NFTPetsPanel] error getting token metadata:', e);
+      return null;
+    }
+  };
+
+  // ✅ NOVA FUNCIONALIDADE DIP721: Verificar saldo de NFTs do usuário
+  const getUserNFTBalance = async () => {
+    try {
+      if (!actor || !authClient) return 0;
+      const identity = authClient.getIdentity();
+      const userPrincipal = identity.getPrincipal();
+      const balance = await actor.balanceOf(userPrincipal);
+      return Number(balance);
+    } catch (e) {
+      console.error('[NFTPetsPanel] error getting NFT balance:', e);
+      return 0;
+    }
+  };
+
+  // ✅ NOVA FUNCIONALIDADE DIP721: Transferir NFT
+  const transferNFT = async () => {
+    if (!transferTokenId || !transferToAddress) {
+      setError('Token ID and destination address are required');
+      return;
+    }
+
+    setTransferLoading(true);
+    setError('');
+    
+    try {
+      if (!actor) throw new Error('Actor not ready');
+      
+      // Converter endereço string para Principal
+      const toPrincipal = Principal.fromText(transferToAddress);
+      const tokenId = BigInt(transferTokenId);
+      
+      const result = await actor.transfer(toPrincipal, tokenId);
+      
+      if ('ok' in result) {
+        setSuccess(`Pet NFT #${transferTokenId} transferred successfully!`);
+        setShowTransferModal(false);
+        setTransferTokenId('');
+        setTransferToAddress('');
+        loadPets(); // Recarregar lista
+      } else if ('err' in result) {
+        setError(`Transfer failed: ${result.err}`);
+      }
+    } catch (e) {
+      setError(`Transfer error: ${e.message}`);
+      console.error('[NFTPetsPanel] transfer error:', e);
+    } finally {
+      setTransferLoading(false);
+    }
+  };
+
+  // ✅ NOVA FUNCIONALIDADE DIP721: Aprovar operador
+  const approveOperator = async (tokenId, operatorAddress) => {
+    try {
+      if (!actor) throw new Error('Actor not ready');
+      
+      const operator = Principal.fromText(operatorAddress);
+      const result = await actor.approve(operator, BigInt(tokenId));
+      
+      if ('ok' in result) {
+        setSuccess(`Operator approved for token #${tokenId}`);
+      } else if ('err' in result) {
+        setError(`Approval failed: ${result.err}`);
+      }
+    } catch (e) {
+      setError(`Approval error: ${e.message}`);
+      console.error('[NFTPetsPanel] approve error:', e);
+    }
+  };
 
   // Função para gerar cartão de identidade digital do pet
   const generatePetDocument = (pet) => {
@@ -562,7 +845,7 @@ const NFTPetsPanel = () => {
     }, 1000);
   };
 
-  // Função para renderizar NFTs
+  // Função para renderizar NFTs com informações DIP721
   const renderNFTs = () => {
     return pets.map((pet) => (
       <div key={pet.id} className="nft-card">
@@ -573,23 +856,118 @@ const NFTPetsPanel = () => {
         />
         <div className="nft-details">
           <h3>{pet.nickname}</h3>
-          <p>{t('species')}: {pet.species}</p>
-          <p>{t('gender')}: {pet.gender}</p>
-          <p>{t('color')}: {pet.color}</p>
-          <p>{t('birthDate')}: {pet.birthDate}</p>
-          <p>{t('owner')}: {pet.owner}</p>
+          <div className="nft-metadata">
+            <p><strong>🆔 Token ID:</strong> {pet.id}</p>
+            <p><strong>📊 {t('species')}:</strong> {pet.species}</p>
+            <p><strong>⚧ {t('gender')}:</strong> {pet.gender}</p>
+            <p><strong>🎨 {t('color')}:</strong> {pet.color}</p>
+            <p><strong>🎂 {t('birthDate')}:</strong> {pet.birthDate}</p>
+            <p><strong>👤 {t('owner')}:</strong> {formatPrincipal(pet.owner)}</p>
+            <p><strong>⏰ Created:</strong> {formatTimestamp(pet.createdAt)}</p>
+          </div>
+          <div className="nft-actions">
+            <button 
+              className="btn-view-metadata"
+              onClick={() => getTokenMetadata(pet.id)}
+            >
+              🔍 View NFT Metadata
+            </button>
+            <button 
+              className="btn-transfer"
+              onClick={() => {
+                setTransferTokenId(pet.id);
+                setShowTransferModal(true);
+              }}
+            >
+              🔄 Transfer NFT
+            </button>
+          </div>
         </div>
       </div>
     ));
   };
 
-  // Renderizar NFTs no painel
+  // Renderizar NFTs no painel com informações DIP721
   return (
     <div className="nft-panel">
-      <h2>{t('myNFTs')}</h2>
-      <div className="nft-grid">
-        {renderNFTs()}
+      <div className="nft-header">
+        <h2>{t('myNFTs')} - Pet RWA Collection</h2>
+        <div className="dip721-info">
+          <div className="info-badge">
+            <span className="info-label">Your NFTs:</span>
+            <span className="info-value">{nftBalance}</span>
+          </div>
+          <div className="info-badge">
+            <span className="info-label">Total Supply:</span>
+            <span className="info-value">{totalSupply}</span>
+          </div>
+          <div className="info-badge">
+            <span className="info-label">Standard:</span>
+            <span className="info-value">{supportedInterfaces.join(', ') || 'DIP721'}</span>
+          </div>
+        </div>
       </div>
+      <div className="nft-grid">
+        {pets.length > 0 ? renderNFTs() : (
+          <div className="empty-state">
+            <p>No Pet NFTs found. Create your first Pet RWA!</p>
+          </div>
+        )}
+      </div>
+
+      {/* ✅ MODAL DE TRANSFERÊNCIA NFT */}
+      {showTransferModal && (
+        <div className="transfer-modal-overlay">
+          <div className="transfer-modal">
+            <div className="modal-header">
+              <h3>🔄 Transfer Pet NFT</h3>
+              <button 
+                className="modal-close"
+                onClick={() => setShowTransferModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-content">
+              <div className="form-group">
+                <label>Token ID:</label>
+                <input
+                  type="text"
+                  value={transferTokenId}
+                  readOnly
+                  className="form-input readonly"
+                />
+              </div>
+              <div className="form-group">
+                <label>Transfer to (Principal ID):</label>
+                <input
+                  type="text"
+                  value={transferToAddress}
+                  onChange={(e) => setTransferToAddress(e.target.value)}
+                  placeholder="rdmx6-jaaaa-aaaaa-aaadq-cai"
+                  className="form-input"
+                />
+              </div>
+              <div className="modal-actions">
+                <button 
+                  className="btn-cancel"
+                  onClick={() => setShowTransferModal(false)}
+                  disabled={transferLoading}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn-transfer"
+                  onClick={transferNFT}
+                  disabled={transferLoading || !transferToAddress}
+                >
+                  {transferLoading ? 'Transferring...' : 'Transfer NFT'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
