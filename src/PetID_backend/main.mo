@@ -628,4 +628,24 @@ persistent actor PetID {
             ];
         };
     }
+
+    // Função para migrar dados existentes para o formato DIP721
+    public shared(msg) func migrateData() : async Result.Result<(), Text> {
+        let caller = msg.caller;
+
+        if (!Principal.isController(caller)) {
+            return #err("Apenas o controlador pode executar a migração de dados.");
+        };
+
+        for ((petId, pet) in pets.entries()) {
+            let metadata = mapPetToMetadata(pet);
+            tokens.put(petId, metadata);
+            owners.put(petId, pet.owner);
+
+            let balance = balances.get(pet.owner);
+            balances.put(pet.owner, Option.get(balance, 0) + 1);
+        };
+
+        return #ok(());
+    }
 };
