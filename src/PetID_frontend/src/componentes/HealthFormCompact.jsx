@@ -138,32 +138,31 @@ const HealthFormCompact = ({ onSuccess }) => {
     setFilePreviews(previews);
   };
 
-  // Função para upload de arquivos para IPFS (simulado)
-  const uploadFilesToIPFS = async () => {
-    if (selectedFiles.length === 0) return [];
-
-    setUploadingToIPFS(true);
-    const uploadedCIDs = [];
+  // Função para fazer upload de arquivos para o IPFS
+  const uploadToIPFS = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      for (const file of selectedFiles) {
-        // Simular upload para IPFS (substituir por implementação real)
-        const simulatedCID = `Qm${Math.random().toString(36).substr(2, 44)}`;
-        uploadedCIDs.push({
-          cid: simulatedCID,
-          filename: file.name,
-          type: file.type,
-          size: file.size
-        });
-        
-        // Simular delay de upload
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      setUploadingToIPFS(true);
+      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_PINATA_JWT}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao fazer upload para o IPFS');
       }
-      
-      return uploadedCIDs;
+
+      const data = await response.json();
+      return data.IpfsHash;
     } catch (error) {
-      console.error('Erro no upload:', error);
-      throw error;
+      console.error('Erro ao fazer upload para o IPFS:', error);
+      setError('Erro ao fazer upload para o IPFS');
+      return null;
     } finally {
       setUploadingToIPFS(false);
     }
@@ -183,8 +182,13 @@ const HealthFormCompact = ({ onSuccess }) => {
     setSuccess('');
 
     try {
-      // Upload dos arquivos primeiro
-      const attachments = await uploadFilesToIPFS();
+      const uploadedCIDs = [];
+      for (const file of selectedFiles) {
+        const cid = await uploadToIPFS(file);
+        if (cid) {
+          uploadedCIDs.push(cid);
+        }
+      }
 
       // Dados do registro de saúde para o backend
       const healthRecordPayload = {
@@ -195,7 +199,7 @@ const HealthFormCompact = ({ onSuccess }) => {
         local: formData.local && formData.local.trim() !== '' ? [formData.local] : null,
         status: formData.status,
         description: formData.description && formData.description.trim() !== '' ? [formData.description] : null,
-        attachments: attachments.map(file => file.cid || '') // CIDs dos arquivos
+        attachments: uploadedCIDs // CIDs dos arquivos
       };
 
       console.log('Enviando registro para o backend:', healthRecordPayload);
