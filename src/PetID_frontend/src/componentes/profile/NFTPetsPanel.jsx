@@ -562,222 +562,33 @@ const NFTPetsPanel = () => {
     }, 1000);
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Stats dentro do painel */}
-      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
-        {[
-          { key: 'totalPets', value: pets.length, color: 'from-petPink-400 to-petPurple-500' },
-          { key: 'upcomingEvents', value: 0, color: 'from-emerald-400 to-teal-500' }, // mock
-          { key: 'medicalPendings', value: 0, color: 'from-amber-400 to-orange-500' }, // mock
-          { key: 'partnerClinics', value: 0, color: 'from-indigo-400 to-accent-500' }, // mock
-        ].map(c => (
-          <div key={c.key} className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-white/70 to-white/40 dark:from-surface-75/70 dark:to-surface-100/40 backdrop-blur group border border-gray-200 dark:border-surface-100">
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-r ${c.color} mix-blend-overlay`} />
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t(`profile.stats.${c.key}`)}</p>
-            <div className="mt-2 flex items-end justify-between">
-              <span className="text-3xl font-bold text-gray-800 dark:text-white">{c.value}</span>
-              <span className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300">{t('profile.stats.today')}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      {/* Header + botão adicionar */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <GiPawPrint className="text-xl text-[#8A8BED]" /> {t('petForm.myPets', 'Meus Pets')}
-          {loadingPets && <svg className="animate-spin h-4 w-4 text-indigo-500" viewBox="0 0 24 24" />}
-        </h2>
-        {isAuthenticated && (
-          <button
-            onClick={() => setFormOpen(o => !o)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-brand-500 to-petPurple-500 text-white shadow hover:shadow-md transition"
-          >
-            <span className="text-lg">{formOpen ? '−' : '+'}</span> {formOpen ? t('petForm.register', 'Registrar Pet') : t('petForm.register', 'Registrar Pet')}
-          </button>
-        )}
-      </div>
-
-    
-
-      {/* Acordeão do formulário */}
-      {formOpen && (
-        <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/70 backdrop-blur p-6 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && <div className="p-3 rounded-md bg-red-100 text-red-700 text-sm">{error}</div>}
-            {success && <div className="p-3 rounded-md bg-green-100 text-green-700 text-sm">{success}</div>}
-
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* Coluna Imagem / Dropzone */}
-              <div className="lg:col-span-1">
-                <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200 mb-2">Imagem *</label>
-                <div
-                  className={`relative group border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center transition cursor-pointer bg-white/70 dark:bg-surface-100/30 hover:border-indigo-400 dark:hover:border-indigo-500 ${uploading ? 'opacity-70' : ''}`}
-                  onDragOver={(e) => { e.preventDefault(); }}
-                  onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; handleFileSelect(file); }}
-                  onClick={() => document.getElementById('pet-image-input')?.click()}
-                >
-                  {!imagePreview && !formData.photo && (
-                    <>
-                      <svg className="h-10 w-10 text-indigo-400 mb-3" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V8.25A2.25 2.25 0 0 1 5.25 6h13.5A2.25 2.25 0 0 1 21 8.25v8.25m-18 0A2.25 2.25 0 0 0 5.25 18h13.5A2.25 2.25 0 0 0 21 16.5m-18 0v.75A2.25 2.25 0 0 0 5.25 19.5h13.5A2.25 2.25 0 0 0 21 17.25v-.75M12 12l3 3m0 0l3-3m-3 3V3" /></svg>
-                      <p className="text-xs text-gray-600 dark:text-slate-200 leading-relaxed">{t('petPanel.selectOrDrop')}<br /><span className="text-[10px] uppercase tracking-wide font-medium text-indigo-500">{t('petPanel.fileTypes')}</span></p>
-                    </>
-                  )}
-                  {(imagePreview || formData.photo) && (
-                    <div className="relative w-40 h-40">
-                      <img
-                        src={imagePreview || gateways[0](formData.photo)}
-                        alt="Preview"
-                        className="w-40 h-40 object-cover rounded-xl ring-2 ring-indigo-300/40 dark:ring-indigo-600/30 shadow"
-                      />
-                      {uploading && (
-                        <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex flex-col items-center justify-center rounded-xl text-white text-xs gap-2">
-                          <svg className="animate-spin h-6 w-6 text-indigo-200" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          <span>{uploadProgress ? `${uploadProgress}%` : t('petPanel.uploadingImage')}</span>
-                        </div>
-                      )}
-                      {formData.photo && !uploading && (
-                        <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow">{t('petPanel.cidOk')}</span>
-                      )}
-                    </div>
-                  )}
-                  <input id="pet-image-input" type="file" accept="image/*" onChange={onInputFileChange} className="hidden" />
-                </div>
-                {formData.photo && (
-                  <p className="mt-3 text-[10px] font-mono break-all text-emerald-600 dark:text-emerald-400">{t('petPanel.cidLabel')}: {formData.photo}</p>
-                )}
-              </div>
-              {/* Coluna dados */}
-              <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petPanel.nickname')} *</label>
-                  <input name="nickname" value={formData.nickname} onChange={handleChange} placeholder={t('petForm.nicknamePlaceholder', 'Ex: Luna')} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petPanel.birthDate')} *</label>
-                  <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.species')} *</label>
-                  <select name="species" value={formData.species} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100">
-                    <option value="">{t('petForm.selectSpecies')}</option>
-                    <option value="dog">{t('petForm.dog')}</option>
-                    <option value="cat">{t('petForm.cat')}</option>
-                    <option value="bird">{t('petForm.bird')}</option>
-                    <option value="snake">{t('petForm.snake')}</option>
-                    <option value="hamster">{t('petForm.hamster')}</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.gender')} *</label>
-                  <select name="gender" value={formData.gender} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100">
-                    <option value="">{t('petForm.selectGender')}</option>
-                    <option value="male">{t('petForm.male')}</option>
-                    <option value="female">{t('petForm.female')}</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.color')} *</label>
-                  <select name="color" value={formData.color} onChange={handleChange} className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100">
-                    <option value="">{t('petForm.selectColor')}</option>
-                    <option value="black">{t('petForm.black')}</option>
-                    <option value="white">{t('petForm.white')}</option>
-                    <option value="brown">{t('petForm.brown')}</option>
-                    <option value="golden">{t('petForm.golden')}</option>
-                    <option value="gray">{t('petForm.gray')}</option>
-                    <option value="orange">{t('petForm.orange')}</option>
-                    <option value="mixed">{t('petForm.mixed')}</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">{t('petForm.status')}</label>
-                  <select 
-                    name="isLost" 
-                    value={formData.isLost.toString()} 
-                    onChange={(e) => setFormData({...formData, isLost: e.target.value === 'true'})} 
-                    className="rounded-xl border border-gray-300 dark:border-surface-200 bg-white/80 dark:bg-surface-100/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-800 dark:text-slate-100"
-                  >
-                    <option value="false">{t('petForm.notLost')}</option>
-                    <option value="true">{t('petForm.lost')}</option>
-                  </select>
-                </div>
-                <div className="sm:col-span-2 flex flex-wrap gap-3 pt-2">{/* Botões permanecem iguais */}
-                  <button disabled={submitting || uploading} className="px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-petPurple-600 text-white text-sm font-semibold shadow hover:shadow-md transition disabled:opacity-60 flex items-center gap-2">
-                    {(submitting || uploading) && (
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                    )}
-                    {submitting ? t('petPanel.saving') : uploading ? t('petPanel.uploadingImage') : t('petPanel.savePet')}
-                  </button>
-                  <button type="button" onClick={() => setFormOpen(false)} className="px-5 py-2.5 rounded-full text-sm font-medium bg-gray-100 dark:bg-surface-100 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-surface-200">{t('petPanel.close')}</button>
-                </div>
-              </div>
-            </div>
-          </form>
+  // Função para renderizar NFTs
+  const renderNFTs = () => {
+    return pets.map((pet) => (
+      <div key={pet.id} className="nft-card">
+        <img
+          src={gateways[0](pet.photo)}
+          alt={pet.nickname}
+          className="nft-image"
+        />
+        <div className="nft-details">
+          <h3>{pet.nickname}</h3>
+          <p>{t('species')}: {pet.species}</p>
+          <p>{t('gender')}: {pet.gender}</p>
+          <p>{t('color')}: {pet.color}</p>
+          <p>{t('birthDate')}: {pet.birthDate}</p>
+          <p>{t('owner')}: {pet.owner}</p>
         </div>
-      )}
+      </div>
+    ));
+  };
 
-      {/* Lista de pets */}
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 justify-items-center">
-        {pets.length === 0 && !loadingPets && (
-          <div className="col-span-full text-sm text-gray-500 dark:text-slate-400">{t('petPanel.noPets')}</div>
-        )}
-        {pets.map(pet => (
-          <div key={pet.id} className="group relative w-full max-w-sm rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5 shadow-sm hover:shadow-md transition overflow-hidden">
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-brand-500/10 via-petPink-400/10 to-accent-500/10" />
-            {/* Imagem */}
-            {pet.photo && (
-              <div className="mb-3 relative w-full flex justify-center">
-                <img
-                  src={gateways[0](pet.photo)}
-                  alt={pet.nickname}
-                  className="w-32 h-32 object-cover rounded-xl ring-1 ring-gray-200 dark:ring-slate-700 shadow"
-                  onError={(e) => {
-                    const current = gateways.findIndex(g => e.target.src === g(pet.photo));
-                    const next = gateways[current + 1];
-                    if (next) e.target.src = next(pet.photo); else e.target.style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                {pet.nickname} 
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">#{pet.id}</span>
-                {pet.isLost && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-300">
-                    {t('petForm.lost')}
-                  </span>
-                )}
-              </h3>
-            </div>
-            <div className="space-y-1 text-[11px] text-gray-500 dark:text-slate-400">
-              <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                <p><span className="font-medium">{t('petForm.species')}:</span> {t(`petForm.${pet.species}`, pet.species)}</p>
-                <p><span className="font-medium">{t('petForm.gender')}:</span> {t(`petForm.${pet.gender}`, pet.gender)}</p>
-                <p><span className="font-medium">{t('petForm.color')}:</span> {t(`petForm.${pet.color}`, pet.color)}</p>
-                <p><span className="font-medium">{t('petForm.status')}:</span> {pet.isLost ? t('petForm.lost') : t('petForm.notLost')}</p>
-              </div>
-              <p className="pt-1"><span className="font-medium">{t('petPanel.birth')}:</span> {formatDate(pet.birthDate)}</p>
-              <p><span className="font-medium">{t('petPanel.created')}:</span> {formatTimestamp(pet.createdAt)}</p>
-              <p><span className="font-medium">{t('petPanel.owner')}:</span> {formatPrincipal(pet.owner)}</p>
-              {pet.photo && <p className="truncate"><span className="font-medium">{t('petPanel.cidLabel')}:</span> {pet.photo}</p>}
-            </div>
-            
-            {/* Botão Document */}
-            <div className="mt-4 pt-3 border-t border-gray-200 dark:border-surface-100">
-              <button
-                onClick={() => generatePetDocument(pet)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
-              >
-                <FiFileText className="w-4 h-4" />
-                Document
-              </button>
-            </div>
-          </div>
-        ))}
+  // Renderizar NFTs no painel
+  return (
+    <div className="nft-panel">
+      <h2>{t('myNFTs')}</h2>
+      <div className="nft-grid">
+        {renderNFTs()}
       </div>
     </div>
   );
