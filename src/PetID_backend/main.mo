@@ -41,7 +41,7 @@ persistent actor PetID {
     // Pet RWA Structure
     public type Pet = {
         id: Nat;
-        photo: Text; // CID da imagem no IPFS
+        photo: Text; // Asset ID da ICP (ao invés de CID IPFS)
         nickname: Text;
         birthDate: Text;
         species: Text; // dog, cat, bird, snake, hamster
@@ -53,7 +53,7 @@ persistent actor PetID {
     };
 
     public type PetPayload = {
-        photo: Text;
+        photo: Text; // Asset ID da ICP
         nickname: Text;
         birthDate: Text;
         species: Text;
@@ -72,9 +72,26 @@ persistent actor PetID {
         local: ?Text;
         status: Text; // pending, completed, cancelled, in_progress
         description: ?Text;
-        attachments: [Text]; // Array de CIDs do IPFS
+        attachments: [Text]; // Array de asset IDs da ICP
         createdAt: Int;
         createdBy: Principal;
+    };
+
+    // ✅ NOVO: Asset Storage Types para ICP
+    public type AssetInfo = {
+        id: Text; // Identificador único do asset
+        filename: Text;
+        contentType: Text; // image/jpeg, image/png, etc.
+        size: Nat;
+        data: Blob; // Dados binários da imagem
+        uploadedAt: Int;
+        uploadedBy: Principal;
+    };
+
+    public type UploadAssetRequest = {
+        filename: Text;
+        contentType: Text;
+        data: Blob;
     };
 
     public type HealthRecordPayload = {
@@ -115,6 +132,12 @@ persistent actor PetID {
     
     private var healthRecordsByPetEntries : [(Nat, [Nat])] = [];
     private transient var healthRecordsByPet = HashMap.HashMap<Nat, [Nat]>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+
+    // ✅ NOVO: Asset Storage para imagens na ICP
+    private var assetsEntries : [(Text, AssetInfo)] = [];
+    private transient var assets = HashMap.HashMap<Text, AssetInfo>(0, Text.equal, Text.hash);
+    
+    private var nextAssetId: Nat = 1;
 
     // ==========================================
     // DIP721 Interface Implementation
@@ -594,6 +617,84 @@ persistent actor PetID {
     };
 
     // ==========================================
+    // Asset Storage Functions (ICP Storage)
+    // ==========================================
+
+    // ✅ Upload de imagem para a ICP
+    public shared(msg) func uploadAsset(request: UploadAssetRequest) : async Result.Result<Text, Text> {
+        let caller = msg.caller;
+        
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        // Validar tipo de arquivo
+        if (not (request.contentType == "image/jpeg" or 
+                request.contentType == "image/png" or 
+                request.contentType == "image/jpg" or
+                request.contentType == "image/webp")) {
+            return #err("Apenas imagens JPG, PNG e WebP são suportadas");
+        };
+
+        // Validar tamanho (5MB máximo)
+        let maxSize = 5 * 1024 * 1024; // 5MB
+        if (request.data.size() > maxSize) {
+            return #err("Imagem muito grande. Máximo 5MB.");
+        };
+
+        let assetId = "asset_" # Nat.toText(nextAssetId);
+        nextAssetId += 1;
+
+        let assetInfo: AssetInfo = {
+            id = assetId;
+            filename = request.filename;
+            contentType = request.contentType;
+            size = request.data.size();
+            data = request.data;
+            uploadedAt = Time.now();
+            uploadedBy = caller;
+        };
+
+        assets.put(assetId, assetInfo);
+
+        #ok(assetId)
+    };
+
+    // ✅ Recuperar asset/imagem da ICP
+    public query func getAsset(assetId: Text) : async Result.Result<AssetInfo, Text> {
+        switch (assets.get(assetId)) {
+            case (?asset) { #ok(asset) };
+            case null { #err("Asset não encontrado") };
+        }
+    };
+
+    // ✅ Recuperar apenas dados da imagem (para exibição)
+    public query func getAssetData(assetId: Text) : async Result.Result<Blob, Text> {
+        switch (assets.get(assetId)) {
+            case (?asset) { #ok(asset.data) };
+            case null { #err("Asset não encontrado") };
+        }
+    };
+
+    // ✅ Listar assets do usuário
+    public shared(msg) func getMyAssets() : async Result.Result<[AssetInfo], Text> {
+        let caller = msg.caller;
+        
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        let userAssets = Buffer.Buffer<AssetInfo>(0);
+        for ((assetId, asset) in assets.entries()) {
+            if (Principal.equal(asset.uploadedBy, caller)) {
+                userAssets.add(asset);
+            };
+        };
+
+        #ok(Buffer.toArray(userAssets))
+    };
+
+    // ==========================================
     // Upgrade Functions
     // ==========================================
 
@@ -605,6 +706,8 @@ persistent actor PetID {
         petsEntries := Iter.toArray(pets.entries());
         healthRecordsEntries := Iter.toArray(healthRecords.entries());
         healthRecordsByPetEntries := Iter.toArray(healthRecordsByPet.entries());
+        // ✅ NOVO: Preservar assets durante upgrade
+        assetsEntries := Iter.toArray(assets.entries());
     };
 
     system func postupgrade() {
@@ -628,5 +731,9 @@ persistent actor PetID {
 
         healthRecordsByPet := HashMap.fromIter<Nat, [Nat]>(healthRecordsByPetEntries.vals(), healthRecordsByPetEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
         healthRecordsByPetEntries := [];
+
+        // ✅ NOVO: Restaurar assets após upgrade
+        assets := HashMap.fromIter<Text, AssetInfo>(assetsEntries.vals(), assetsEntries.size(), Text.equal, Text.hash);
+        assetsEntries := [];
     };
 }

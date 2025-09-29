@@ -9,17 +9,12 @@ import { GiPawPrint } from 'react-icons/gi';
 import { FiFileText, FiDownload } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import petidLogo from '../../assets/logo/logo.jpg';
-import { useTranslation } from 'react-i18next';
-import { GiPawPrint } from 'react-icons/gi';
-import { FiFileText, FiDownload } from 'react-icons/fi';
-import jsPDF from 'jspdf';
-import petidLogo from '../../assets/logo/logo.jpg';
+import ICPImage from '../ICPImage';
 
 const gateways = [
-  (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
-  (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
-  (cid) => `https://cloudflare-ipfs.com/ipfs/${cid}`,
-  (cid) => `https://dweb.link/ipfs/${cid}`,
+  // ✅ MIGRAÇÃO: URLs da ICP ao invés de IPFS gateways
+  (assetId) => `/api/assets/${assetId}`, // URL local para desenvolvimento
+  (assetId) => `${window.location.origin}/api/assets/${assetId}`, // URL completa
 ];
 
 // Estilos CSS para funcionalidades DIP721/NFT
@@ -45,8 +40,8 @@ const nftStyles = `
   
   .info-label {
     font-size: 12px;
-    color: #64748b;
-    margin-right: 6px;
+    color: #4a5568;
+    margin-bottom: 2px;
   }
   
   .info-value {
@@ -100,31 +95,24 @@ const nftStyles = `
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     z-index: 1000;
   }
   
   .transfer-modal {
     background: white;
-    border-radius: 12px;
     padding: 24px;
+    border-radius: 12px;
     width: 400px;
-    max-width: 90vw;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
   }
   
   .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .modal-close {
-    background: none;
-    border: none;
     font-size: 18px;
-    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #1e293b;
   }
   
   .form-group {
@@ -186,17 +174,21 @@ if (typeof document !== 'undefined') {
 const NFTPetsPanel = () => {
   const { isAuthenticated, authClient } = useAuth();
   const { t, i18n } = useTranslation();
+  
+  // Estados principais
   const [actor, setActor] = useState(null);
   const [pets, setPets] = useState([]);
   const [loadingPets, setLoadingPets] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false); // upload de imagem
-  const [uploadProgress, setUploadProgress] = useState(null); // futuro: porcentagem (não suportado fetch simples)
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  
+  // Estados para formulário
   const [formData, setFormData] = useState({
     photo: '',
     nickname: '',
@@ -206,7 +198,8 @@ const NFTPetsPanel = () => {
     color: '',
     isLost: false,
   });
-  // Estado para informações DIP721
+  
+  // Estados para DIP721
   const [nftBalance, setNftBalance] = useState(0);
   const [totalSupply, setTotalSupply] = useState(0);
   const [supportedInterfaces, setSupportedInterfaces] = useState([]);
@@ -242,195 +235,120 @@ const NFTPetsPanel = () => {
     init();
   }, [isAuthenticated, authClient]);
 
+  // ✅ FUNÇÃO AUXILIAR: Upload para ICP Asset Storage
+  const uploadToICP = async (file) => {
+    if (!file) return null;
+
+    try {
+      setUploading(true);
+      console.log('📤 Enviando arquivo para ICP Asset Storage...');
+
+      // Converter arquivo para Uint8Array
+      const arrayBuffer = await file.arrayBuffer();
+      const fileData = new Uint8Array(arrayBuffer);
+
+      const uploadRequest = {
+        filename: file.name,
+        contentType: file.type,
+        data: fileData
+      };
+
+      const result = await actor.uploadAsset(uploadRequest);
+      
+      if ('ok' in result) {
+        console.log('✅ Upload para ICP realizado com sucesso! Asset ID:', result.ok);
+        return result.ok; // Retorna o asset ID
+      } else if ('err' in result) {
+        throw new Error(`ICP upload error: ${result.err}`);
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('❌ Erro ao fazer upload para ICP:', error);
+      setError('Erro ao fazer upload para ICP');
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // ✅ FUNÇÃO AUXILIAR: Upload automático quando arquivo é selecionado
+  const autoUpload = useCallback(async (file) => {
+    if (!file || !actor) return;
+    
+    try {
+      const assetId = await uploadToICP(file);
+      if (assetId) {
+        setFormData(prev => ({ ...prev, photo: assetId }));
+        console.log('✅ Asset ID salvo no formData:', assetId);
+      }
+    } catch (e) {
+      console.error('❌ Erro no upload automático:', e);
+    }
+  }, [actor]);
+
+  // Função para obter URL da imagem ICP para uso em HTML estático
+  const getICPImageURL = async (assetId) => {
+    try {
+      if (!actor || !assetId) return null;
+      
+      const result = await actor.getAssetData(assetId);
+      if ('ok' in result) {
+        const blob = new Blob([result.ok]);
+        return URL.createObjectURL(blob);
+      }
+      return null;
+    } catch (e) {
+      console.error('Error getting ICP image URL:', e);
+      return null;
+    }
+  };
+
+  // Carregar pets do usuário
   const loadPets = async () => {
     setLoadingPets(true);
     try {
-      // Primeiro, tentar carregar do localStorage como fallback
       const cachedPets = localStorage.getItem('userPets');
       if (cachedPets) {
         const parsedPets = JSON.parse(cachedPets);
         setPets(parsedPets);
         console.log('✅ Pets carregados do localStorage cache:', parsedPets);
       }
-      
-      // Se temos actor, tentar carregar do backend usando DIP721
+
       if (actor) {
         const res = await actor.getMyPets();
         if ('ok' in res) {
-          // Converter BigInts para strings antes de salvar
           const petsWithStringIds = res.ok.map(pet => ({
             ...pet,
-            id: pet.id.toString(), // Converter BigInt para string
+            id: pet.id.toString(),
             createdAt: pet.createdAt ? pet.createdAt.toString() : pet.createdAt,
             updatedAt: pet.updatedAt ? pet.updatedAt.toString() : pet.updatedAt
           }));
           
           setPets(petsWithStringIds);
-          // Salvar no localStorage para cache
           localStorage.setItem('userPets', JSON.stringify(petsWithStringIds));
           console.log('✅ Pets NFT carregados do ICP (DIP721) e salvos no cache:', petsWithStringIds);
         }
 
-        // ✅ CARREGAR INFORMAÇÕES DIP721
         try {
           const balance = await getUserNFTBalance();
           setNftBalance(balance);
-          
-          const supply = await actor.totalSupply();
-          setTotalSupply(Number(supply));
-          
-          const interfaces = await actor.supportedInterfaces();
-          setSupportedInterfaces(interfaces);
         } catch (e) {
-          console.error('[NFTPetsPanel] error loading DIP721 info:', e);
+          console.error('[NFTPetsPanel] error getting NFT balance:', e);
         }
       }
     } catch (e) {
-      console.error('[NFTPetsPanel] load pets error', e);
-      // Em caso de erro, tentar carregar do localStorage
-      const cachedPets = localStorage.getItem('userPets');
-      if (cachedPets) {
-        const parsedPets = JSON.parse(cachedPets);
-        setPets(parsedPets);
-        console.log('💾 Usando pets do localStorage devido a erro:', parsedPets);
-      }
+      console.error('[NFTPetsPanel] error loading pets:', e);
+      setError('Erro ao carregar pets');
     } finally {
       setLoadingPets(false);
     }
   };
 
-  useEffect(() => { 
-    loadPets(); 
-  }, [actor]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(f => ({ ...f, [name]: value }));
-  };
-
-  const handleFileSelect = (file) => {
-    if (!file) return;
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowed.includes(file.type)) { setError(t('petPanel.unsupportedType')); return; }
-    if (file.size > 5 * 1024 * 1024) { setError(t('petPanel.max5mb')); return; }
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onload = ev => setImagePreview(ev.target.result);
-    reader.readAsDataURL(file);
-    // upload automático
-    autoUpload(file);
-  };
-
-  const onInputFileChange = (e) => handleFileSelect(e.target.files?.[0]);
-
-  const uploadToIPFS = async (file) => {
-    const jwtToken = import.meta.env.REACT_APP_PINATA_JWT;
-    if (!jwtToken) throw new Error('Config PINATA JWT ausente');
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('pinataMetadata', JSON.stringify({ name: `pet-${Date.now()}` }));
-    // Usando XMLHttpRequest para permitir progresso futuro
-    return await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://api.pinata.cloud/pinning/pinFileToIPFS');
-      xhr.setRequestHeader('Authorization', `Bearer ${jwtToken}`);
-      xhr.upload.onprogress = (evt) => {
-        if (evt.lengthComputable) {
-          const pct = Math.round((evt.loaded / evt.total) * 100);
-          setUploadProgress(pct);
-        }
-      };
-      xhr.onerror = () => reject(new Error('Erro de rede no upload'));
-      xhr.onload = () => {
-        try {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const data = JSON.parse(xhr.responseText);
-            resolve(data.IpfsHash);
-          } else {
-            reject(new Error('Falha upload IPFS: ' + xhr.status));
-          }
-        } catch (e) { reject(e); }
-      };
-      xhr.send(fd);
-    });
-  };
-
-  const autoUpload = useCallback(async (file) => {
-    setUploading(true); setUploadProgress(null); setError(''); setSuccess('');
-    try {
-      const cid = await uploadToIPFS(file);
-      setFormData(f => ({ ...f, photo: cid }));
-      setSuccess(t('petPanel.imgSent'));
-    } catch (e) {
-      setError(e.message || t('petPanel.invalidImage'));
-      setFormData(f => ({ ...f, photo: '' }));
-    } finally { setUploading(false); setUploadProgress(null); }
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true); setError(''); setSuccess('');
-    try {
-      if (!actor) throw new Error('Actor not ready');
-      // Se há arquivo selecionado mas ainda não temos CID, faz upload agora
-      if (selectedFile && !formData.photo) {
-        await autoUpload(selectedFile);
-      }
-      if (!formData.photo) throw new Error(t('petPanel.invalidImage'));
-      if (!formData.nickname || !formData.birthDate || !formData.species || !formData.gender || !formData.color) {
-        throw new Error(t('petPanel.fillAll'));
-      }
-      
-      // ✅ MIGRAÇÃO: Usar mint() DIP721 ao invés de createPet()
-      const identity = authClient.getIdentity();
-      const userPrincipal = identity.getPrincipal();
-      
-      const res = await actor.mint(userPrincipal, {
-        photo: formData.photo,
-        nickname: formData.nickname,
-        birthDate: formData.birthDate,
-        species: formData.species,
-        gender: formData.gender,
-        color: formData.color,
-        isLost: formData.isLost,
-      });
-      
-      if ('ok' in res) {
-        const tokenId = res.ok.toString();
-        setSuccess(`${t('petPanel.petRegistered')} - NFT Token ID: ${tokenId}`);
-        setFormData({ photo: '', nickname: '', birthDate: '', species: '', gender: '', color: '', isLost: false });
-        setSelectedFile(null); setImagePreview('');
-        loadPets();
-        setFormOpen(false);
-      } else if ('err' in res) { setError(res.err); }
-    } catch (er) { setError(er.message); } finally { setSubmitting(false); }
-  };
-
-  const formatDate = (dateString) => {
-    try { return new Date(dateString).toLocaleDateString(); } catch { return dateString; }
-  };
-  const formatTimestamp = (ts) => { try { return new Date(Number(ts) / 1_000_000).toLocaleString(); } catch { return '—'; } };
-  const formatPrincipal = (p) => { const s = p.toString(); return s.slice(0, 6) + '...' + s.slice(-6); };
-
-  // ✅ NOVA FUNCIONALIDADE DIP721: Buscar metadata do NFT
-  const getTokenMetadata = async (tokenId) => {
-    try {
-      if (!actor) return null;
-      const res = await actor.tokenMetadata(BigInt(tokenId));
-      if ('ok' in res) {
-        return res.ok;
-      }
-      return null;
-    } catch (e) {
-      console.error('[NFTPetsPanel] error getting token metadata:', e);
-      return null;
-    }
-  };
-
-  // ✅ NOVA FUNCIONALIDADE DIP721: Verificar saldo de NFTs do usuário
+  // Obter balance de NFTs do usuário
   const getUserNFTBalance = async () => {
     try {
-      if (!actor || !authClient) return 0;
+      if (!actor) return 0;
       const identity = authClient.getIdentity();
       const userPrincipal = identity.getPrincipal();
       const balance = await actor.balanceOf(userPrincipal);
@@ -441,7 +359,7 @@ const NFTPetsPanel = () => {
     }
   };
 
-  // ✅ NOVA FUNCIONALIDADE DIP721: Transferir NFT
+  // Transferir NFT
   const transferNFT = async () => {
     if (!transferTokenId || !transferToAddress) {
       setError('Token ID and destination address are required');
@@ -454,7 +372,6 @@ const NFTPetsPanel = () => {
     try {
       if (!actor) throw new Error('Actor not ready');
       
-      // Converter endereço string para Principal
       const toPrincipal = Principal.fromText(transferToAddress);
       const tokenId = BigInt(transferTokenId);
       
@@ -477,382 +394,96 @@ const NFTPetsPanel = () => {
     }
   };
 
-  // ✅ NOVA FUNCIONALIDADE DIP721: Aprovar operador
-  const approveOperator = async (tokenId, operatorAddress) => {
+  // Manipuladores de eventos
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleFileSelect = (file) => {
+    if (!file) return;
+    
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+    
+    // Upload automático para ICP
+    autoUpload(file);
+  };
+
+  const onInputFileChange = (e) => handleFileSelect(e.target.files?.[0]);
+
+  // Submeter formulário para criar novo pet NFT
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated || !actor) {
+      setError(t('loginPrompt', 'Você precisa estar logado para registrar pets.'));
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+    setSuccess('');
+
     try {
-      if (!actor) throw new Error('Actor not ready');
-      
-      const operator = Principal.fromText(operatorAddress);
-      const result = await actor.approve(operator, BigInt(tokenId));
-      
+      console.log('📤 Enviando dados do pet para criação de NFT:', formData);
+
+      const petPayload = {
+        photo: formData.photo,
+        nickname: formData.nickname,
+        birthDate: formData.birthDate,
+        species: formData.species,
+        gender: formData.gender,
+        color: formData.color,
+        isLost: formData.isLost,
+      };
+
+      const result = await actor.mint(authClient.getIdentity().getPrincipal(), petPayload);
+      console.log('🎯 Resposta do backend:', result);
+
       if ('ok' in result) {
-        setSuccess(`Operator approved for token #${tokenId}`);
+        setSuccess(`Pet NFT criado com sucesso! Token ID: ${result.ok}`);
+        setFormOpen(false);
+        setFormData({
+          photo: '',
+          nickname: '',
+          birthDate: '',
+          species: '',
+          gender: '',
+          color: '',
+          isLost: false,
+        });
+        setSelectedFile(null);
+        setImagePreview('');
+        loadPets();
       } else if ('err' in result) {
-        setError(`Approval failed: ${result.err}`);
+        setError(`Erro ao criar Pet NFT: ${result.err}`);
       }
     } catch (e) {
-      setError(`Approval error: ${e.message}`);
-      console.error('[NFTPetsPanel] approve error:', e);
+      setError(`Erro: ${e.message}`);
+      console.error('[NFTPetsPanel] submit error:', e);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Função para gerar cartão de identidade digital do pet
-  const generatePetDocument = (pet) => {
-    // Criar um novo documento HTML para impressão
-    const printWindow = window.open('', '_blank');
-    const doc = printWindow.document;
-    
-    // Obter idioma atual do i18n
-    const currentLanguage = i18n.language;
-    const isEnglish = currentLanguage.startsWith('en');
-    
-    // Gerar hash fictício simplificado
-    const generateSimpleHash = () => {
-      const chars = '0123456789abcdef';
-      let hash = '';
-      for (let i = 0; i < 8; i++) {
-        hash += chars[Math.floor(Math.random() * chars.length)];
-      }
-      return hash;
-    };
-
-    // Template HTML do cartão de identidade
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="${isEnglish ? 'en' : 'pt-BR'}">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>PetID - ${pet.nickname}</title>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-          
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          
-          body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-          }
-          
-          .pet-card {
-            width: 420px;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.12);
-            overflow: hidden;
-            position: relative;
-            border: 1px solid rgba(0,0,0,0.04);
-          }
-          
-          .card-header {
-            position: relative;
-            padding: 24px 24px 16px;
-            background: #ffffff;
-            border-bottom: 1px solid #f1f3f4;
-          }
-          
-          .pet-name {
-            font-size: 22px;
-            font-weight: 600;
-            color: #1a1a1a;
-            text-align: left;
-            letter-spacing: -0.02em;
-          }
-          
-          .card-content {
-            padding: 24px;
-            display: grid;
-            grid-template-columns: 100px 1fr;
-            gap: 20px;
-            align-items: start;
-          }
-          
-          .pet-photo-container {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            position: relative;
-          }
-          
-          .pet-photo {
-            width: 100px;
-            height: 100px;
-            border-radius: 12px;
-            object-fit: cover;
-            border: 2px solid #e8eaed;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #5f6368;
-            font-size: 12px;
-            text-align: center;
-            font-weight: 400;
-            position: relative;
-          }
-          
-          .status-icon {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            z-index: 10;
-          }
-          
-          .status-home {
-            background: #4caf50;
-            color: white;
-          }
-          
-          .status-lost {
-            background: #ff9800;
-            color: white;
-          }
-          
-          .pet-id {
-            margin-top: 8px;
-            background: #f1f3f4;
-            color: #5f6368;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 500;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            letter-spacing: 0.5px;
-          }
-          
-          .pet-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-          }
-          
-          .info-box {
-            background: #fafbfc;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e8eaed;
-          }
-          
-          .info-label {
-            font-size: 11px;
-            color: #70757a;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 4px;
-          }
-          
-          .info-value {
-            font-size: 14px;
-            color: #202124;
-            font-weight: 500;
-            line-height: 1.3;
-          }
-          
-          .status-section {
-            grid-column: 1 / -1;
-            margin-top: 16px;
-            background: #fafbfc;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #e8eaed;
-          }
-          
-          .status-label {
-            font-size: 11px;
-            color: #70757a;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 8px;
-          }
-          
-          .status-hash {
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            font-size: 13px;
-            color: #1565c0;
-            background: #e3f2fd;
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px solid #bbdefb;
-            display: inline-block;
-            letter-spacing: 1px;
-          }
-          
-          .card-footer {
-            background: #fafbfc;
-            padding: 20px 24px;
-            border-top: 1px solid #e8eaed;
-          }
-          
-          .logo-section {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-          }
-          
-          .petid-logo {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1565c0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            letter-spacing: -0.02em;
-          }
-          
-          .petid-logo img {
-            width: 14px;
-            height: 14px;
-            opacity: 0.8;
-            object-fit: contain;
-          }
-          
-          .logo-badge {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-          }
-          
-          .footer-text {
-            font-size: 11px;
-            color: #70757a;
-            line-height: 1.5;
-          }
-          
-          .generation-date {
-            font-weight: 500;
-            color: #202124;
-            margin-bottom: 2px;
-          }
-          
-          .footer-description {
-            opacity: 0.8;
-          }
-          
-          @media print {
-            body {
-              background: white;
-              padding: 0;
-            }
-            
-            .pet-card {
-              box-shadow: none;
-              border: 1px solid #e8eaed;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="pet-card">
-          <div class="card-header">
-            <div class="pet-name">${pet.nickname}</div>
-          </div>
-          
-          <div class="card-content">
-            <div class="pet-photo-container">
-              ${pet.photo ? 
-                `<img src="${gateways[0](pet.photo)}" alt="${pet.nickname}" class="pet-photo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="pet-photo" style="display: none;">${isEnglish ? 'No photo' : 'Sem foto'}</div>` : 
-                `<div class="pet-photo">${isEnglish ? 'No photo' : 'Sem foto'}</div>`
-              }
-              <div class="status-icon ${pet.isLost ? 'status-lost' : 'status-home'}">
-                ${pet.isLost ? '❓' : '🏠'}
-              </div>
-              <div class="pet-id">ID ${pet.id}</div>
-            </div>
-            
-            <div class="pet-info">
-              <div class="info-box">
-                <div class="info-label">${isEnglish ? 'Birth Date' : 'Nascimento'}</div>
-                <div class="info-value">${formatDate(pet.birthDate)}</div>
-              </div>
-              
-              <div class="info-box">
-                <div class="info-label">${isEnglish ? 'Species' : 'Espécie'}</div>
-                <div class="info-value">${t(`petForm.${pet.species}`, pet.species)}</div>
-              </div>
-              
-              <div class="info-box">
-                <div class="info-label">${isEnglish ? 'Gender' : 'Gênero'}</div>
-                <div class="info-value">${t(`petForm.${pet.gender}`, pet.gender)}</div>
-              </div>
-              
-              <div class="info-box">
-                <div class="info-label">${isEnglish ? 'Color' : 'Cor'}</div>
-                <div class="info-value">${t(`petForm.${pet.color}`, pet.color)}</div>
-              </div>
-            </div>
-            
-            <div class="status-section">
-              <div class="status-label">${isEnglish ? 'Verification' : 'Verificação'}</div>
-              <div class="status-hash">${generateSimpleHash()}</div>
-            </div>
-          </div>
-          
-          <div class="card-footer">
-            <div class="logo-section">
-              <div class="petid-logo">
-                <img src="${petidLogo}" alt="PetID" style="width: 20px; height: 20px; opacity: 0.8;" />
-                PetID
-              </div>
-              <div class="logo-badge">ID</div>
-            </div>
-            <div class="footer-text">
-              <div class="generation-date">${isEnglish ? 'Issued on' : 'Emitido em'} ${new Date().toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR')}</div>
-              <div class="footer-description">${isEnglish ? 'Verified digital identity' : 'Identidade digital verificada'}</div>
-            </div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-    
-    doc.write(htmlContent);
-    doc.close();
-    
-    // Auto-imprimir após 1 segundo para garantir que as imagens carreguem
-    setTimeout(() => {
-      printWindow.print();
-    }, 1000);
-  };
+  // Carregar pets quando o actor estiver pronto
+  useEffect(() => {
+    if (actor) {
+      loadPets();
+    }
+  }, [actor]);
 
   // Função para renderizar NFTs com informações DIP721
   const renderNFTs = () => {
     return pets.map((pet) => (
       <div key={pet.id} className="nft-card">
-        <img
-          src={gateways[0](pet.photo)}
-          alt={pet.nickname}
+        <ICPImage 
+          assetId={pet.photo} 
+          altText={pet.nickname} 
           className="nft-image"
+          actor={actor}
         />
         <div className="nft-details">
           <h3>{pet.nickname}</h3>
@@ -862,16 +493,9 @@ const NFTPetsPanel = () => {
             <p><strong>⚧ {t('gender')}:</strong> {pet.gender}</p>
             <p><strong>🎨 {t('color')}:</strong> {pet.color}</p>
             <p><strong>🎂 {t('birthDate')}:</strong> {pet.birthDate}</p>
-            <p><strong>👤 {t('owner')}:</strong> {formatPrincipal(pet.owner)}</p>
-            <p><strong>⏰ Created:</strong> {formatTimestamp(pet.createdAt)}</p>
+            <p><strong>⏰ Created:</strong> {pet.createdAt}</p>
           </div>
           <div className="nft-actions">
-            <button 
-              className="btn-view-metadata"
-              onClick={() => getTokenMetadata(pet.id)}
-            >
-              🔍 View NFT Metadata
-            </button>
             <button 
               className="btn-transfer"
               onClick={() => {
@@ -897,73 +521,265 @@ const NFTPetsPanel = () => {
             <span className="info-label">Your NFTs:</span>
             <span className="info-value">{nftBalance}</span>
           </div>
-          <div className="info-badge">
-            <span className="info-label">Total Supply:</span>
-            <span className="info-value">{totalSupply}</span>
-          </div>
-          <div className="info-badge">
-            <span className="info-label">Standard:</span>
-            <span className="info-value">{supportedInterfaces.join(', ') || 'DIP721'}</span>
-          </div>
+          <button
+            onClick={() => setFormOpen(!formOpen)}
+            style={{
+              padding: '8px 16px',
+              background: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            <GiPawPrint style={{ marginRight: '8px' }} />
+            {formOpen ? 'Cancelar' : 'Criar Pet NFT'}
+          </button>
         </div>
       </div>
-      <div className="nft-grid">
-        {pets.length > 0 ? renderNFTs() : (
+
+      {/* Mensagens de erro/sucesso */}
+      {error && (
+        <div style={{ 
+          padding: '12px', 
+          background: '#fee2e2', 
+          color: '#dc2626', 
+          borderRadius: '6px', 
+          marginBottom: '16px' 
+        }}>
+          ❌ {error}
+        </div>
+      )}
+      
+      {success && (
+        <div style={{ 
+          padding: '12px', 
+          background: '#d1fae5', 
+          color: '#059669', 
+          borderRadius: '6px', 
+          marginBottom: '16px' 
+        }}>
+          ✅ {success}
+        </div>
+      )}
+
+      {/* Formulário de criação */}
+      {formOpen && (
+        <div style={{ 
+          background: '#f9fafb', 
+          padding: '20px', 
+          borderRadius: '8px', 
+          marginBottom: '20px',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h3 style={{ marginBottom: '16px' }}>Criar Novo Pet NFT</h3>
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                Foto do Pet:
+              </label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={onInputFileChange}
+                style={{ marginBottom: '8px' }}
+              />
+              {uploading && <p>Enviando imagem para ICP...</p>}
+              {imagePreview && (
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px' }} 
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                  Nome:
+                </label>
+                <input
+                  type="text"
+                  name="nickname"
+                  value={formData.nickname}
+                  onChange={handleChange}
+                  required
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                  Data de Nascimento:
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  value={formData.birthDate}
+                  onChange={handleChange}
+                  required
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                  Espécie:
+                </label>
+                <input
+                  type="text"
+                  name="species"
+                  value={formData.species}
+                  onChange={handleChange}
+                  required
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                  Gênero:
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  required
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                >
+                  <option value="">Selecionar</option>
+                  <option value="male">Macho</option>
+                  <option value="female">Fêmea</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                  Cor:
+                </label>
+                <input
+                  type="text"
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  required
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    name="isLost"
+                    checked={formData.isLost}
+                    onChange={handleChange}
+                    style={{ marginRight: '8px' }}
+                  />
+                  Pet está perdido
+                </label>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '20px', display: 'flex', gap: '12px' }}>
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{
+                  padding: '10px 20px',
+                  background: submitting ? '#ccc' : '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {submitting ? 'Criando NFT...' : 'Criar Pet NFT'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setFormOpen(false)}
+                style={{
+                  padding: '10px 20px',
+                  background: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Lista de NFTs */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+        gap: '20px' 
+      }}>
+        {loadingPets ? (
+          <div className="empty-state">Carregando pets...</div>
+        ) : pets.length === 0 ? (
           <div className="empty-state">
-            <p>No Pet NFTs found. Create your first Pet RWA!</p>
+            <GiPawPrint size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+            <p>Você ainda não possui nenhum Pet NFT.</p>
+            <p>Clique em "Criar Pet NFT" para começar!</p>
           </div>
+        ) : (
+          renderNFTs()
         )}
       </div>
 
-      {/* ✅ MODAL DE TRANSFERÊNCIA NFT */}
+      {/* Modal de Transfer */}
       {showTransferModal && (
         <div className="transfer-modal-overlay">
           <div className="transfer-modal">
             <div className="modal-header">
-              <h3>🔄 Transfer Pet NFT</h3>
-              <button 
-                className="modal-close"
-                onClick={() => setShowTransferModal(false)}
-              >
-                ✕
-              </button>
+              Transfer Pet NFT #{transferTokenId}
             </div>
-            <div className="modal-content">
-              <div className="form-group">
-                <label>Token ID:</label>
-                <input
-                  type="text"
-                  value={transferTokenId}
-                  readOnly
-                  className="form-input readonly"
-                />
-              </div>
-              <div className="form-group">
-                <label>Transfer to (Principal ID):</label>
-                <input
-                  type="text"
-                  value={transferToAddress}
-                  onChange={(e) => setTransferToAddress(e.target.value)}
-                  placeholder="rdmx6-jaaaa-aaaaa-aaadq-cai"
-                  className="form-input"
-                />
-              </div>
-              <div className="modal-actions">
-                <button 
-                  className="btn-cancel"
-                  onClick={() => setShowTransferModal(false)}
-                  disabled={transferLoading}
-                >
-                  Cancel
-                </button>
-                <button 
-                  className="btn-transfer"
-                  onClick={transferNFT}
-                  disabled={transferLoading || !transferToAddress}
-                >
-                  {transferLoading ? 'Transferring...' : 'Transfer NFT'}
-                </button>
-              </div>
+            
+            <div className="form-group">
+              <label>Token ID:</label>
+              <input
+                type="text"
+                value={transferTokenId}
+                readOnly
+                className="form-input readonly"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Destination Address (Principal):</label>
+              <input
+                type="text"
+                value={transferToAddress}
+                onChange={(e) => setTransferToAddress(e.target.value)}
+                placeholder="Enter recipient's Principal ID"
+                className="form-input"
+              />
+            </div>
+            
+            <div className="modal-actions">
+              <button 
+                className="btn-cancel"
+                onClick={() => setShowTransferModal(false)}
+                disabled={transferLoading}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-transfer"
+                onClick={transferNFT}
+                disabled={transferLoading || !transferToAddress}
+              >
+                {transferLoading ? 'Transferring...' : 'Transfer NFT'}
+              </button>
             </div>
           </div>
         </div>

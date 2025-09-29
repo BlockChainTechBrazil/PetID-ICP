@@ -138,30 +138,37 @@ const HealthFormCompact = ({ onSuccess }) => {
     setFilePreviews(previews);
   };
 
-  // Função para fazer upload de arquivos para o IPFS
-  const uploadToIPFS = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
+  // ✅ MIGRAÇÃO IPFS → ICP: Upload de arquivos para ICP Asset Storage
+  const uploadToICP = async (file) => {
+    if (!file) return null;
 
     try {
       setUploadingToIPFS(true);
-      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${import.meta.env.VITE_PINATA_JWT}`,
-        },
-        body: formData,
-      });
+      console.log('📤 Enviando arquivo para ICP Asset Storage...');
 
-      if (!response.ok) {
-        throw new Error('Erro ao fazer upload para o IPFS');
+      // Converter arquivo para Uint8Array
+      const arrayBuffer = await file.arrayBuffer();
+      const fileData = new Uint8Array(arrayBuffer);
+
+      const uploadRequest = {
+        name: file.name,
+        content_type: file.type,
+        data: fileData
+      };
+
+      const result = await authenticatedActor.uploadAsset(uploadRequest);
+      
+      if ('ok' in result) {
+        console.log('✅ Upload para ICP realizado com sucesso! Asset ID:', result.ok);
+        return result.ok; // Retorna o asset ID
+      } else if ('err' in result) {
+        throw new Error(`ICP upload error: ${result.err}`);
       }
-
-      const data = await response.json();
-      return data.IpfsHash;
+      
+      return null;
     } catch (error) {
-      console.error('Erro ao fazer upload para o IPFS:', error);
-      setError('Erro ao fazer upload para o IPFS');
+      console.error('❌ Erro ao fazer upload para ICP:', error);
+      setError('Erro ao fazer upload para ICP');
       return null;
     } finally {
       setUploadingToIPFS(false);
@@ -182,11 +189,11 @@ const HealthFormCompact = ({ onSuccess }) => {
     setSuccess('');
 
     try {
-      const uploadedCIDs = [];
+      const uploadedAssetIds = [];
       for (const file of selectedFiles) {
-        const cid = await uploadToIPFS(file);
-        if (cid) {
-          uploadedCIDs.push(cid);
+        const assetId = await uploadToICP(file);
+        if (assetId) {
+          uploadedAssetIds.push(assetId);
         }
       }
 
@@ -199,7 +206,7 @@ const HealthFormCompact = ({ onSuccess }) => {
         local: formData.local && formData.local.trim() !== '' ? [formData.local] : null,
         status: formData.status,
         description: formData.description && formData.description.trim() !== '' ? [formData.description] : null,
-        attachments: uploadedCIDs // CIDs dos arquivos
+        attachments: uploadedAssetIds // Asset IDs dos arquivos ICP
       };
 
       console.log('Enviando registro para o backend:', healthRecordPayload);
