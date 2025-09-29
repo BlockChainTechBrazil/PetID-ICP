@@ -11,20 +11,18 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useAuth } from '../../context/AuthContext';
+import { createActor } from 'declarations/PetID_backend';
+import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
+import { HttpAgent } from '@dfinity/agent';
+import { Principal } from '@dfinity/principal';
 import { useTranslation } from 'react-i18next';
-import { 
-  FiUsers, 
-  FiPlus, 
-  FiHeart, 
-  FiEdit3, 
-  FiTrash2, 
-  FiX
-} from 'react-icons/fi';
 import { GiPawPrint } from 'react-icons/gi';
+import { FiUsers, FiPlus, FiHeart, FiEdit3, FiTrash2, FiX } from 'react-icons/fi';
+import ICPImage from '../ICPImage';
 
 // Componente Pet Node personalizado
 const PetNode = ({ data, selected }) => {
-  const { pet, onEdit, onConnect, onDelete, isConnecting, connectionStart, t } = data;
+  const { pet, onEdit, onConnect, onDelete, isConnecting, connectionStart, t, actor } = data;
   
   const isConnectionTarget = isConnecting && connectionStart !== pet.id;
   const isConnectionSource = connectionStart === pet.id;
@@ -80,12 +78,12 @@ const PetNode = ({ data, selected }) => {
         {/* Status indicators */}
         {isConnectionSource && (
           <div className="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 px-2 py-1 rounded">
-            🎯 {t('genealogy.petSelected')}
+            🎯 Pet Selecionado
           </div>
         )}
         {isConnectionTarget && (
           <div className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
-            ✅ {t('genealogy.clickToConnect')}
+            ✅ Clique para Conectar
           </div>
         )}
       </div>
@@ -93,13 +91,11 @@ const PetNode = ({ data, selected }) => {
       {/* Foto do Pet */}
       {pet.photo && (
         <div className="px-4 pt-3">
-          <img
-            src={`https://gateway.pinata.cloud/ipfs/${pet.photo}`}
-            alt={pet.nickname}
+          <ICPImage 
+            assetId={pet.photo}
+            altText={pet.nickname}
             className="w-full h-32 object-cover rounded-lg"
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
+            actor={actor}
           />
         </div>
       )}
@@ -112,11 +108,11 @@ const PetNode = ({ data, selected }) => {
             <p className="text-gray-800 dark:text-white">{pet.species || 'N/A'}</p>
           </div>
           <div>
-            <span className="font-medium text-gray-600 dark:text-slate-300">{t('genealogy.gender')}:</span>
+            <span className="font-medium text-gray-600 dark:text-slate-300">Gênero:</span>
             <p className="text-gray-800 dark:text-white">{pet.gender || 'N/A'}</p>
           </div>
           <div>
-            <span className="font-medium text-gray-600 dark:text-slate-300">{t('genealogy.color')}:</span>
+            <span className="font-medium text-gray-600 dark:text-slate-300">Cor:</span>
             <p className="text-gray-800 dark:text-white">{pet.color || 'N/A'}</p>
           </div>
           <div>
@@ -148,7 +144,7 @@ const getEdgeStyle = (relationshipType, t) => {
       return {
         stroke: '#10B981',
         strokeWidth: 3,
-        label: `👨‍👩‍👧‍👦 ${t('genealogy.parentTitle')}`,
+        label: `👨‍👩‍👧‍👦 Pai/Mãe`,
         labelBgStyle: { fill: '#10B981', fillOpacity: 0.1 },
         labelStyle: { fill: '#059669', fontWeight: 600 }
       };
@@ -156,7 +152,7 @@ const getEdgeStyle = (relationshipType, t) => {
       return {
         stroke: '#F59E0B',
         strokeWidth: 3,
-        label: `👶 ${t('genealogy.childTitle')}`,
+        label: `👶 Filho/a`,
         labelBgStyle: { fill: '#F59E0B', fillOpacity: 0.1 },
         labelStyle: { fill: '#D97706', fontWeight: 600 }
       };
@@ -164,7 +160,7 @@ const getEdgeStyle = (relationshipType, t) => {
       return {
         stroke: '#8B5CF6',
         strokeWidth: 2,
-        label: `👫 ${t('genealogy.siblingTitle')}`,
+        label: `👫 Irmão/Irmã`,
         labelBgStyle: { fill: '#8B5CF6', fillOpacity: 0.1 },
         labelStyle: { fill: '#7C3AED', fontWeight: 600 }
       };
@@ -172,123 +168,17 @@ const getEdgeStyle = (relationshipType, t) => {
       return {
         stroke: '#6366F1',
         strokeWidth: 2,
-        label: t('genealogy.related'),
+        label: 'Relacionado',
         labelBgStyle: { fill: '#6366F1', fillOpacity: 0.1 },
         labelStyle: { fill: '#4F46E5', fontWeight: 600 }
       };
   }
 };
 
-// Componente de formulário de edição
-const EditPetForm = ({ pet, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
-    nickname: pet.nickname || '',
-    species: pet.species || '',
-    gender: pet.gender || '',
-    color: pet.color || '',
-    birthDate: pet.birthDate || '',
-    isLost: pet.isLost || false
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-          Nome do Pet
-        </label>
-        <input
-          type="text"
-          value={formData.nickname}
-          onChange={(e) => handleChange('nickname', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-surface-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-surface-75 dark:text-white"
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Espécie
-          </label>
-          <input
-            type="text"
-            value={formData.species}
-            onChange={(e) => handleChange('species', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-surface-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-surface-75 dark:text-white"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            {t('genealogy.gender')}
-          </label>
-          <select
-            value={formData.gender}
-            onChange={(e) => handleChange('gender', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-surface-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-surface-75 dark:text-white"
-          >
-            <option value="">Selecionar</option>
-            <option value="Macho">{t('genealogy.male')}</option>
-            <option value="Fêmea">{t('genealogy.female')}</option>
-          </select>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            {t('genealogy.color')}
-          </label>
-          <input
-            type="text"
-            value={formData.color}
-            onChange={(e) => handleChange('color', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-surface-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-surface-75 dark:text-white"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Data de Nascimento
-          </label>
-          <input
-            type="date"
-            value={formData.birthDate}
-            onChange={(e) => handleChange('birthDate', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-surface-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-surface-75 dark:text-white"
-          />
-        </div>
-      </div>
-      
-      <div className="flex space-x-3 pt-4">
-        <button
-          type="submit"
-          className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          {t('genealogy.save')}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
-  );
-};
-
 const GenealogyPanel = () => {
   const { t } = useTranslation();
+  const { isAuthenticated, authClient, login } = useAuth();
+  const [actor, setActor] = useState(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [pets, setPets] = useState([]);
@@ -296,11 +186,37 @@ const GenealogyPanel = () => {
   
   // Estados para modais e interações
   const [showPetSelector, setShowPetSelector] = useState(false);
-  const [editingPet, setEditingPet] = useState(null);
   const [showRelationshipModal, setShowRelationshipModal] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStart, setConnectionStart] = useState(null);
   const [connectionTarget, setConnectionTarget] = useState(null);
+
+  // Criar actor quando autenticado
+  useEffect(() => {
+    const createBackendActor = async () => {
+      if (isAuthenticated && authClient) {
+        try {
+          const agent = new HttpAgent({
+            identity: authClient.getIdentity(),
+            host: process.env.NODE_ENV === 'development' ? 'http://localhost:4943' : 'https://ic0.app',
+          });
+          
+          if (process.env.NODE_ENV === 'development') {
+            await agent.fetchRootKey();
+          }
+
+          const backendActor = createActor(backendCanisterId, {
+            agent,
+          });
+
+          setActor(backendActor);
+        } catch (error) {
+          console.error('Erro ao criar actor:', error);
+        }
+      }
+    };
+    createBackendActor();
+  }, [isAuthenticated, authClient]);
 
   // Carregar pets do usuário do localStorage
   useEffect(() => {
@@ -320,54 +236,28 @@ const GenealogyPanel = () => {
           onDelete: handleDeletePet,
           isConnecting,
           connectionStart,
+          actor,
           t
         }
       })));
     }
-  }, [isConnecting, connectionStart]);
+  }, [isConnecting, connectionStart, actor]);
 
   const loadUserPets = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Carregando pets do localStorage...');
-      
-      // Primeiro, vamos ver TODAS as chaves do localStorage
-      const allKeys = Object.keys(localStorage);
-      console.log('🗂️ TODAS as chaves no localStorage:', allKeys);
-      
-      // Tentar chave principal: userPets
-      let userPets = [];
       const localPets = localStorage.getItem('userPets');
       
       if (localPets) {
         try {
-          userPets = JSON.parse(localPets);
-          console.log('✅ Pets encontrados no localStorage (userPets):', userPets);
+          const userPets = JSON.parse(localPets);
+          setPets(userPets);
         } catch (e) {
-          console.error('❌ Erro ao parsear userPets:', e);
+          console.error('Erro ao parsear userPets:', e);
         }
-      } else {
-        console.log('⚠️ Nenhum pet encontrado na chave userPets');
-        
-        // Se não encontrou na chave principal, mostrar todas as chaves para debug
-        allKeys.forEach(key => {
-          try {
-            const value = localStorage.getItem(key);
-            if (value && (value.includes('pet') || value.includes('Pet') || value.includes('nickname'))) {
-              console.log(`🔍 Possível dados de pets na chave "${key}":`, value);
-            }
-          } catch (e) {
-            // Ignorar erros de parsing
-          }
-        });
       }
-      
-      console.log('📊 Total de pets carregados:', userPets.length);
-      console.log('� Pets carregados:', userPets);
-      setPets(userPets);
-      
     } catch (error) {
-      console.error('❌ Erro ao carregar pets:', error);
+      console.error('Erro ao carregar pets:', error);
     } finally {
       setLoading(false);
     }
@@ -380,7 +270,6 @@ const GenealogyPanel = () => {
       const savedEdges = JSON.parse(localStorage.getItem('genealogy_edges_reactflow') || '[]');
       
       if (savedNodes.length > 0) {
-        // Adicionar as funções callback aos nós carregados
         const nodesWithCallbacks = savedNodes.map(node => ({
           ...node,
           data: {
@@ -390,6 +279,7 @@ const GenealogyPanel = () => {
             onDelete: handleDeletePet,
             isConnecting: false,
             connectionStart: null,
+            actor: null,
             t
           }
         }));
@@ -406,7 +296,11 @@ const GenealogyPanel = () => {
   // Salvar dados da genealogia
   const saveGenealogyData = useCallback((newNodes, newEdges) => {
     try {
-      localStorage.setItem('genealogy_nodes_reactflow', JSON.stringify(newNodes));
+      const cleanNodes = newNodes.map(node => ({
+        ...node,
+        data: { pet: node.data.pet }
+      }));
+      localStorage.setItem('genealogy_nodes_reactflow', JSON.stringify(cleanNodes));
       localStorage.setItem('genealogy_edges_reactflow', JSON.stringify(newEdges));
     } catch (error) {
       console.error('Erro ao salvar dados da genealogia:', error);
@@ -429,6 +323,7 @@ const GenealogyPanel = () => {
         onDelete: handleDeletePet,
         isConnecting,
         connectionStart,
+        actor,
         t
       },
     };
@@ -439,47 +334,17 @@ const GenealogyPanel = () => {
     setShowPetSelector(false);
   };
 
-  // Editar pet
-  const handleEditPet = (petId) => {
-    const node = nodes.find(n => n.data.pet.id === petId);
-    if (node) {
-      setEditingPet(node.data.pet);
-    }
-  };
-
-  const saveEditedPet = (editedData) => {
-    const newNodes = nodes.map(node => {
-      if (node.data.pet.id === editingPet.id) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            pet: { ...node.data.pet, ...editedData }
-          }
-        };
-      }
-      return node;
-    });
-    
-    setNodes(newNodes);
-    saveGenealogyData(newNodes, edges);
-    setEditingPet(null);
-  };
-
   // Sistema de conexões
   const handleConnectPet = (petId) => {
     if (!isConnecting) {
-      // Iniciar modo de conexão
       setIsConnecting(true);
       setConnectionStart(petId);
       updateNodesConnectionState(petId, true);
     } else if (connectionStart === petId) {
-      // Cancelar conexão
       setIsConnecting(false);
       setConnectionStart(null);
       updateNodesConnectionState(null, false);
     } else {
-      // Finalizar conexão
       setConnectionTarget(petId);
       setShowRelationshipModal(true);
     }
@@ -495,6 +360,7 @@ const GenealogyPanel = () => {
         onDelete: handleDeletePet,
         isConnecting: connecting,
         connectionStart: startId,
+        actor,
         t
       }
     }));
@@ -537,7 +403,11 @@ const GenealogyPanel = () => {
     updateNodesConnectionState(null, false);
   };
 
-  // Remover pet do canvas
+  // Handlers placeholder (implementar depois)
+  const handleEditPet = (petId) => {
+    console.log('Editar pet:', petId);
+  };
+
   const handleDeletePet = (petId) => {
     const newNodes = nodes.filter(node => node.data.pet.id !== petId);
     const newEdges = edges.filter(edge => 
@@ -549,7 +419,7 @@ const GenealogyPanel = () => {
     saveGenealogyData(newNodes, newEdges);
   };
 
-  // Handler para conexões automáticas (quando usuário arrasta de um handle para outro)
+  // Handler para conexões automáticas
   const onConnect = useCallback((params) => {
     setEdges((eds) => addEdge({
       ...params,
@@ -560,7 +430,7 @@ const GenealogyPanel = () => {
     }, eds));
   }, [setEdges]);
 
-  // Pets disponíveis para adicionar (não estão no canvas)
+  // Pets disponíveis para adicionar
   const availablePets = pets.filter(pet => 
     !nodes.some(node => node.data.pet.id === pet.id)
   );
@@ -572,7 +442,7 @@ const GenealogyPanel = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center space-x-2">
             <FiUsers className="w-5 h-5 text-[#8A8BED]" />
-            <span>{t('genealogy.title')}</span>
+            <span>Árvore Genealógica</span>
           </h3>
           
           <div className="flex flex-wrap gap-2">
@@ -597,10 +467,10 @@ const GenealogyPanel = () => {
               </div>
               <div>
                 <h4 className="font-semibold text-green-800 dark:text-green-200">
-                  {t('genealogy.connect')} Ativado
+                  Modo Conexão Ativado
                 </h4>
                 <p className="text-sm text-green-600 dark:text-green-300">
-                  {t('genealogy.clickHeartToConnect')}
+                  Clique no coração de outro pet para conectar
                 </p>
               </div>
             </div>
@@ -666,7 +536,7 @@ const GenealogyPanel = () => {
                   Canvas Vazio
                 </h4>
                 <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
-                  {t('genealogy.addPetsToStart')}
+                  Adicione pets para começar a criar sua árvore genealógica
                 </p>
                 <button
                   onClick={() => setShowPetSelector(true)}
@@ -688,10 +558,10 @@ const GenealogyPanel = () => {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
-                    {t('genealogy.selectPetToAdd')}
+                    Selecionar Pet para Adicionar
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
-                    {t('genealogy.clickAnyPet')}
+                    Clique em qualquer pet para adicioná-lo à árvore genealógica
                   </p>
                 </div>
                 <button
@@ -712,8 +582,8 @@ const GenealogyPanel = () => {
                   <GiPawPrint className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-slate-300 mb-4">
                     {pets.length === 0 
-                      ? t('genealogy.noPetsRegistered')
-                      : t('genealogy.allPetsOnCanvas')
+                      ? 'Você ainda não tem pets registrados'
+                      : 'Todos os seus pets já estão na árvore genealógica'
                     }
                   </p>
                   <button
@@ -727,7 +597,7 @@ const GenealogyPanel = () => {
                 <div>
                   <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
-                      🎯 <strong>{availablePets.length} {t('genealogy.petsAvailable')}</strong>
+                      🎯 <strong>{availablePets.length} pets disponíveis</strong>
                     </p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
@@ -738,13 +608,11 @@ const GenealogyPanel = () => {
                         onClick={() => addPetToCanvas(pet)}
                       >
                         {pet.photo && (
-                          <img
-                            src={`https://gateway.pinata.cloud/ipfs/${pet.photo}`}
-                            alt={pet.nickname}
+                          <ICPImage 
+                            assetId={pet.photo}
+                            altText={pet.nickname}
                             className="w-full h-24 object-cover rounded-lg mb-3"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                            }}
+                            actor={actor}
                           />
                         )}
                         <h5 className="font-medium text-gray-800 dark:text-white mb-1">
@@ -756,34 +624,12 @@ const GenealogyPanel = () => {
                         <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                           ID: #{pet.id}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
-                          {t('genealogy.color')}: {pet.color}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
-                          Nascimento: {pet.birthDate}
-                        </p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Edição */}
-      {editingPet && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-surface-50 rounded-xl max-w-md w-full p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">
-              Editar Informações do Pet
-            </h3>
-            <EditPetForm 
-              pet={editingPet}
-              onSave={saveEditedPet}
-              onCancel={() => setEditingPet(null)}
-            />
           </div>
         </div>
       )}
@@ -798,7 +644,7 @@ const GenealogyPanel = () => {
             </h3>
             
             <p className="text-sm text-gray-600 dark:text-slate-300 mb-6">
-              {t('genealogy.relationshipQuestion')}
+              Que tipo de relacionamento existe entre estes pets?
             </p>
             
             <div className="space-y-3">
@@ -809,8 +655,8 @@ const GenealogyPanel = () => {
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">👨‍👩‍👧‍👦</span>
                   <div>
-                    <h4 className="font-medium text-green-800 dark:text-green-200">{t('genealogy.parentTitle')}</h4>
-                    <p className="text-xs text-green-600 dark:text-green-300">{t('genealogy.parentDescription')}</p>
+                    <h4 className="font-medium text-green-800 dark:text-green-200">Pai/Mãe</h4>
+                    <p className="text-xs text-green-600 dark:text-green-300">Relação de parentesco direto</p>
                   </div>
                 </div>
               </button>
@@ -822,8 +668,8 @@ const GenealogyPanel = () => {
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">👶</span>
                   <div>
-                    <h4 className="font-medium text-blue-800 dark:text-blue-200">{t('genealogy.childTitle')}</h4>
-                    <p className="text-xs text-blue-600 dark:text-blue-300">{t('genealogy.childDescription')}</p>
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200">Filho/Filha</h4>
+                    <p className="text-xs text-blue-600 dark:text-blue-300">Descendência direta</p>
                   </div>
                 </div>
               </button>
@@ -835,8 +681,8 @@ const GenealogyPanel = () => {
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">👫</span>
                   <div>
-                    <h4 className="font-medium text-purple-800 dark:text-purple-200">{t('genealogy.siblingTitle')}</h4>
-                    <p className="text-xs text-purple-600 dark:text-purple-300">{t('genealogy.siblingDescription')}</p>
+                    <h4 className="font-medium text-purple-800 dark:text-purple-200">Irmão/Irmã</h4>
+                    <p className="text-xs text-purple-600 dark:text-purple-300">Mesmos pais</p>
                   </div>
                 </div>
               </button>
@@ -853,7 +699,7 @@ const GenealogyPanel = () => {
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-surface-200 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-75 transition-colors"
               >
-                {t('genealogy.cancel')}
+                Cancelar
               </button>
             </div>
           </div>

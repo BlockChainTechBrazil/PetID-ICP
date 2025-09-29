@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import HealthFormCompact from '../HealthFormCompact';
+import ICPImage from '../ICPImage';
 // React Icons
 import { 
   FiLock,           // Cadeado
@@ -30,12 +31,28 @@ import { GiPawPrint } from 'react-icons/gi'; // Pata de pet
 const MedicalPanel = () => {
   const { t } = useTranslation();
   const { createBackendActor, isAuthenticated } = useAuth();
+  const [actor, setActor] = useState(null);
   const [healthRecords, setHealthRecords] = useState([]); // Estado local para registros médicos
   const [petNames, setPetNames] = useState({}); // Cache de nomes dos pets
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null); // Estado para o registro selecionado
   const [showDetailsModal, setShowDetailsModal] = useState(false); // Estado para o modal de detalhes
+
+  // Criar actor quando autenticado
+  useEffect(() => {
+    const initializeActor = async () => {
+      if (isAuthenticated) {
+        try {
+          const backendActor = await createBackendActor();
+          setActor(backendActor);
+        } catch (error) {
+          console.error('Erro ao criar actor:', error);
+        }
+      }
+    };
+    initializeActor();
+  }, [isAuthenticated, createBackendActor]);
 
   // Carregar registros médicos quando o componente for montado
   useEffect(() => {
@@ -517,19 +534,11 @@ const MedicalPanel = () => {
                       
                       <div className="space-y-3">
                         {selectedRecord.attachments.map((attachment, index) => {
-                          // Verificar se o CID está válido e completo
-                          const isValidCID = attachment && attachment.length > 10;
+                          // Verificar se o attachment está válido
+                          const isValidAttachment = attachment && attachment.length > 0;
                           const isImage = attachment.includes('.jpg') || attachment.includes('.png') || attachment.includes('.jpeg') || attachment.includes('.webp') || attachment.includes('.gif');
                           
-                          // URLs de gateway com fallbacks múltiplos
-                          const primaryUrl = `https://gateway.pinata.cloud/ipfs/${attachment}`;
-                          const fallbackUrls = [
-                            `https://gateway.pinata.cloud/ipfs/${attachment}`,
-                            `https://cloudflare-ipfs.com/ipfs/${attachment}`,
-                            `https://dweb.link/ipfs/${attachment}`
-                          ];
-                          
-                          if (!isValidCID) {
+                          if (!isValidAttachment) {
                             return (
                               <div key={index} className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                                 <div className="flex items-center space-x-3">
@@ -541,7 +550,7 @@ const MedicalPanel = () => {
                                       Anexo inválido #{index + 1}
                                     </p>
                                     <p className="text-red-600 dark:text-red-400 text-xs">
-                                      CID: {attachment || 'Não informado'}
+                                      ID: {attachment || 'Não informado'}
                                     </p>
                                   </div>
                                 </div>
@@ -553,35 +562,11 @@ const MedicalPanel = () => {
                             <div key={index} className="bg-white dark:bg-surface-50 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-surface-100">
                               {isImage ? (
                                 <div className="aspect-square relative group">
-                                  <img
-                                    src={primaryUrl}
-                                    alt={`Anexo ${index + 1}`}
+                                  <ICPImage
+                                    assetId={attachment}
+                                    altText={`Anexo ${index + 1}`}
                                     className="w-full h-full object-cover cursor-pointer transition-transform group-hover:scale-105"
-                                    onError={(e) => {
-                                      // Tentar fallbacks em sequência
-                                      const currentSrc = e.target.src;
-                                      const currentFallbackIndex = fallbackUrls.findIndex(url => url === currentSrc);
-                                      
-                                      if (currentFallbackIndex < fallbackUrls.length - 1) {
-                                        e.target.src = fallbackUrls[currentFallbackIndex + 1];
-                                      } else if (!fallbackUrls.includes(currentSrc)) {
-                                        e.target.src = fallbackUrls[0];
-                                      } else {
-                                        // Todos os fallbacks falharam
-                                        e.target.style.display = 'none';
-                                        e.target.parentElement.innerHTML = `
-                                          <div class="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-surface-75">
-                                            <div class="text-center">
-                                              <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                              </svg>
-                                              <p class="text-xs text-gray-500 dark:text-slate-400">Imagem não encontrada</p>
-                                            </div>
-                                          </div>
-                                        `;
-                                      }
-                                    }}
-                                    onClick={() => window.open(primaryUrl, '_blank')}
+                                    actor={actor}
                                   />
                                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
                                     <FiExternalLink className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -625,7 +610,7 @@ const MedicalPanel = () => {
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                     </svg>
-                                    <span>IPFS.io</span>
+                                    <span>ICP Asset</span>
                                   </button>
                                 </div>
                                 

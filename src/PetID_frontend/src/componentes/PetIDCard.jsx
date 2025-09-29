@@ -1,8 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
+import ICPImage from './ICPImage';
 import Logo from "../assets/logo/logo.jpg"
 
-const PetIDCard = ({ pet, onClose }) => {
+const PetIDCard = ({ pet, onClose, actor }) => {
   const { t } = useTranslation();
   
   // Função para formatar data
@@ -30,13 +32,6 @@ const PetIDCard = ({ pet, onClose }) => {
 
   // Data atual para rodapé
   const currentDate = new Date().toLocaleDateString('pt-BR');
-
-  // Gateway para IPFS
-  const gateways = [
-    (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
-    (cid) => `https://gateway.pinata.cloud/ipfs/${cid}`,
-    (cid) => `https://cloudflare-ipfs.com/ipfs/${cid}`
-  ];
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -72,16 +67,11 @@ const PetIDCard = ({ pet, onClose }) => {
                 {/* Foto do pet */}
                 <div className="relative">
                   {pet.photo ? (
-                    <img
-                      src={gateways[0](pet.photo)}
-                      alt={pet.nickname}
+                    <ICPImage
+                      assetId={pet.photo}
+                      altText={pet.nickname}
                       className="w-40 h-40 object-cover rounded-2xl border-4 border-white shadow-xl"
-                      onError={(e) => {
-                        const current = gateways.findIndex(g => e.target.src === g(pet.photo));
-                        const next = gateways[current + 1];
-                        if (next) e.target.src = next(pet.photo); 
-                        else e.target.style.display = 'none';
-                      }}
+                      actor={actor}
                     />
                   ) : (
                     <div className="w-40 h-40 bg-gray-200 rounded-2xl border-4 border-white shadow-xl flex items-center justify-center">

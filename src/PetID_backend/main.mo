@@ -94,6 +94,29 @@ persistent actor PetID {
         data: Blob;
     };
 
+    // ✅ NOVO: Estruturas para Relacionamentos Genealógicos
+    public type RelationshipType = {
+        #Parent;    // Pai/Mãe
+        #Child;     // Filho/Filha
+        #Sibling;   // Irmão/Irmã
+        #Mate;      // Parceiro reprodutivo
+        #Related;   // Relacionado (genérico)
+    };
+
+    public type PetRelationship = {
+        petId1: Nat;       // Primeiro pet
+        petId2: Nat;       // Segundo pet
+        relationshipType: RelationshipType;
+        createdBy: Principal;
+        createdAt: Int;
+    };
+
+    public type RelationshipPayload = {
+        petId1: Nat;
+        petId2: Nat;
+        relationshipType: RelationshipType;
+    };
+
     public type HealthRecordPayload = {
         petId: Nat;
         date: Text;
@@ -137,7 +160,12 @@ persistent actor PetID {
     private var assetsEntries : [(Text, AssetInfo)] = [];
     private transient var assets = HashMap.HashMap<Text, AssetInfo>(0, Text.equal, Text.hash);
     
+    // ✅ NOVO: Relacionamentos Genealógicos Storage
+    private var relationshipsEntries : [(Nat, PetRelationship)] = [];
+    private transient var relationships = HashMap.HashMap<Nat, PetRelationship>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    
     private var nextAssetId: Nat = 1;
+    private var nextRelationshipId: Nat = 1;
 
     // ==========================================
     // DIP721 Interface Implementation
@@ -695,6 +723,223 @@ persistent actor PetID {
     };
 
     // ==========================================
+    // Genealogy Functions
+    // ==========================================
+
+    // ✅ Criar relacionamento entre pets
+    public shared(msg) func createRelationship(petId1: Nat, petId2: Nat, relationshipType: RelationshipType) : async Result.Result<Nat, Text> {
+        let caller = msg.caller;
+        
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        // Verificar se os pets existem e pertencem ao usuário
+        switch (pets.get(petId1)) {
+            case null { return #err("Pet 1 não encontrado") };
+            case (?pet1) {
+                if (not Principal.equal(pet1.owner, caller)) {
+                    return #err("Você não é o dono do Pet 1");
+                };
+            };
+        };
+
+        switch (pets.get(petId2)) {
+            case null { return #err("Pet 2 não encontrado") };
+            case (?pet2) {
+                if (not Principal.equal(pet2.owner, caller)) {
+                    return #err("Você não é o dono do Pet 2");
+                };
+            };
+        };
+
+        // Verificar se relacionamento já existe
+        for ((_, relationship) in relationships.entries()) {
+            if ((relationship.petId1 == petId1 and relationship.petId2 == petId2) or 
+                (relationship.petId1 == petId2 and relationship.petId2 == petId1)) {
+                return #err("Relacionamento já existe entre estes pets");
+            };
+        };
+
+        let relationshipId = nextRelationshipId;
+        let relationship : PetRelationship = {
+            petId1 = petId1;
+            petId2 = petId2;
+            relationshipType = relationshipType;
+            createdBy = caller;
+            createdAt = Time.now();
+        };
+
+        relationships.put(relationshipId, relationship);
+        nextRelationshipId += 1;
+
+        #ok(relationshipId)
+    };
+
+    // ✅ Obter relacionamentos de um pet específico
+    public query func getPetRelationships(petId: Nat) : async Result.Result<[(Nat, PetRelationship)], Text> {
+        switch (pets.get(petId)) {
+            case null { return #err("Pet não encontrado") };
+            case (?_) {};
+        };
+
+        let petRelationships = Buffer.Buffer<(Nat, PetRelationship)>(0);
+        for ((relationshipId, relationship) in relationships.entries()) {
+            if (relationship.petId1 == petId or relationship.petId2 == petId) {
+                petRelationships.add((relationshipId, relationship));
+            };
+        };
+
+        #ok(Buffer.toArray(petRelationships))
+    };
+
+    // ✅ Obter todos os relacionamentos do usuário
+    public shared(msg) func getMyRelationships() : async Result.Result<[(Nat, PetRelationship)], Text> {
+        let caller = msg.caller;
+        
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        let userRelationships = Buffer.Buffer<(Nat, PetRelationship)>(0);
+        for ((relationshipId, relationship) in relationships.entries()) {
+            if (Principal.equal(relationship.createdBy, caller)) {
+                userRelationships.add((relationshipId, relationship));
+            };
+        };
+
+        #ok(Buffer.toArray(userRelationships))
+    };
+
+    // ✅ Atualizar tipo de relacionamento
+    public shared(msg) func updateRelationship(relationshipId: Nat, newRelationshipType: RelationshipType) : async Result.Result<(), Text> {
+        let caller = msg.caller;
+        
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        switch (relationships.get(relationshipId)) {
+            case null { return #err("Relacionamento não encontrado") };
+            case (?relationship) {
+                if (not Principal.equal(relationship.createdBy, caller)) {
+                    return #err("Você não tem permissão para atualizar este relacionamento");
+                };
+
+                let updatedRelationship : PetRelationship = {
+                    petId1 = relationship.petId1;
+                    petId2 = relationship.petId2;
+                    relationshipType = newRelationshipType;
+                    createdBy = relationship.createdBy;
+                    createdAt = relationship.createdAt;
+                };
+
+                relationships.put(relationshipId, updatedRelationship);
+                #ok()
+            };
+        }
+    };
+
+    // ✅ Excluir relacionamento
+    public shared(msg) func deleteRelationship(relationshipId: Nat) : async Result.Result<(), Text> {
+        let caller = msg.caller;
+        
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        switch (relationships.get(relationshipId)) {
+            case null { return #err("Relacionamento não encontrado") };
+            case (?relationship) {
+                if (not Principal.equal(relationship.createdBy, caller)) {
+                    return #err("Você não tem permissão para excluir este relacionamento");
+                };
+
+                relationships.delete(relationshipId);
+                #ok()
+            };
+        }
+    };
+
+    // ✅ Obter árvore genealógica completa de um pet
+    public query func getPetGenealogyTree(petId: Nat) : async Result.Result<{
+        pet: Pet;
+        parents: [Pet];
+        children: [Pet];
+        siblings: [Pet];
+        mates: [Pet];
+        related: [Pet];
+    }, Text> {
+        switch (pets.get(petId)) {
+            case null { return #err("Pet não encontrado") };
+            case (?pet) {
+                let parents = Buffer.Buffer<Pet>(0);
+                let children = Buffer.Buffer<Pet>(0);
+                let siblings = Buffer.Buffer<Pet>(0);
+                let mates = Buffer.Buffer<Pet>(0);
+                let related = Buffer.Buffer<Pet>(0);
+
+                for ((_, relationship) in relationships.entries()) {
+                    var relatedPetId : ?Nat = null;
+                    var isReverse = false;
+
+                    if (relationship.petId1 == petId) {
+                        relatedPetId := ?relationship.petId2;
+                    } else if (relationship.petId2 == petId) {
+                        relatedPetId := ?relationship.petId1;
+                        isReverse := true;
+                    };
+
+                    switch (relatedPetId) {
+                        case null {};
+                        case (?rPetId) {
+                            switch (pets.get(rPetId)) {
+                                case null {};
+                                case (?relatedPet) {
+                                    switch (relationship.relationshipType) {
+                                        case (#Parent) {
+                                            if (isReverse) {
+                                                children.add(relatedPet);
+                                            } else {
+                                                parents.add(relatedPet);
+                                            };
+                                        };
+                                        case (#Child) {
+                                            if (isReverse) {
+                                                parents.add(relatedPet);
+                                            } else {
+                                                children.add(relatedPet);
+                                            };
+                                        };
+                                        case (#Sibling) {
+                                            siblings.add(relatedPet);
+                                        };
+                                        case (#Mate) {
+                                            mates.add(relatedPet);
+                                        };
+                                        case (#Related) {
+                                            related.add(relatedPet);
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+
+                #ok({
+                    pet = pet;
+                    parents = Buffer.toArray(parents);
+                    children = Buffer.toArray(children);
+                    siblings = Buffer.toArray(siblings);
+                    mates = Buffer.toArray(mates);
+                    related = Buffer.toArray(related);
+                })
+            };
+        }
+    };
+
+    // ==========================================
     // Upgrade Functions
     // ==========================================
 
@@ -708,6 +953,8 @@ persistent actor PetID {
         healthRecordsByPetEntries := Iter.toArray(healthRecordsByPet.entries());
         // ✅ NOVO: Preservar assets durante upgrade
         assetsEntries := Iter.toArray(assets.entries());
+        // ✅ NOVO: Preservar relacionamentos durante upgrade
+        relationshipsEntries := Iter.toArray(relationships.entries());
     };
 
     system func postupgrade() {
@@ -735,5 +982,9 @@ persistent actor PetID {
         // ✅ NOVO: Restaurar assets após upgrade
         assets := HashMap.fromIter<Text, AssetInfo>(assetsEntries.vals(), assetsEntries.size(), Text.equal, Text.hash);
         assetsEntries := [];
+
+        // ✅ NOVO: Restaurar relacionamentos após upgrade
+        relationships := HashMap.fromIter<Nat, PetRelationship>(relationshipsEntries.vals(), relationshipsEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+        relationshipsEntries := [];
     };
 }
