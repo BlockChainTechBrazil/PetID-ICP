@@ -329,6 +329,7 @@
     "allPetsOnCanvas": "Todos os seus pets já estão no canvas.",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
-    "noPhoto": "Sem foto"
+    "noPhoto": "Sem foto",
+    "identityCard": "Cartão ID"
   }
 }

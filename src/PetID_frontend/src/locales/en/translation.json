@@ -297,6 +297,7 @@
     "allPetsOnCanvas": "All your pets are already on the canvas.",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "noPhoto": "No photo"
+    "noPhoto": "No photo",
+    "identityCard": "ID Card"
   }
 }

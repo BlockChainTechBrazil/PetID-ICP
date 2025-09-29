@@ -304,6 +304,338 @@ const NFTPetsPanel = () => {
     }
   };
 
+  // ✅ FUNÇÃO: Gerar cartão de identidade digital do pet
+  const generatePetDocument = async (pet) => {
+    // Obter URL da imagem ICP
+    const imageURL = await getICPImageURL(pet.photo);
+    
+    // Criar um novo documento HTML para impressão
+    const printWindow = window.open('', '_blank');
+    const doc = printWindow.document;
+    
+    // Obter idioma atual do i18n
+    const currentLanguage = i18n.language;
+    const isEnglish = currentLanguage.startsWith('en');
+    
+    // Gerar hash fictício simplificado
+    const generateSimpleHash = () => {
+      const chars = '0123456789abcdef';
+      let hash = '';
+      for (let i = 0; i < 8; i++) {
+        hash += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return hash;
+    };
+
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR');
+    };
+
+    // Template HTML do cartão de identidade
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="${isEnglish ? 'en' : 'pt-BR'}">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PetID - ${pet.nickname}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+          
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+          }
+          
+          .pet-card {
+            width: 420px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.12);
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.04);
+          }
+          
+          .card-header {
+            position: relative;
+            padding: 24px 24px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #f1f3f4;
+          }
+          
+          .pet-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-align: left;
+            letter-spacing: -0.02em;
+          }
+          
+          .card-content {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 20px;
+            align-items: start;
+          }
+          
+          .pet-photo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+          }
+          
+          .pet-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid #e8eaed;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5f6368;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 400;
+            position: relative;
+          }
+          
+          .status-icon {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 10;
+          }
+          
+          .status-home {
+            background: #4caf50;
+            color: white;
+          }
+          
+          .status-lost {
+            background: #ff9800;
+            color: white;
+          }
+          
+          .pet-id {
+            margin-top: 8px;
+            background: #f1f3f4;
+            color: #5f6368;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            letter-spacing: 0.5px;
+          }
+          
+          .pet-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+          }
+          
+          .info-box {
+            background: #fafbfc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e8eaed;
+          }
+          
+          .info-label {
+            font-size: 11px;
+            color: #70757a;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+          }
+          
+          .info-value {
+            font-size: 14px;
+            color: #202124;
+            font-weight: 500;
+            word-break: break-word;
+          }
+          
+          .status-section {
+            grid-column: 1 / -1;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e8eaed;
+            text-align: center;
+          }
+          
+          .status-label {
+            font-size: 11px;
+            color: #70757a;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+          }
+          
+          .status-hash {
+            font-size: 13px;
+            color: #1a73e8;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            letter-spacing: 1px;
+          }
+          
+          .card-footer {
+            background: #f8f9fa;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e8eaed;
+          }
+          
+          .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .petid-logo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a73e8;
+          }
+          
+          .logo-badge {
+            background: #1a73e8;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+          }
+          
+          .footer-text {
+            text-align: right;
+          }
+          
+          .generation-date {
+            font-size: 11px;
+            color: #70757a;
+            margin-bottom: 2px;
+          }
+          
+          .footer-description {
+            font-size: 10px;
+            color: #1a73e8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="pet-card">
+          <div class="card-header">
+            <div class="pet-name">${pet.nickname}</div>
+          </div>
+          
+          <div class="card-content">
+            <div class="pet-photo-container">
+              ${imageURL ? 
+                `<img src="${imageURL}" alt="${pet.nickname}" class="pet-photo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="pet-photo" style="display: none;">${isEnglish ? 'No photo' : 'Sem foto'}</div>` : 
+                `<div class="pet-photo">${isEnglish ? 'No photo' : 'Sem foto'}</div>`
+              }
+              <div class="status-icon ${pet.isLost ? 'status-lost' : 'status-home'}">
+                ${pet.isLost ? '❓' : '🏠'}
+              </div>
+              <div class="pet-id">ID ${pet.id}</div>
+            </div>
+            
+            <div class="pet-info">
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Birth Date' : 'Nascimento'}</div>
+                <div class="info-value">${formatDate(pet.birthDate)}</div>
+              </div>
+              
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Species' : 'Espécie'}</div>
+                <div class="info-value">${pet.species}</div>
+              </div>
+              
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Gender' : 'Gênero'}</div>
+                <div class="info-value">${pet.gender === 'male' ? (isEnglish ? 'Male' : 'Macho') : (isEnglish ? 'Female' : 'Fêmea')}</div>
+              </div>
+              
+              <div class="info-box">
+                <div class="info-label">${isEnglish ? 'Color' : 'Cor'}</div>
+                <div class="info-value">${pet.color}</div>
+              </div>
+            </div>
+            
+            <div class="status-section">
+              <div class="status-label">${isEnglish ? 'Verification' : 'Verificação'}</div>
+              <div class="status-hash">${generateSimpleHash()}</div>
+            </div>
+          </div>
+          
+          <div class="card-footer">
+            <div class="logo-section">
+              <div class="petid-logo">
+                <img src="${petidLogo}" alt="PetID" style="width: 20px; height: 20px; opacity: 0.8;" />
+                PetID
+              </div>
+              <div class="logo-badge">ID</div>
+            </div>
+            <div class="footer-text">
+              <div class="generation-date">${isEnglish ? 'Issued on' : 'Emitido em'} ${new Date().toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR')}</div>
+              <div class="footer-description">${isEnglish ? 'Verified digital identity' : 'Identidade digital verificada'}</div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    doc.write(htmlContent);
+    doc.close();
+    
+    // Auto-imprimir após 1 segundo para garantir que as imagens carreguem
+    setTimeout(() => {
+      printWindow.print();
+    }, 1000);
+  };
+
   // Carregar pets do usuário
   const loadPets = async () => {
     setLoadingPets(true);
@@ -504,6 +836,25 @@ const NFTPetsPanel = () => {
               }}
             >
               🔄 Transfer NFT
+            </button>
+            <button 
+              className="btn-identity-card"
+              onClick={() => generatePetDocument(pet)}
+              style={{
+                padding: '8px 16px',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                marginLeft: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <FiFileText />
+              {t('identityCard', 'Cartão ID')}
             </button>
           </div>
         </div>
