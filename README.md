@@ -93,7 +93,7 @@ PetID-ICP/
 
 ## 🎯 About the Project
 
-**PetID** is a decentralized application built on the Internet Computer Protocol (ICP) that offers a complete pet registration and identity system. Using blockchain technology, IPFS for decentralized image storage, and Internet Identity authentication, PetID provides a secure and permanent solution for documenting and managing pet information.
+**PetID** is a decentralized application built on the Internet Computer Protocol (ICP) that offers a complete pet registration and identity system. Using blockchain technology, ICP Asset Storage for images, and Internet Identity authentication, PetID provides a secure and permanent solution for documenting and managing pet information.
 
 ---
 
@@ -104,7 +104,7 @@ PetID-ICP/
 - **📱 Complete PWA**: Works as a native app on any device
 - **🔐 Web3 Authentication**: Via Internet Identity - no passwords, maximum security
 - **🌐 Multilingual**: Support for Portuguese, English, and Spanish
-- **📸 IPFS Storage**: Decentralized storage for pet photos
+- **📸 ICP Asset Storage**: Native storage for pet photos inside the canister
 
 ---
 
@@ -112,7 +112,7 @@ PetID-ICP/
 
 ### 🐕 Complete Pet Registration
 - Intuitive form for registering new pets
-- Photo upload with IPFS storage
+- Photo upload with ICP Asset Storage
 - Basic data: name, birth date, photo
 - Automatic linking to owner via Internet Identity
 
@@ -160,7 +160,7 @@ Millions of pets go missing every year, often because they lack proper identific
 - **React Frontend**: User interface with PWA capabilities
 - **Motoko Backend**: Smart contract for business logic
 - **Internet Identity**: Decentralized authentication system
-- **IPFS**: Distributed photo storage
+- **ICP Asset Storage**: Native asset storage
 - **IC Network**: Blockchain infrastructure for hosting
 
 ---
@@ -170,7 +170,7 @@ Millions of pets go missing every year, often because they lack proper identific
 ### Version 1.0 (MVP) - ✅ Completed
 - [x] Basic pet registration system
 - [x] Internet Identity authentication
-- [x] Photo upload to IPFS
+- [x] Photo upload to ICP Asset Storage
 - [x] User dashboard
 - [x] Internationalization (PT/EN/ES)
 - [x] Complete PWA

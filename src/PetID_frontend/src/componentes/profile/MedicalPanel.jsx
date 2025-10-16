@@ -61,46 +61,42 @@ const MedicalPanel = () => {
     }
   }, [isAuthenticated]);
 
-  // Função para carregar registros médicos do backend
+  // Função para carregar registros médicos do backend (compatível com a API atual)
   const loadHealthRecords = async () => {
     setLoading(true);
     try {
       const actor = await createBackendActor();
-      if (actor) {
-        const result = await actor.getMyHealthRecords();
-        if ('ok' in result) {
-          // Ordenar registros por data (mais recentes primeiro)
-          const sortedRecords = result.ok.sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
-          });
-          
-          // Buscar nomes dos pets para cada registro
-          const petNameCache = {};
-          for (const record of sortedRecords) {
-            if (!petNameCache[record.petId]) {
-              try {
-                const petResult = await actor.getPet(record.petId);
-                if ('ok' in petResult) {
-                  petNameCache[record.petId] = petResult.ok.nickname;
-                } else {
-                  petNameCache[record.petId] = `Pet #${record.petId}`;
-                }
-              } catch (error) {
-                console.error(`Erro ao buscar pet ${record.petId}:`, error);
-                petNameCache[record.petId] = `Pet #${record.petId}`;
-              }
+      if (!actor) return;
+
+      // 1) Buscar todos os pets do usuário
+      const petsRes = await actor.getMyPets();
+      if (!('ok' in petsRes)) {
+        setHealthRecords([]);
+        return;
+      }
+      const myPets = petsRes.ok;
+
+      // 2) Para cada pet, buscar seus registros de saúde
+      const allRecords = [];
+      const petNameCache = {};
+      for (const pet of myPets) {
+        petNameCache[pet.id] = pet.nickname;
+        try {
+          const recRes = await actor.getPetHealthRecords(pet.id);
+          if ('ok' in recRes) {
+            for (const rec of recRes.ok) {
+              allRecords.push(rec);
             }
           }
-          
-          setPetNames(petNameCache);
-          setHealthRecords(sortedRecords);
-          console.log('✅ Registros médicos carregados:', sortedRecords);
-          console.log('✅ Nomes dos pets:', petNameCache);
-        } else {
-          console.error('❌ Erro ao carregar registros:', result.err);
-          setHealthRecords([]);
+        } catch (e) {
+          console.warn('Erro ao carregar registros do pet', pet.id, e);
         }
       }
+
+      // 3) Ordenar por data
+      const sorted = allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setPetNames(petNameCache);
+      setHealthRecords(sorted);
     } catch (error) {
       console.error('❌ Erro ao carregar registros médicos:', error);
       setHealthRecords([]);
@@ -506,13 +502,13 @@ const MedicalPanel = () => {
                           Timestamp
                         </label>
                         <p className="text-gray-900 dark:text-white font-mono text-sm">
-                          {new Date(Number(selectedRecord.timestamp) / 1000000).toLocaleString()}
+                          {selectedRecord?.createdAt ? new Date(Number(selectedRecord.createdAt) / 1000000).toLocaleString() : '-'}
                         </p>
                       </div>
                       
                       <div className="bg-white dark:bg-surface-50 p-4 rounded-lg shadow-sm">
                         <label className="block text-xs font-medium text-purple-600 dark:text-purple-400 mb-1 uppercase tracking-wide">
-                          Anexos IPFS
+                          Anexos (ICP Assets)
                         </label>
                         <p className="text-gray-900 dark:text-white font-mono text-sm">
                           {selectedRecord?.attachments ? selectedRecord.attachments.length : 0} arquivo(s)
@@ -536,7 +532,6 @@ const MedicalPanel = () => {
                         {selectedRecord.attachments.map((attachment, index) => {
                           // Verificar se o attachment está válido
                           const isValidAttachment = attachment && attachment.length > 0;
-                          const isImage = attachment.includes('.jpg') || attachment.includes('.png') || attachment.includes('.jpeg') || attachment.includes('.webp') || attachment.includes('.gif');
                           
                           if (!isValidAttachment) {
                             return (
@@ -560,59 +555,20 @@ const MedicalPanel = () => {
                           
                           return (
                             <div key={index} className="bg-white dark:bg-surface-50 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-surface-100">
-                              {isImage ? (
-                                <div className="aspect-square relative group">
-                                  <ICPImage
-                                    assetId={attachment}
-                                    altText={`Anexo ${index + 1}`}
-                                    className="w-full h-full object-cover cursor-pointer transition-transform group-hover:scale-105"
-                                    actor={actor}
-                                  />
-                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
-                                    <FiExternalLink className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                                  </div>
+                              <div className="aspect-square relative group">
+                                <ICPImage
+                                  assetId={attachment}
+                                  altText={`Anexo ${index + 1}`}
+                                  className="w-full h-full object-cover cursor-pointer transition-transform group-hover:scale-105"
+                                  actor={actor}
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
+                                  <FiExternalLink className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
-                              ) : (
-                                <div className="p-4 flex items-center space-x-3">
-                                  <div className="flex-shrink-0">
-                                    <FiFileText className="w-8 h-8 text-blue-500" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                      Documento #{index + 1}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">
-                                      CID: {attachment.substring(0, 20)}...{attachment.substring(attachment.length - 8)}
-                                    </p>
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                      {attachment.length} caracteres
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
+                              </div>
                               
                               <div className="p-3 bg-gray-50 dark:bg-surface-75 border-t border-gray-100 dark:border-surface-100">
-                                <div className="flex space-x-2">
-                                  <button
-                                    onClick={() => window.open(primaryUrl, '_blank')}
-                                    className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center justify-center space-x-1 py-1"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                    <span>Pinata</span>
-                                  </button>
-                                  
-                                  <button
-                                    onClick={() => window.open(fallbackUrls[0], '_blank')}
-                                    className="flex-1 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 text-sm font-medium flex items-center justify-center space-x-1 py-1"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                    </svg>
-                                    <span>ICP Asset</span>
-                                  </button>
-                                </div>
+                                <div className="flex space-x-2"></div>
                                 
                                 <div className="mt-2 text-center">
                                   <button
@@ -622,7 +578,7 @@ const MedicalPanel = () => {
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                     </svg>
-                                    <span>Copiar CID</span>
+                                    <span>Copiar Asset ID</span>
                                   </button>
                                 </div>
                               </div>

@@ -8,6 +8,9 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
+  "community": {
+    "futureNote": "Future: create, comment and like posts, plus a real-time feed."
+  },
   "login": {
     "title": "Access your account",
     "subtitle": "Authenticate with your Internet Identity to access your dashboard and manage your pets.",
@@ -198,6 +201,7 @@
       "genealogy": "Genealogy",
       "medical": "Health & Vaccines",
       "community": "Community",
+      "chat": "AI Chat",
       "settings": "Settings"
     },
     "map": {
@@ -230,6 +234,17 @@
       "apiKeyHint": "Add your Google Maps API key in a .env file (VITE_GOOGLE_MAPS_API_KEY) to enable interactive map."
     }
   },
+  "chat": {
+    "title": "AI Chat",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "welcome": "Hi! How can I help with your pet today?",
+    "noKey": "Add VITE_OPENAI_API_KEY to your .env to enable AI responses.",
+    "noResponse": "No response.",
+    "error": "Error contacting the AI service.",
+    "loading": "Generating response...",
+    "you": "You"
+  },
   "petPanel": {
     "image": "Image",
     "nickname": "Nickname",
@@ -260,10 +275,14 @@
     "species": "Species",
     "gender": "Gender",
     "color": "Color",
+    "status": "Status",
     "verification": "Verification",
     "issuedOn": "Issued on",
     "digitalIdentityVerified": "Verified digital identity",
-    "petId": "PetID"
+    "petId": "PetID",
+    "blockchainId": "Blockchain Identifier",
+    "print": "Print Document",
+    "close": "Close"
   },
   "genealogy": {
     "title": "Interactive Family Tree",

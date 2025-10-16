@@ -8,6 +8,21 @@
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú"
   },
+  "document": {
+    "title": "Documento de la Mascota",
+    "digitalIdentity": "Tarjeta de Identidad Digital",
+    "birthDate": "Fecha de Nacimiento",
+    "species": "Especie",
+    "gender": "Género",
+    "color": "Color",
+    "verification": "Verificación",
+    "issuedOn": "Emitido el",
+    "digitalIdentityVerified": "Identidad digital verificada",
+    "petId": "PetID",
+    "blockchainId": "Identificador Blockchain",
+    "print": "Imprimir Documento",
+    "close": "Cerrar"
+  },
   "login": {
     "title": "Accede a tu cuenta",
     "subtitle": "Autentícate con tu Internet Identity para acceder a tu panel y gestionar tus mascotas.",
@@ -167,6 +182,9 @@
     "partnerships": "Alianzas",
     "rights": "Todos los derechos reservados."
   },
+  "community": {
+    "futureNote": "Futuro: crear, comentar y dar me gusta a publicaciones, además de feed en tiempo real."
+  },
   "gallery": {
     "title": "Historias de Conexión",
     "subtitle": "Mascotas y familias protegidas con identidad digital e historial seguro."
@@ -198,6 +216,7 @@
       "genealogy": "Genealogía",
       "medical": "Salud & Vacunas",
       "community": "Comunidad",
+      "chat": "Chat con IA",
       "settings": "Configuración"
     },
     "map": {
@@ -229,6 +248,17 @@
       "deleteDisabled": "Eliminación deshabilitada en demo",
       "apiKeyHint": "Añade tu Google Maps API key en un archivo .env (VITE_GOOGLE_MAPS_API_KEY) para habilitar el mapa interactivo."
     }
+  },
+  "chat": {
+    "title": "Chat con IA",
+    "placeholder": "Escribe tu mensaje...",
+    "send": "Enviar",
+    "welcome": "¡Hola! ¿Cómo puedo ayudar con tu mascota hoy?",
+    "noKey": "Agrega VITE_OPENAI_API_KEY a tu .env para habilitar respuestas de IA.",
+    "noResponse": "Sin respuesta.",
+    "error": "Error al contactar el servicio de IA.",
+    "loading": "Generando respuesta...",
+    "you": "Tú"
   },
   "petPanel": {
     "image": "Imagen",

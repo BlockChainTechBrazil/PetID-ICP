@@ -1,6 +1,7 @@
 
 import { FiUser } from 'react-icons/fi';
 import { GiPawPrint } from 'react-icons/gi';
+import { useTranslation } from 'react-i18next';
 
 const posts = [
   { id: 1, user: 'Ana', avatar: <FiUser className="w-5 h-5" />, type: 'Evento', title: 'Passeio no Parque Ibirapuera', date: '2025-06-20', content: 'Vamos reunir os pets para socializar e brincar. Leve água e brinquedos!', tags: ['passeio', 'social'] },
@@ -9,6 +10,7 @@ const posts = [
 ];
 
 const CommunityPanel = () => {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-5">
@@ -32,7 +34,7 @@ const CommunityPanel = () => {
         ))}
       </div>
       <div className="rounded-2xl border border-dashed border-gray-300 dark:border-surface-100/60 bg-white/40 dark:bg-surface-75/40 backdrop-blur p-6 text-center">
-        <p className="text-sm text-gray-500 dark:text-slate-400">Futuro: criar, comentar e curtir posts, além de feed em tempo real.</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">{t('community.futureNote', 'Futuro: criar, comentar e curtir posts, além de feed em tempo real.')}</p>
       </div>
     </div>
   );
