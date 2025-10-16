@@ -1,29 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import QRCode from 'qrcode';
 import ICPImage from './ICPImage';
-import Logo from "../assets/logo/logo.jpg"
+import Logo from "../assets/logo/logo.jpg";
 
 const PetIDCard = ({ pet, onClose, actor }) => {
   const { t } = useTranslation();
   const [qrDataUrl, setQrDataUrl] = useState(null);
-  
+
   // Função para formatar data
   const formatDate = (dateString) => {
-    try { 
-      return new Date(dateString).toLocaleDateString('pt-BR'); 
-    } catch { 
-      return dateString; 
+    try {
+      return new Date(dateString).toLocaleDateString('pt-BR');
+    } catch {
+      return dateString;
     }
   };
 
   // Função para formatar timestamp  
-  const formatTimestamp = (ts) => { 
-    try { 
-      return new Date(Number(ts) / 1_000_000).toLocaleString('pt-BR'); 
-    } catch { 
-      return '—'; 
-    } 
+  const formatTimestamp = (ts) => {
+    try {
+      return new Date(Number(ts) / 1_000_000).toLocaleString('pt-BR');
+    } catch {
+      return '—';
+    }
   };
 
   // Função para gerar hash fictício simplificado
@@ -60,7 +60,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
         {/* Header com botão fechar */}
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
           <h1 className="text-2xl font-bold text-gray-900">{t('document.digitalIdentity', 'Cartão de Identidade Digital')}</h1>
-          <button 
+          <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
           >
@@ -74,17 +74,17 @@ const PetIDCard = ({ pet, onClose, actor }) => {
         <div className="p-8">
           {/* Cartão de identidade */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-gray-200 shadow-lg">
-            
+
             {/* Seção principal com foto e nome */}
             <div className="flex flex-col lg:flex-row gap-8 mb-8">
-              
+
               {/* Coluna esquerda - Foto e nome */}
               <div className="flex flex-col items-center lg:items-start">
                 {/* Nome do pet em destaque acima da foto */}
                 <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center lg:text-left">
                   {pet.nickname}
                 </h2>
-                
+
                 {/* Foto do pet */}
                 <div className="relative">
                   {pet.photo ? (
@@ -101,7 +101,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                       </svg>
                     </div>
                   )}
-                  
+
                   {/* ID simplificado abaixo da foto */}
                   <div className="mt-4 text-center">
                     <span className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-xl font-mono text-sm font-semibold shadow-md">
@@ -113,7 +113,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
 
               {/* Coluna direita - Informações */}
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                
+
                 {/* Data de nascimento */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
@@ -174,11 +174,10 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                     {t('document.status', 'Status')}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      pet.isLost 
-                        ? 'bg-red-100 text-red-800' 
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pet.isLost
+                        ? 'bg-red-100 text-red-800'
                         : 'bg-green-100 text-green-800'
-                    }`}>
+                      }`}>
                       {pet.isLost ? t('petForm.lost', 'Perdido') : t('petForm.notLost', 'Seguro')}
                     </span>
                   </div>
@@ -221,7 +220,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                     <div className="font-bold text-indigo-600 text-lg">PetID</div>
                   </div>
                 </div>
-                
+
                 {/* Informações do documento */}
                 <div className="text-right text-sm text-gray-600">
                   <div className="font-medium">{t('document.issuedOn', 'Documento gerado em')} {currentDate}</div>
@@ -244,7 +243,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
               </svg>
               {t('document.print', 'Imprimir Documento')}
             </button>
-            
+
             <button
               onClick={onClose}
               className="flex items-center gap-2 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition-colors"

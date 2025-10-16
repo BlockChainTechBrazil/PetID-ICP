@@ -53,7 +53,7 @@ const HealthForm = () => {
       const identity = authClient.getIdentity();
       const network = import.meta.env.DFX_NETWORK || 'local';
       const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
-      
+
       const agent = new HttpAgent({ identity, host });
       if (network !== 'ic') {
         try {
@@ -204,7 +204,7 @@ const HealthForm = () => {
   // Função para submeter o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated || !authenticatedActor) {
       setError(t('healthForm.loginPrompt', 'Você precisa estar logado para registrar informações de saúde.'));
       return;
@@ -215,8 +215,8 @@ const HealthForm = () => {
     setSuccess('');
 
     try {
-  // Upload dos arquivos primeiro (ICP)
-  const attachments = await uploadFilesToICP();
+      // Upload dos arquivos primeiro (ICP)
+      const attachments = await uploadFilesToICP();
 
       // Dados do registro de saúde
       const healthRecord = {
@@ -232,12 +232,12 @@ const HealthForm = () => {
 
       // Aqui você chamaria a função do backend para salvar o registro
       // const result = await authenticatedActor.createHealthRecord(healthRecord);
-      
+
       // Por enquanto, simular sucesso
       console.log('Registro de saúde criado:', healthRecord);
-      
+
       setSuccess(t('healthForm.success', 'Registro de saúde adicionado com sucesso!'));
-      
+
       // Limpar formulário
       setFormData({
         date: '',
@@ -463,7 +463,7 @@ const HealthForm = () => {
                 <p className="text-sm text-gray-500 mb-3">
                   {t('healthForm.attachmentsDescription', 'Anexe comprovantes, receitas, carteira de vacinação, exames, etc.')}
                 </p>
-                
+
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                   <input
                     type="file"
@@ -496,8 +496,8 @@ const HealthForm = () => {
                       <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
                         <div className="flex items-center space-x-3">
                           {preview.type === 'image' ? (
-                            <img 
-                              src={preview.url} 
+                            <img
+                              src={preview.url}
                               alt={preview.name}
                               className="w-10 h-10 object-cover rounded"
                             />
@@ -537,19 +537,19 @@ const HealthForm = () => {
                 >
                   {t('navbar.logout', 'Sair')}
                 </button>
-                
+
                 <button
                   type="submit"
-                        disabled={isLoading || uploadingAssets}
+                  disabled={isLoading || uploadingAssets}
                   className="px-8 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-md shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                        {isLoading || uploadingAssets ? (
+                  {isLoading || uploadingAssets ? (
                     <span className="flex items-center justify-center">
                       <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                            {uploadingAssets ? t('healthForm.uploadingFiles', 'Enviando arquivos...') : t('healthForm.saving', 'Salvando...')}
+                      {uploadingAssets ? t('healthForm.uploadingFiles', 'Enviando arquivos...') : t('healthForm.saving', 'Salvando...')}
                     </span>
                   ) : (
                     <span className="flex items-center justify-center">

@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// Dados mock
-const petLocation = { lat: -23.55052, lng: -46.633308, label: 'Luna (Seu Pet)' };
+// Dados mock em Recife-PE
+const petLocation = { lat: -8.0476, lng: -34.8770, label: 'Luna (Seu Pet)' };
 const clinics = [
-  { id: 1, name: 'Clínica Pet Vida', lat: -23.548, lng: -46.632, services: ['Emergência', 'Vacinas'] },
-  { id: 2, name: 'Vet Center Premium', lat: -23.551, lng: -46.6355, services: ['Cirurgia', 'Check-up'] },
-  { id: 3, name: 'Amigo Animal', lat: -23.5526, lng: -46.631, services: ['Dermatologia'] },
+  { id: 1, name: 'PetShop Boa Viagem', lat: -8.1190, lng: -34.9019, services: ['Banho e Tosa', 'Acessórios'] },
+  { id: 2, name: 'Clínica Vet Recife (Derby)', lat: -8.0539, lng: -34.9023, services: ['Emergência 24h', 'Vacinas'] },
+  { id: 3, name: 'Amigos dos Pets - Graças', lat: -8.0456, lng: -34.8977, services: ['Consultas', 'Check-up'] },
+  { id: 4, name: 'PetCare Casa Forte', lat: -8.0236, lng: -34.9202, services: ['Cirurgia', 'Dermatologia'] },
 ];
 
 // Loader simples do Google Maps (evita dependência externa)
@@ -43,9 +44,15 @@ const MapPanel = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [useStatic, setUseStatic] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef({});
+
+  const openDirections = (place) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}&travelmode=driving`;
+    window.open(url, '_blank', 'noopener');
+  };
 
   // Inicializa mapa (ou fallback estático)
   useEffect(() => {
@@ -83,20 +90,19 @@ const MapPanel = () => {
         });
         markersRef.current.pet = petMarker;
         clinics.forEach(c => {
+          const svgPin = {
+            url: 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path fill="%23ef4444" d="M12 22s-7-4.35-7-11a7 7 0 1 1 14 0c0 6.65-7 11-7 11z"/><circle cx="12" cy="11" r="3" fill="white"/></svg>',
+            scaledSize: new maps.Size(40, 40),
+            anchor: new maps.Point(20, 38)
+          };
           const marker = new maps.Marker({
             position: { lat: c.lat, lng: c.lng },
             map: mapInstance.current,
             title: c.name,
-            icon: {
-              path: maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-              scale: 5,
-              fillColor: '#6366f1',
-              fillOpacity: 1,
-              strokeColor: '#ffffff',
-              strokeWeight: 1.5
-            }
+            icon: svgPin
           });
-          marker.addListener('click', () => setSelected(c.id));
+          // Clique no marcador abre modal de detalhes
+          marker.addListener('click', () => { setSelected(c.id); setShowDetails(true); });
           markersRef.current[c.id] = marker;
         });
         setLoading(false);
@@ -129,7 +135,7 @@ const MapPanel = () => {
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 rounded-2xl h-96 border border-gray-200 dark:border-surface-100 bg-white/60 dark:bg-surface-75/60 backdrop-blur relative overflow-hidden">
+      <div className="lg:col-span-2 rounded-2xl h-[44rem] border border-gray-200 dark:border-surface-100 bg-white/60 dark:bg-surface-75/60 backdrop-blur relative overflow-hidden">
         {useStatic ? (
           <div className="absolute inset-0 select-none">
             <div className="absolute inset-0 bg-gradient-to-br from-surface-50 to-gray-200 dark:from-[#101826] dark:to-[#1a2533]" />
@@ -151,7 +157,7 @@ const MapPanel = () => {
               const y = (p.lat - minLat) / (maxLat - minLat || 1);
               return (
                 <div key={i} className="absolute" style={{ left: `calc(${x * 100}% - 10px)`, top: `calc(${(1 - y) * 100}% - 10px)` }}>
-                  <div className={`${p.id ? 'bg-indigo-500' : 'bg-petPink-500'} text-white text-[10px] font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow ring-2 ring-white/60 dark:ring-surface-75 animate-[float-soft_4s_ease-in-out_infinite]`}>
+                  <div className={`${p.id ? 'bg-red-500' : 'bg-petPink-500'} text-white text-[10px] font-semibold rounded-full h-8 w-8 flex items-center justify-center shadow ring-2 ring-white/60 dark:ring-surface-75 animate-[float-soft_4s_ease-in-out_infinite]`}>
                     {p.id ? 'C' : 'P'}
                   </div>
                 </div>
@@ -187,17 +193,50 @@ const MapPanel = () => {
           <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-3 flex items-center justify-between">{t('profile.map.partnerClinics')} <span className="text-[10px] font-normal text-gray-400">{clinics.length}</span></h3>
           <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
             {clinics.map(c => (
-              <button key={c.id} onClick={() => setSelected(c.id)} className={`w-full text-left text-xs p-3 rounded-xl border transition group ${selected === c.id ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-500/10' : 'border-gray-200 dark:border-surface-100 hover:border-indigo-300 dark:hover:border-indigo-400/50 bg-white/60 dark:bg-surface-100/50'}`}>
+              <div key={c.id} className={`w-full text-left text-xs p-3 rounded-xl border transition group ${selected === c.id ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-500/10' : 'border-gray-200 dark:border-surface-100 hover:border-indigo-300 dark:hover:border-indigo-400/50 bg-white/60 dark:bg-surface-100/50'}`}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium text-gray-700 dark:text-slate-200">{c.name}</span>
+                  <button onClick={() => setSelected(c.id)} className="font-medium text-gray-700 dark:text-slate-200 text-left">
+                    {c.name}
+                  </button>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">{c.services.length}</span>
                 </div>
-                <p className="text-[11px] text-gray-500 dark:text-slate-400">{c.services.join(', ')}</p>
-              </button>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] text-gray-500 dark:text-slate-400">{c.services.join(', ')}</p>
+                  <button onClick={() => { setSelected(c.id); setShowDetails(true); }} className="shrink-0 text-[11px] px-2 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/20">
+                    {t('profile.map.viewDetails')}
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </div>
+      {/* Modal de detalhes do local */}
+      {showDetails && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDetails(false)} />
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 dark:border-surface-100 bg-white dark:bg-surface-75 shadow-2xl p-5">
+            {(() => {
+              const place = clinics.find(c => c.id === selected);
+              if (!place) return null;
+              return (
+                <div>
+                  <h3 className="text-base font-semibold text-gray-800 dark:text-slate-100 mb-1">{place.name}</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">{t('profile.map.services')}: {place.services.join(', ')}</p>
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button onClick={() => setShowDetails(false)} className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 dark:border-surface-100 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-surface-100">
+                      {t('common.cancel')}
+                    </button>
+                    <button onClick={() => openDirections(place)} className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500">
+                      {t('profile.map.openDirections')}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
