@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { FiMapPin, FiGitBranch, FiHeart, FiMessageCircle, FiSettings } from 'react-icons/fi';
+import { FiMapPin, FiGitBranch, FiHeart, FiMessageCircle, FiUsers } from 'react-icons/fi';
 import { GiPawPrint } from 'react-icons/gi';
 
 const navItemsBase = [
@@ -7,16 +7,17 @@ const navItemsBase = [
   { key: 'map', icon: <FiMapPin className="w-5 h-5" /> },
   { key: 'genealogy', icon: <FiGitBranch className="w-5 h-5" /> },
   { key: 'medical', icon: <FiHeart className="w-5 h-5" /> },
-  { key: 'community', icon: <FiMessageCircle className="w-5 h-5" /> },
+  { key: 'community', icon: <FiUsers className="w-5 h-5" /> },
   { key: 'chat', icon: <FiMessageCircle className="w-5 h-5" /> },
-  { key: 'settings', icon: <FiSettings className="w-5 h-5" /> },
+  // settings oculto
 ];
 
 const SidebarNav = ({ active, onChange }) => {
   const { t } = useTranslation();
+  const items = navItemsBase.filter(i => i.key !== 'settings');
   return (
     <nav className="flex flex-col gap-1 p-3">
-      {navItemsBase.map(item => (
+      {items.map(item => (
         <button
           key={item.key}
           onClick={() => onChange(item.key)}

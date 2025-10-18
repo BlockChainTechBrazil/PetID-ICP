@@ -36,6 +36,9 @@ const MedicalPanel = () => {
   const [editRecord, setEditRecord] = useState(null);
   const [showTech, setShowTech] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
+  const [crmVet, setCrmVet] = useState('');
+  const [clinicLogoUrl, setClinicLogoUrl] = useState('');
+  const [clinicStampText, setClinicStampText] = useState('');
 
   // Criar actor quando autenticado
   useEffect(() => {
@@ -174,28 +177,70 @@ const MedicalPanel = () => {
 
   const handleDownloadPDF = () => {
     if (!selectedRecord) return;
-    const doc = new jsPDF();
-    const margin = 14;
-    let y = margin;
-    doc.setFontSize(16);
-    doc.text('Registro Médico', margin, y);
-    y += 8;
+    // Documento A4 com margens e cabeçalho
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const M = 48; // margem
+    let y = M;
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // Cabeçalho
+    doc.setFillColor(15, 23, 42); // #0f172a
+    doc.rect(0, 0, pageW, 72, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.text('PetID • Registro Médico', M, 44);
+    doc.setFontSize(11);
+    doc.text(new Date().toLocaleString(), pageW - M, 44, { align: 'right' });
+
+    // Corpo
+    y = 96;
+    doc.setTextColor(20, 20, 20);
+    doc.setFontSize(14);
+    doc.text('Dados do Atendimento', M, y);
+    y += 12;
+    doc.setDrawColor(225);
+    doc.line(M, y, pageW - M, y);
+    y += 16;
+
     doc.setFontSize(12);
-    doc.text(`Pet: ${petNames[selectedRecord.petId] || `#${selectedRecord.petId}`}`, margin, y); y += 6;
-    doc.text(`Data: ${formatDate(selectedRecord.date)}`, margin, y); y += 6;
-    doc.text(`Tipo: ${translateServiceType(selectedRecord.serviceType)}`, margin, y); y += 6;
-    doc.text(`Status: ${translateStatus(selectedRecord.status)}`, margin, y); y += 6;
-    doc.text(`Vet: Dr(a). ${selectedRecord.veterinarianName}`, margin, y); y += 6;
+    const linhas = [
+      [`Pet`, `${petNames[selectedRecord.petId] || `#${selectedRecord.petId}`}`],
+      [`Data`, `${formatDate(selectedRecord.date)}`],
+      [`Tipo`, `${translateServiceType(selectedRecord.serviceType)}`],
+      [`Status`, `${translateStatus(selectedRecord.status)}`],
+      [`Veterinário`, `Dr(a). ${selectedRecord.veterinarianName}`],
+    ];
     const loc = getOptionalValue(selectedRecord.local);
-    if (loc) { doc.text(`Local: ${loc}`, margin, y); y += 6; }
+    if (loc) linhas.push([`Local`, loc]);
+
+    linhas.forEach(([k, v]) => {
+      doc.setFont(undefined, 'bold');
+      doc.text(`${k}:`, M, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(String(v), M + 120, y);
+      y += 18;
+    });
+
     const obs = getOptionalValue(selectedRecord.description);
     if (obs) {
-      y += 4;
-      doc.setFontSize(12);
-      doc.text('Observações:', margin, y); y += 6;
-      const split = doc.splitTextToSize(obs, 180);
-      doc.text(split, margin, y);
+      y += 6;
+      doc.setFont(undefined, 'bold');
+      doc.text('Observações', M, y);
+      y += 10;
+      doc.setFont(undefined, 'normal');
+      const maxW = pageW - M * 2;
+      const split = doc.splitTextToSize(obs, maxW);
+      doc.text(split, M, y);
+      y += 16 + split.length * 14;
     }
+
+    // Rodapé
+    doc.setDrawColor(230);
+    doc.line(M, 780, pageW - M, 780);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Documento gerado por PetID • Internet Computer', M, 798);
+
     const filename = `registro_${selectedRecord.petId}_${selectedRecord.date}.pdf`;
     doc.save(filename);
   };
@@ -225,24 +270,47 @@ const MedicalPanel = () => {
           <meta charset="utf-8" />
           <title>Receituário - ${pet}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 24px; }
-            h1 { margin: 0 0 6px; }
-            .muted { color: #555; }
-            .box { border: 1px solid #ccc; border-radius: 8px; padding: 12px; margin-top: 12px; }
+            @page { size: A4; margin: 18mm; }
+            body { font-family: Arial, sans-serif; color: #0b1220; }
+            .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+            .brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; color:#1f2937; }
+            .muted { color:#6b7280; font-size:12px; }
+            h1 { font-size:22px; margin: 8px 0 12px; color:#111827; }
+            .section { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; margin-top:12px; }
+            .row { display:grid; grid-template-columns: 140px 1fr; gap:8px; font-size:13px; }
+            .label { color:#6b7280; }
+            .value { color:#111827; font-weight:600; }
+            .presc { line-height:1.5; white-space:pre-wrap; font-size:13px; }
+            .sign { height:110px; display:flex; align-items:flex-end; margin-top:24px; justify-content:space-between; }
+            .sign .line { width:280px; border-top:1px solid #9ca3af; }
+            .sign .who { margin-top:6px; font-size:12px; color:#374151; }
+            .stamp { border:2px dashed #6b7280; border-radius:8px; padding:10px 12px; color:#374151; font-size:12px; text-align:center; min-width:160px; }
+            .footer { position:fixed; bottom:0; left:0; right:0; text-align:center; font-size:11px; color:#6b7280; }
+            @media print { .noprint { display:none } }
           </style>
         </head>
         <body>
-          <h1>Receituário</h1>
-          <div class="muted">${new Date().toLocaleString()}</div>
-          <div class="box">
-            <div><strong>Pet:</strong> ${pet}</div>
-            <div><strong>Data:</strong> ${formatDate(selectedRecord.date)}</div>
-            <div><strong>Tipo:</strong> ${translateServiceType(selectedRecord.serviceType)}</div>
-            <div><strong>Status:</strong> ${translateStatus(selectedRecord.status)}</div>
-            <div><strong>Veterinário:</strong> Dr(a). ${selectedRecord.veterinarianName}</div>
+          <div class="header">
+            <div class="brand">${clinicLogoUrl ? `<img src="${clinicLogoUrl}" alt="Logo" style="width:28px;height:28px;object-fit:contain;border-radius:6px;border:1px solid #e5e7eb;"/>` : ''} PetID • Receituário</div>
+            <div class="muted">${new Date().toLocaleString()}</div>
           </div>
-          ${obs ? `<div class="box"><strong>Observações/Prescrição:</strong><br/>${obs.replace(/\n/g, '<br/>')}</div>` : ''}
-          <div class="box" style="height:100px; margin-top:24px;">Assinatura do Veterinário:</div>
+          <h1>Prescrição Veterinária</h1>
+          <div class="section">
+            <div class="row"><div class="label">Pet</div><div class="value">${pet}</div></div>
+            <div class="row"><div class="label">Data</div><div class="value">${formatDate(selectedRecord.date)}</div></div>
+            <div class="row"><div class="label">Tipo</div><div class="value">${translateServiceType(selectedRecord.serviceType)}</div></div>
+            <div class="row"><div class="label">Status</div><div class="value">${translateStatus(selectedRecord.status)}</div></div>
+            <div class="row"><div class="label">Veterinário</div><div class="value">Dr(a). ${selectedRecord.veterinarianName}${crmVet ? ' • CRMV ' + crmVet : ''}</div></div>
+          </div>
+          ${obs ? `<div class="section"><div class="presc">${obs.replace(/\n/g, '<br/>')}</div></div>` : ''}
+          <div class="sign">
+            <div>
+              <div class="line"></div>
+              <div class="who">Assinatura do Profissional</div>
+            </div>
+            ${clinicStampText ? `<div class="stamp">${clinicStampText}</div>` : ''}
+          </div>
+          <div class="footer">Documento emitido por PetID • Internet Computer</div>
           <script>window.print(); window.onafterprint = () => window.close();</script>
         </body>
       </html>
@@ -251,7 +319,6 @@ const MedicalPanel = () => {
     if (w) {
       w.document.write(html);
       w.document.close();
-      // print called via script in html
     }
   };
 
@@ -366,7 +433,6 @@ const MedicalPanel = () => {
       {/* Histórico médico dinâmico */}
       <div className="rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/70 dark:bg-surface-75/80 backdrop-blur-xl p-5">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Histórico Médico</h3>
-
         {loading ? (
           /* Estado de carregamento */
           <div className="text-center py-12">
@@ -374,7 +440,6 @@ const MedicalPanel = () => {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p className="text-gray-600 dark:text-slate-300">Carregando registros médicos...</p>
           </div>
         ) : healthRecords.length === 0 ? (
           /* Estado vazio */
@@ -736,6 +801,26 @@ const MedicalPanel = () => {
                         <FiShare2 className="w-4 h-4" />
                         <span>Compartilhar</span>
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Opções do Receituário (opcionais) */}
+                  <div className="bg-white dark:bg-surface-50 rounded-xl p-6 border border-gray-200 dark:border-surface-200">
+                    <h4 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Opções do Receituário</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">CRMV do Veterinário (opcional)</label>
+                        <input value={crmVet} onChange={(e) => setCrmVet(e.target.value)} placeholder="Ex: CRMV-PE 12345" className="w-full rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-800 dark:text-slate-100" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">URL do Logo da Clínica (opcional)</label>
+                        <input value={clinicLogoUrl} onChange={(e) => setClinicLogoUrl(e.target.value)} placeholder="https://.../logo.png" className="w-full rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-800 dark:text-slate-100" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">Texto do Carimbo (opcional)</label>
+                        <textarea rows={2} value={clinicStampText} onChange={(e) => setClinicStampText(e.target.value)} placeholder="Nome da Clínica, Endereço, Contato..." className="w-full rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-800 dark:text-slate-100" />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">Essas opções aparecem no receituário impresso.</p>
                     </div>
                   </div>
                 </div>

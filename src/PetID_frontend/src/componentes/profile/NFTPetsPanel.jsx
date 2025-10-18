@@ -9,6 +9,9 @@ import { GiPawPrint } from 'react-icons/gi';
 import { FiFileText } from 'react-icons/fi';
 import petidLogo from '../../assets/logo/logo.jpg';
 import ICPImage from '../ICPImage';
+import QRCode from 'qrcode';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // ✅ Removido: gateways IPFS desnecessários - agora usa ICPImage
 
@@ -429,6 +432,11 @@ const NFTPetsPanel = () => {
       hospital: { icon: '🏥', color: '#ef4444', label: isEnglish ? 'Red Cross' : 'Cruz Vermelha' }
     }[status] || { icon: '🏠', color: '#10b981', label: isEnglish ? 'Home' : 'Em casa' };
 
+    const qrPayload = JSON.stringify({ id: pet.id, nickname: pet.nickname, owner: ownerAddress, url: `${window.location.origin}/?pet=${encodeURIComponent(pet.id)}` });
+    let qrDataUrl = '';
+    try {
+      qrDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 112 });
+    } catch (e) { console.warn('QR generation failed', e); }
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="${isEnglish ? 'en' : 'pt-BR'}">
@@ -439,22 +447,32 @@ const NFTPetsPanel = () => {
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
           *{box-sizing:border-box;margin:0;padding:0}
-          body{font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;background:#1e3a5f;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;color:#e5e7eb}
-          .card{width:760px;max-width:100%;background:#264766;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.35);padding:18px 18px 22px;border:1px solid rgba(255,255,255,.08);position:relative}
-          .topbar{height:46px;background:#0f2740;border-radius:10px;margin-bottom:16px;display:flex;align-items:center;padding:0 14px;justify-content:space-between}
-          .brand{display:flex;align-items:center;gap:8px;color:#93c5fd;font-weight:700;letter-spacing:.5px}
-          .brand img{width:22px;height:22px;border-radius:4px}
-          .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
-          .left{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px}
-          .pill{display:grid;grid-template-columns:120px 1fr;align-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#e5e7eb;padding:10px 12px;border-radius:10px;margin:8px 0}
-          .pill .label{font-weight:700;letter-spacing:.6px;color:#e0e7ff;text-transform:uppercase;font-size:12px}
-          .pill .value{font-weight:600;color:#f8fafc;letter-spacing:.3px}
+          html,body{height:100%}
+          @page { size: auto; margin: 0; }
+          /* Página em branco, apenas o card ficará azul */
+          body{font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:36px;color:#0b1220; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+          .card{width:820px;max-width:100%;background:#264766;border-radius:16px;box-shadow:0 18px 40px rgba(2,6,23,0.25);padding:28px;border:1px solid rgba(255,255,255,0.04);position:relative; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+          .topbar{height:56px;border-radius:10px;margin-bottom:18px;display:flex;align-items:center;padding:0 6px;justify-content:flex-start}
+          .brand{display:flex;align-items:center;gap:10px;color:#93c5fd;font-weight:700;letter-spacing:.2px}
+          .brand img{width:26px;height:26px;border-radius:6px}
+          .grid{display:grid;grid-template-columns:1fr .9fr;gap:18px}
+          .left{background:transparent;border-radius:12px;padding:4px}
+          .pill{display:grid;grid-template-columns:120px 1fr;align-items:center;background:rgba(255,255,255,0.03);color:#e5e7eb;padding:12px;border-radius:10px;margin:8px 0; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+          .pill .label{font-weight:700;letter-spacing:.6px;color:#c7d2fe;text-transform:uppercase;font-size:12px}
+          .pill .value{font-weight:700;color:#f8fafc;letter-spacing:.2px;padding-left:6px}
           .photoWrap{position:relative;display:flex;align-items:center;justify-content:center}
-          .photo{width:300px;height:300px;border-radius:18px;object-fit:cover;border:6px solid #e5e7eb;background:#0b1220}
-          .status{position:absolute;top:10px;right:10px;background:${statusConfig.color};color:#fff;padding:6px 10px;border-radius:999px;font-weight:700;display:flex;gap:6px;align-items:center;border:2px solid #fff}
-          .ownerRibbon{position:absolute;right:18px;bottom:18px;background:#111827;color:#fff;padding:10px 14px;border-radius:12px;border:1px solid #374151;box-shadow:0 6px 14px rgba(0,0,0,.3);max-width:54%;}
-          .ownerRibbon .title{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#93c5fd;font-weight:800;margin-bottom:4px}
-          .ownerRibbon .address{font-family:'JetBrains Mono','Courier New',monospace;font-size:12px;word-break:break-all}
+          .photo{width:320px;height:320px;border-radius:16px;object-fit:cover;border:10px solid rgba(255,255,255,0.06);background:#0b1220}
+          .status{position:absolute;top:12px;right:12px;background:${statusConfig.color};color:#fff;padding:6px 12px;border-radius:999px;font-weight:700;display:flex;gap:8px;align-items:center;box-shadow:0 6px 18px rgba(2,6,23,0.2)}
+          /* Owner Ribbon em branco para contraste dentro do card azul */
+          .ownerRibbon{position:absolute;right:18px;bottom:18px;background:#ffffff;color:#0b1220;padding:12px 14px;border-radius:12px;border:1px solid rgba(2,6,23,0.06);box-shadow:0 10px 22px rgba(2,6,23,0.12);max-width:54%; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+          .ownerRibbon .title{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#2b6cb0;font-weight:800;margin-bottom:6px}
+          .ownerRibbon .address{font-family:'JetBrains Mono','Courier New',monospace;font-size:12px;word-break:break-all;color:#334155}
+          .qr{position:absolute;left:20px;bottom:20px;background:#ffffff;border:1px solid rgba(2,6,23,0.06);border-radius:12px;padding:8px;box-shadow:0 10px 20px rgba(2,6,23,0.12); -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+          @media print{ 
+            /* Mantém a página branca, e forçar o cartão com cor de fundo ainda visível quando possível */
+            body{padding:0; background: #ffffff}
+            .card{box-shadow:none;border-radius:8px;width:100%;padding:18px}
+          }
         </style>
       </head>
       <body>
@@ -478,15 +496,170 @@ const NFTPetsPanel = () => {
                 <div class="title">${isEnglish ? 'Owner' : 'Dono'}</div>
                 <div class="address">${ownerAddress}</div>
               </div>
+              ${qrDataUrl ? `<div class="qr"><img width="96" height="96" src="${qrDataUrl}" alt="QR" style="display:block;border-radius:6px;"/></div>` : ''}
             </div>
           </div>
         </div>
       </body>
       </html>`;
 
-    doc.write(htmlContent);
-    doc.close();
-    setTimeout(() => printWindow.print(), 700);
+    // legacy: open printable window (kept for browsers that prefer print dialog)
+    try {
+      doc.write(htmlContent);
+      doc.close();
+      setTimeout(() => printWindow.print(), 700);
+    } catch (e) {
+      console.warn('print window failed, fallback to PDF export', e);
+    }
+  };
+
+  // Exporta o cartão como PDF rasterizado (html2canvas -> jsPDF) no tamanho de cartão CPF (85.6 x 53.98 mm)
+  const exportPetCardAsPDF = async (pet) => {
+    try {
+      // dimensões em mm
+      const widthMM = 85.6;
+      const heightMM = 53.98;
+
+      // calcular pixels para renderização (usar 2x scale para melhor qualidade)
+      const dpi = 300; // para qualidade
+      const pxPerMm = dpi / 25.4;
+      const pxW = Math.round(widthMM * pxPerMm);
+      const pxH = Math.round(heightMM * pxPerMm);
+
+      // construir container offscreen
+      const container = document.createElement('div');
+      container.style.width = pxW + 'px';
+      container.style.height = pxH + 'px';
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+      container.style.background = '#ffffff';
+      container.style.padding = '0';
+      container.style.position = 'fixed';
+      container.style.left = '-99999px';
+      container.style.top = '0';
+
+      // card
+      const card = document.createElement('div');
+      card.style.width = '100%';
+      card.style.height = '100%';
+      card.style.boxSizing = 'border-box';
+      card.style.background = '#264766';
+      card.style.borderRadius = '6px';
+      card.style.padding = Math.round(8 * pxPerMm / (dpi / 96)) + 'px';
+      card.style.display = 'flex';
+      card.style.gap = '12px';
+      card.style.color = '#e5e7eb';
+      card.style.fontFamily = 'Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif';
+
+      // left column (metadata)
+      const left = document.createElement('div');
+      left.style.flex = '1';
+      left.style.display = 'flex';
+      left.style.flexDirection = 'column';
+      left.style.justifyContent = 'center';
+      left.style.padding = '6px';
+
+      const makePill = (label, value) => {
+        const pill = document.createElement('div');
+        pill.style.display = 'flex';
+        pill.style.justifyContent = 'space-between';
+        pill.style.alignItems = 'center';
+        pill.style.padding = '6px 8px';
+        pill.style.margin = '4px 0';
+        pill.style.background = 'rgba(255,255,255,0.03)';
+        pill.style.borderRadius = '8px';
+        const lab = document.createElement('div'); lab.style.fontSize = '9px'; lab.style.letterSpacing = '.6px'; lab.style.color = '#a5b4fc'; lab.textContent = label;
+        const val = document.createElement('div'); val.style.fontWeight = '700'; val.style.color = '#f8fafc'; val.textContent = value;
+        pill.appendChild(lab); pill.appendChild(val);
+        return pill;
+      };
+
+      left.appendChild(makePill(isEnglish ? 'Name' : 'Nome', pet.nickname || '-'));
+      left.appendChild(makePill(isEnglish ? 'Pet ID' : 'ID do Pet', pet.id || '-'));
+      left.appendChild(makePill(isEnglish ? 'Breed' : 'Raça', pet.species || '-'));
+      left.appendChild(makePill(isEnglish ? 'Coat' : 'Cor', pet.color || '-'));
+
+      // right column (photo + qr + owner)
+      const right = document.createElement('div');
+      right.style.width = Math.round(pxW * 0.45) + 'px';
+      right.style.display = 'flex';
+      right.style.flexDirection = 'column';
+      right.style.alignItems = 'center';
+      right.style.justifyContent = 'center';
+      right.style.position = 'relative';
+
+      const photo = document.createElement('img');
+      const imageURL = await getICPImageURL(pet.photo);
+      photo.src = imageURL || '';
+      photo.alt = pet.nickname || 'photo';
+      photo.style.width = Math.round(pxW * 0.5) + 'px';
+      photo.style.height = Math.round(pxH * 0.45) + 'px';
+      photo.style.objectFit = 'cover';
+      photo.style.borderRadius = '10px';
+      photo.style.boxShadow = '0 8px 20px rgba(2,6,23,0.2)';
+
+      // gerar QR
+      const ownerAddress = (pet.owner && String(pet.owner)) || (authClient?.getIdentity()?.getPrincipal()?.toString() || '');
+      const qrPayload = JSON.stringify({ id: pet.id, nickname: pet.nickname, owner: ownerAddress, url: `${window.location.origin}/?pet=${encodeURIComponent(pet.id)}` });
+      let qrDataUrl = '';
+      try { qrDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 256 }); } catch (e) { console.warn('QR generation failed', e); }
+
+      const qrWrap = document.createElement('div');
+      qrWrap.style.position = 'absolute';
+      qrWrap.style.left = '8px';
+      qrWrap.style.bottom = '8px';
+      qrWrap.style.background = '#ffffff';
+      qrWrap.style.padding = '6px';
+      qrWrap.style.borderRadius = '8px';
+      qrWrap.style.boxShadow = '0 8px 18px rgba(2,6,23,0.12)';
+      if (qrDataUrl) {
+        const qrImg = document.createElement('img');
+        qrImg.src = qrDataUrl;
+        qrImg.width = Math.round(pxW * 0.22);
+        qrImg.height = Math.round(pxW * 0.22);
+        qrImg.style.display = 'block';
+        qrWrap.appendChild(qrImg);
+      }
+
+      const ownerBox = document.createElement('div');
+      ownerBox.style.position = 'absolute';
+      ownerBox.style.right = '8px';
+      ownerBox.style.bottom = '8px';
+      ownerBox.style.background = '#ffffff';
+      ownerBox.style.color = '#0b1220';
+      ownerBox.style.padding = '8px 10px';
+      ownerBox.style.borderRadius = '10px';
+      ownerBox.style.maxWidth = Math.round(pxW * 0.42) + 'px';
+      ownerBox.style.fontFamily = 'JetBrains Mono, monospace';
+      ownerBox.style.fontSize = '10px';
+      ownerBox.textContent = isEnglish ? 'Owner\n' : 'Dono\n';
+      const ownerAddr = document.createElement('div'); ownerAddr.style.marginTop = '6px'; ownerAddr.style.whiteSpace = 'pre-wrap'; ownerAddr.textContent = ownerAddress;
+      ownerBox.appendChild(ownerAddr);
+
+      right.appendChild(photo);
+      right.appendChild(qrWrap);
+      right.appendChild(ownerBox);
+
+      card.appendChild(left);
+      card.appendChild(right);
+      container.appendChild(card);
+      document.body.appendChild(container);
+
+      // renderizar com html2canvas
+      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: null });
+      // gerar pdf
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [widthMM, heightMM] });
+      pdf.addImage(imgData, 'PNG', 0, 0, widthMM, heightMM);
+      pdf.save(`${pet.nickname || 'pet'}_card.pdf`);
+
+      // cleanup
+      document.body.removeChild(container);
+    } catch (e) {
+      console.error('exportPetCardAsPDF error', e);
+      alert('Erro ao exportar PDF: ' + (e.message || e));
+    }
   };
 
   // Carregar pets do usuário
@@ -685,7 +858,7 @@ const NFTPetsPanel = () => {
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() => generatePetDocument(pet)}
+                onClick={() => exportPetCardAsPDF(pet)}
               >
                 <FiFileText />
                 {t('identityCard', 'Cartão ID')}
@@ -719,11 +892,11 @@ const NFTPetsPanel = () => {
       <div className="nft-header">
         <h2>{t('petForm.myPets', 'My Pets')}</h2>
         <div className="dip721-info">
-          <div className="info-badge" title="DIP721 balance" style={{maxWidth:'180px'}}>
-            <span className="info-label">Your NFTs:</span>
+          <div className="info-badge" title="DIP721 balance" style={{ maxWidth: '160px' }}>
+            <span className="info-label">NFTs:</span>
             <span className="info-value">{nftBalance}</span>
           </div>
-          <button className="btn btn-transfer" style={{minHeight:38}} onClick={() => setFormOpen(!formOpen)}>
+          <button className="btn btn-transfer" style={{ minHeight: 38 }} onClick={() => setFormOpen(!formOpen)}>
             <GiPawPrint style={{ marginRight: '8px' }} />
             {formOpen ? t('common.cancel', 'Cancel') : t('petPanel.createPetNft', 'Create Pet NFT')}
           </button>
