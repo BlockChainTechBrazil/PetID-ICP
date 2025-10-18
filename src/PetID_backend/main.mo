@@ -128,6 +128,22 @@ persistent actor PetID {
         attachments: [Text];
     };
 
+    // ✅ NOVO: Estruturas para IA On-Chain
+    public type ChatMessage = {
+        id: Nat;
+        userId: Principal;
+        content: Text;
+        role: Text; // "user" ou "assistant"
+        timestamp: Int;
+        sessionId: ?Text; // Para agrupar conversas
+    };
+
+    public type AIResponse = {
+        content: Text;
+        confidence: Float; // Nível de confiança da resposta
+        source: Text; // Fonte da informação (ex: "knowledge_base", "pet_data", "general")
+    };
+
     // Storage
     private var nextTokenId: Nat = 1;
     private var nextHealthRecordId: Nat = 1;
@@ -164,8 +180,13 @@ persistent actor PetID {
     private var relationshipsEntries : [(Nat, PetRelationship)] = [];
     private transient var relationships = HashMap.HashMap<Nat, PetRelationship>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
     
+    // ✅ NOVO: IA On-Chain Storage
+    private var chatMessagesEntries : [(Nat, ChatMessage)] = [];
+    private transient var chatMessages = HashMap.HashMap<Nat, ChatMessage>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    
     private var nextAssetId: Nat = 1;
     private var nextRelationshipId: Nat = 1;
+    private var nextChatMessageId: Nat = 1;
 
     // ==========================================
     // DIP721 Interface Implementation
@@ -1066,6 +1087,241 @@ persistent actor PetID {
     };
 
     // ==========================================
+    // ✅ NOVO: Sistema de IA On-Chain
+    // ==========================================
+
+    // Salvar mensagem do usuário e gerar resposta inteligente
+    public shared(msg) func sendChatMessage(content: Text, sessionId: ?Text) : async Result.Result<AIResponse, Text> {
+        let caller = msg.caller;
+        let now = Time.now();
+        
+        // Salvar mensagem do usuário
+        let userMessage: ChatMessage = {
+            id = nextChatMessageId;
+            userId = caller;
+            content = content;
+            role = "user";
+            timestamp = now;
+            sessionId = sessionId;
+        };
+        
+        chatMessages.put(nextChatMessageId, userMessage);
+        nextChatMessageId += 1;
+        
+        // Gerar resposta inteligente baseada no conteúdo
+        let response = await generateContextualResponse(content, caller);
+        
+        // Salvar resposta da IA
+        let aiMessage: ChatMessage = {
+            id = nextChatMessageId;
+            userId = caller;
+            content = response.content;
+            role = "assistant";
+            timestamp = now;
+            sessionId = sessionId;
+        };
+        
+        chatMessages.put(nextChatMessageId, aiMessage);
+        nextChatMessageId += 1;
+        
+        #ok(response)
+    };
+
+    // Função auxiliar para obter pets de um usuário específico
+    private func getUserPets(userId: Principal) : async Result.Result<[Pet], Text> {
+        if (Principal.isAnonymous(userId)) {
+            return #err("Usuário não autenticado");
+        };
+
+        let userPets = Buffer.Buffer<Pet>(0);
+        for ((tokenId, pet) in pets.entries()) {
+            if (Principal.equal(pet.owner, userId)) {
+                userPets.add(pet);
+            };
+        };
+
+        #ok(Buffer.toArray(userPets))
+    };
+
+    // Gerar resposta contextual baseada nos dados do usuário
+    private func generateContextualResponse(userInput: Text, userId: Principal) : async AIResponse {
+        let input = Text.toLowercase(userInput);
+        
+        // 1. Respostas sobre pets do usuário
+        if (Text.contains(input, #text "meu") and (Text.contains(input, #text "pet") or Text.contains(input, #text "animal"))) {
+            let userPets = await getUserPets(userId);
+            switch (userPets) {
+                case (#ok(pets)) {
+                    if (pets.size() == 0) {
+                        return {
+                            content = "Você ainda não tem nenhum pet registrado no PetID! Que tal criar seu primeiro NFT de pet? Vá para a aba NFTs e clique em 'Criar Pet' para começar.";
+                            confidence = 0.95;
+                            source = "pet_data";
+                        };
+                    } else {
+                        var response = "Você tem " # Nat.toText(pets.size()) # " pet(s) registrado(s):\n\n";
+                        for (pet in pets.vals()) {
+                            response #= "🐾 " # pet.nickname # " (" # pet.species # ")\n";
+                        };
+                        response #= "\nTodos são NFTs únicos na blockchain Internet Computer!";
+                        return {
+                            content = response;
+                            confidence = 1.0;
+                            source = "pet_data";
+                        };
+                    };
+                };
+                case (#err(_)) {
+                    return {
+                        content = "Não consegui acessar seus dados de pets no momento. Tente novamente.";
+                        confidence = 0.3;
+                        source = "error";
+                    };
+                };
+            };
+        };
+
+        // 2. Informações sobre NFTs e blockchain
+        if (Text.contains(input, #text "nft") or Text.contains(input, #text "blockchain") or Text.contains(input, #text "token")) {
+            return {
+                content = "🔗 No PetID, cada pet é um NFT único na blockchain Internet Computer!\n\n✨ Isso significa:\n• Propriedade digital verificável\n• Histórico médico imutável\n• Transferência segura entre donos\n• Padrão DIP721 (equivalente ao ERC-721)\n• Armazenamento descentralizado\n\nSeu pet não é apenas um registro - é um ativo digital real!";
+                confidence = 1.0;
+                source = "knowledge_base";
+            };
+        };
+
+        // 3. Sobre saúde e registros médicos
+        if (Text.contains(input, #text "saúde") or Text.contains(input, #text "vacina") or Text.contains(input, #text "veterinário") or Text.contains(input, #text "médico")) {
+            return {
+                content = "🏥 O PetID mantém todo histórico médico do seu pet on-chain!\n\n📋 Você pode registrar:\n• Consultas veterinárias\n• Vacinações e tratamentos\n• Cirurgias e exames\n• Emergências médicas\n• Anexar fotos e documentos\n\n💾 Todos os dados ficam permanentemente na blockchain, garantindo que nunca se percam e possam ser verificados por qualquer veterinário.";
+                confidence = 0.98;
+                source = "knowledge_base";
+            };
+        };
+
+        // 4. Sobre genealogia e relacionamentos
+        if (Text.contains(input, #text "genealogia") or Text.contains(input, #text "família") or Text.contains(input, #text "pai") or Text.contains(input, #text "mãe") or Text.contains(input, #text "filho")) {
+            return {
+                content = "🌳 A genealogia digital do PetID conecta famílias de pets!\n\n👥 Você pode:\n• Registrar pais, mães e filhotes\n• Criar árvores genealógicas\n• Conectar irmãos e parceiros\n• Verificar linhagens\n\n🧬 Cada relacionamento é registrado on-chain, criando uma rede genealógica verificável que ajuda criadores e donos a entender a herança genética.";
+                confidence = 0.97;
+                source = "knowledge_base";
+            };
+        };
+
+        // 5. Sobre o projeto PetID
+        if (Text.contains(input, #text "petid") or Text.contains(input, #text "projeto")) {
+            return {
+                content = "🐾 PetID é a primeira plataforma de NFTs para pets na Internet Computer!\n\n🎯 Nossa missão:\n• Criar identidade digital única para pets\n• Registrar histórico médico imutável\n• Facilitar adoção responsável\n• Conectar comunidade pet\n• Combater abandono e maus-tratos\n\n🌐 100% descentralizado, seguro e permanente. Seu pet merece uma identidade digital!";
+                confidence = 1.0;
+                source = "knowledge_base";
+            };
+        };
+
+        // 6. Sobre Internet Computer
+        if (Text.contains(input, #text "internet computer") or Text.contains(input, #text "icp") or Text.contains(input, #text "dfinity")) {
+            return {
+                content = "⚡ Internet Computer é a blockchain de nova geração!\n\n🔥 Vantagens:\n• Velocidade web tradicional\n• Custos ultra-baixos\n• Armazenamento on-chain nativo\n• Smart contracts em Motoko\n• Sustentabilidade ambiental\n\n🚀 Por isso escolhemos ICP para o PetID - performance e descentralização real!";
+                confidence = 0.95;
+                source = "knowledge_base";
+            };
+        };
+
+        // 7. Respostas de saudação
+        if (Text.contains(input, #text "olá") or Text.contains(input, #text "oi") or Text.contains(input, #text "hello") or Text.contains(input, #text "help")) {
+            return {
+                content = "👋 Olá! Sou a IA do PetID, totalmente on-chain!\n\n💬 Posso ajudar com:\n• Informações sobre seus pets\n• Como usar a plataforma\n• Detalhes sobre NFTs e blockchain\n• Registros médicos e genealogia\n• Dúvidas sobre o projeto\n\nO que você gostaria de saber? 🐾";
+                confidence = 1.0;
+                source = "general";
+            };
+        };
+
+        // 8. Resposta padrão para outras perguntas
+        return {
+            content = "🤔 Ainda estou aprendendo sobre essa questão!\n\nℹ️ Por enquanto, posso ajudar com:\n• Informações sobre seus pets NFT\n• Funcionalidades da plataforma\n• Blockchain e Internet Computer\n• Registros médicos e genealogia\n\n💡 Dica: Tente perguntas como 'meus pets', 'como funciona', 'o que é NFT' ou 'registros médicos'.";
+            confidence = 0.6;
+            source = "general";
+        };
+    };
+
+    // Obter histórico de chat do usuário
+    public query(msg) func getChatHistory(sessionId: ?Text, limit: ?Nat) : async [ChatMessage] {
+        let caller = msg.caller;
+        let maxLimit = switch(limit) {
+            case (?l) { if (l > 100) 100 else l };
+            case null { 50 };
+        };
+        
+        let buffer = Buffer.Buffer<ChatMessage>(0);
+        
+        for ((_, message) in chatMessages.entries()) {
+            if (message.userId == caller) {
+                switch (sessionId) {
+                    case (?sid) {
+                        switch (message.sessionId) {
+                            case (?msgSid) {
+                                if (msgSid == sid) {
+                                    buffer.add(message);
+                                };
+                            };
+                            case null {};
+                        };
+                    };
+                    case null {
+                        buffer.add(message);
+                    };
+                };
+            };
+        };
+        
+        // Ordenar por timestamp (mais recentes primeiro)
+        let messages = Buffer.toArray(buffer);
+        let sorted = Array.sort(messages, func(a: ChatMessage, b: ChatMessage) : { #less; #equal; #greater } {
+            if (a.timestamp > b.timestamp) #less
+            else if (a.timestamp < b.timestamp) #greater
+            else #equal
+        });
+        
+        // Aplicar limite
+        if (sorted.size() <= maxLimit) {
+            sorted
+        } else {
+            Array.tabulate<ChatMessage>(maxLimit, func(i) = sorted[i])
+        };
+    };
+
+    // Limpar histórico de chat do usuário
+    public shared(msg) func clearChatHistory(sessionId: ?Text) : async Result.Result<(), Text> {
+        let caller = msg.caller;
+        let toRemove = Buffer.Buffer<Nat>(0);
+        
+        for ((id, message) in chatMessages.entries()) {
+            if (message.userId == caller) {
+                switch (sessionId) {
+                    case (?sid) {
+                        switch (message.sessionId) {
+                            case (?msgSid) {
+                                if (msgSid == sid) {
+                                    toRemove.add(id);
+                                };
+                            };
+                            case null {};
+                        };
+                    };
+                    case null {
+                        toRemove.add(id);
+                    };
+                };
+            };
+        };
+        
+        for (id in toRemove.vals()) {
+            chatMessages.delete(id);
+        };
+        
+        #ok()
+    };
+
+    // ==========================================
     // Upgrade Functions
     // ==========================================
 
@@ -1081,6 +1337,8 @@ persistent actor PetID {
         assetsEntries := Iter.toArray(assets.entries());
         // ✅ NOVO: Preservar relacionamentos durante upgrade
         relationshipsEntries := Iter.toArray(relationships.entries());
+        // ✅ NOVO: Preservar mensagens de chat durante upgrade
+        chatMessagesEntries := Iter.toArray(chatMessages.entries());
     };
 
     system func postupgrade() {
@@ -1112,5 +1370,9 @@ persistent actor PetID {
         // ✅ NOVO: Restaurar relacionamentos após upgrade
         relationships := HashMap.fromIter<Nat, PetRelationship>(relationshipsEntries.vals(), relationshipsEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
         relationshipsEntries := [];
+
+        // ✅ NOVO: Restaurar mensagens de chat após upgrade
+        chatMessages := HashMap.fromIter<Nat, ChatMessage>(chatMessagesEntries.vals(), chatMessagesEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+        chatMessagesEntries := [];
     };
 }
