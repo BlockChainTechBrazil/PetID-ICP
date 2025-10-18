@@ -436,10 +436,78 @@ persistent actor PetID {
         totalTokens
     };
 
-    // Retorna metadata de um token específico
+    // Retorna metadata de um token específico com registros médicos atualizados
     public query func tokenMetadata(tokenId: Nat) : async Result.Result<TokenMetadata, Text> {
         switch (tokens.get(tokenId)) {
-            case (?metadata) { #ok(metadata) };
+            case (?metadata) { 
+                // Adicionar estatísticas dos registros médicos aos metadados
+                switch (healthRecordsByPet.get(tokenId)) {
+                    case (?recordIds) {
+                        let totalRecords = recordIds.size();
+                        let completedRecords = Array.filter<Nat>(recordIds, func(recordId) {
+                            switch (healthRecords.get(recordId)) {
+                                case (?record) { record.status == "completed" };
+                                case null { false };
+                            }
+                        }).size();
+
+                        let enhancedProperties = Array.append(metadata.properties, [
+                            ("total_health_records", #Nat(totalRecords)),
+                            ("completed_health_records", #Nat(completedRecords)),
+                            ("health_records_last_updated", #Int(Time.now()))
+                        ]);
+
+                        let enhancedMetadata = { metadata with properties = enhancedProperties };
+                        #ok(enhancedMetadata)
+                    };
+                    case null { 
+                        // Sem registros médicos
+                        let enhancedProperties = Array.append(metadata.properties, [
+                            ("total_health_records", #Nat(0)),
+                            ("completed_health_records", #Nat(0))
+                        ]);
+
+                        let enhancedMetadata = { metadata with properties = enhancedProperties };
+                        #ok(enhancedMetadata)
+                    };
+                }
+            };
+            case null { #err("Token não encontrado") };
+        };
+    };
+
+    // ✅ NOVO: Obter metadados completos do NFT incluindo registros médicos detalhados
+    public query func getDetailedTokenMetadata(tokenId: Nat) : async Result.Result<{
+        metadata: TokenMetadata;
+        healthRecords: [HealthRecord];
+        petInfo: ?Pet;
+    }, Text> {
+        switch (tokens.get(tokenId)) {
+            case (?metadata) {
+                // Buscar registros médicos
+                let petHealthRecords = switch (healthRecordsByPet.get(tokenId)) {
+                    case (?recordIds) {
+                        let records = Buffer.Buffer<HealthRecord>(0);
+                        for (recordId in Iter.fromArray(recordIds)) {
+                            switch (healthRecords.get(recordId)) {
+                                case (?record) { records.add(record) };
+                                case null { };
+                            };
+                        };
+                        Buffer.toArray(records)
+                    };
+                    case null { [] };
+                };
+
+                // Buscar informações do pet
+                let petInfo = pets.get(tokenId);
+
+                #ok({
+                    metadata = metadata;
+                    healthRecords = petHealthRecords;
+                    petInfo = petInfo;
+                })
+            };
             case null { #err("Token não encontrado") };
         };
     };
@@ -594,6 +662,36 @@ persistent actor PetID {
             };
         };
 
+        // ✅ NOVO: Atualizar metadados do NFT com o novo registro médico
+        switch (tokens.get(payload.petId)) {
+            case (?metadata) {
+                // Criar propriedade do novo registro médico
+                let recordProperty = ("health_record_" # Nat.toText(recordId), #Class([
+                    ("record_id", #Nat(recordId)),
+                    ("date", #Text(payload.date)),
+                    ("service_type", #Text(payload.serviceType)),
+                    ("veterinarian", #Text(payload.veterinarianName)),
+                    ("status", #Text(payload.status)),
+                    ("created_at", #Int(Time.now())),
+                    ("local", switch(payload.local) { case(?l) { #Text(l) }; case null { #Text("") } }),
+                    ("description", switch(payload.description) { case(?d) { #Text(d) }; case null { #Text("") } }),
+                    ("attachments_count", #Nat(payload.attachments.size()))
+                ]));
+
+                // Adicionar nova propriedade aos metadados existentes
+                let updatedProperties = Array.append(metadata.properties, [recordProperty]);
+                
+                let updatedMetadata = { 
+                    metadata with 
+                    properties = updatedProperties;
+                };
+                tokens.put(payload.petId, updatedMetadata);
+            };
+            case null { 
+                // NFT não encontrado, mas registro médico já foi salvo
+            };
+        };
+
         #ok(newRecord)
     };
 
@@ -637,6 +735,34 @@ persistent actor PetID {
                 #ok(Buffer.toArray(petRecords))
             };
         };
+    };
+
+    // ✅ NOVO: Buscar todos os registros médicos do usuário
+    public shared(msg) func getMyHealthRecords() : async Result.Result<[HealthRecord], Text> {
+        let caller = msg.caller;
+        
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        let allUserRecords = Buffer.Buffer<HealthRecord>(0);
+
+        // Buscar todos os registros médicos criados pelo usuário
+        for ((recordId, record) in healthRecords.entries()) {
+            if (Principal.equal(record.createdBy, caller)) {
+                allUserRecords.add(record);
+            };
+        };
+
+        #ok(Buffer.toArray(allUserRecords))
+    };
+
+    // ✅ NOVO: Buscar um pet específico por ID (necessário para MedicalPanel)
+    public query func getPet(petId: Nat) : async Result.Result<Pet, Text> {
+        switch (pets.get(petId)) {
+            case (?pet) { #ok(pet) };
+            case null { #err("Pet não encontrado") };
+        }
     };
 
     // Verificar se usuário está autenticado

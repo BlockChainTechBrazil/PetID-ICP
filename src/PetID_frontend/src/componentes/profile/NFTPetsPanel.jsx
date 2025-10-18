@@ -10,11 +10,7 @@ import { FiFileText } from 'react-icons/fi';
 import petidLogo from '../../assets/logo/logo.jpg';
 import ICPImage from '../ICPImage';
 
-const gateways = [
-  // ✅ MIGRAÇÃO: URLs da ICP ao invés de IPFS gateways
-  (assetId) => `/api/assets/${assetId}`, // URL local para desenvolvimento
-  (assetId) => `${window.location.origin}/api/assets/${assetId}`, // URL completa
-];
+// ✅ Removido: gateways IPFS desnecessários - agora usa ICPImage
 
 // Estilos CSS para funcionalidades DIP721/NFT e layout escuro
 const nftStyles = `
