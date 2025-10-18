@@ -22,7 +22,7 @@ const HealthFormCompact = ({ onSuccess }) => {
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [filePreviews, setFilePreviews] = useState([]);
-  const [uploadingAssets, setUploadingAssets] = useState(false);
+  const [uploadingToIPFS, setUploadingToIPFS] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [myPets, setMyPets] = useState([]);
@@ -53,7 +53,7 @@ const HealthFormCompact = ({ onSuccess }) => {
       const identity = authClient.getIdentity();
       const network = import.meta.env.DFX_NETWORK || 'local';
       const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
-
+      
       const agent = new HttpAgent({ identity, host });
       if (network !== 'ic') {
         try {
@@ -138,12 +138,12 @@ const HealthFormCompact = ({ onSuccess }) => {
     setFilePreviews(previews);
   };
 
-  // Upload de arquivos para ICP Asset Storage
+  // ✅ MIGRAÇÃO IPFS → ICP: Upload de arquivos para ICP Asset Storage
   const uploadToICP = async (file) => {
     if (!file) return null;
 
     try {
-      setUploadingAssets(true);
+      setUploadingToIPFS(true);
       console.log('📤 Enviando arquivo para ICP Asset Storage...');
 
       // Converter arquivo para Uint8Array
@@ -152,33 +152,33 @@ const HealthFormCompact = ({ onSuccess }) => {
 
       const uploadRequest = {
         filename: file.name,
-        contentType: file.type || 'application/octet-stream',
+        contentType: file.type,
         data: fileData
       };
 
       const result = await authenticatedActor.uploadAsset(uploadRequest);
-
+      
       if ('ok' in result) {
         console.log('✅ Upload para ICP realizado com sucesso! Asset ID:', result.ok);
         return result.ok; // Retorna o asset ID
       } else if ('err' in result) {
         throw new Error(`ICP upload error: ${result.err}`);
       }
-
+      
       return null;
     } catch (error) {
       console.error('❌ Erro ao fazer upload para ICP:', error);
       setError('Erro ao fazer upload para ICP');
       return null;
     } finally {
-      setUploadingAssets(false);
+      setUploadingToIPFS(false);
     }
   };
 
   // Função para submeter o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (!isAuthenticated || !authenticatedActor) {
       setError(t('healthForm.loginPrompt', 'Você precisa estar logado para registrar informações de saúde.'));
       return;
@@ -213,11 +213,11 @@ const HealthFormCompact = ({ onSuccess }) => {
 
       // Salvar no backend usando o ator autenticado
       const result = await authenticatedActor.createHealthRecord(healthRecordPayload);
-
+      
       if ('ok' in result) {
         console.log('✅ Registro de saúde criado com sucesso:', result.ok);
         setSuccess(t('healthForm.success', 'Registro de saúde adicionado com sucesso!'));
-
+        
         // Limpar formulário
         setFormData({
           date: '',
@@ -450,7 +450,7 @@ const HealthFormCompact = ({ onSuccess }) => {
           <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">
             {t('healthForm.attachmentsDescription', 'Anexe comprovantes, receitas, carteira de vacinação, exames, etc.')}
           </p>
-
+          
           <div className="border-2 border-dashed border-gray-300 dark:border-surface-100 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-surface-75 transition-colors">
             <input
               type="file"
@@ -483,8 +483,8 @@ const HealthFormCompact = ({ onSuccess }) => {
                 <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-surface-100 p-2 rounded-md">
                   <div className="flex items-center space-x-2">
                     {preview.type === 'image' ? (
-                      <img
-                        src={preview.url}
+                      <img 
+                        src={preview.url} 
                         alt={preview.name}
                         className="w-8 h-8 object-cover rounded"
                       />
@@ -519,16 +519,16 @@ const HealthFormCompact = ({ onSuccess }) => {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isLoading || uploadingAssets}
+            disabled={isLoading || uploadingToIPFS}
             className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading || uploadingAssets ? (
+            {isLoading || uploadingToIPFS ? (
               <span className="flex items-center justify-center">
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {uploadingAssets ? t('healthForm.uploadingFiles', 'Enviando arquivos...') : t('healthForm.saving', 'Salvando...')}
+                {uploadingToIPFS ? t('healthForm.uploadingFiles', 'Enviando arquivos...') : t('healthForm.saving', 'Salvando...')}
               </span>
             ) : (
               <span className="flex items-center justify-center">

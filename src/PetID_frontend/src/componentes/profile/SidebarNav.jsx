@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { FiMapPin, FiGitBranch, FiHeart, FiMessageCircle, FiSettings, FiZap } from 'react-icons/fi';
+import { FiMapPin, FiGitBranch, FiHeart, FiMessageCircle, FiSettings } from 'react-icons/fi';
 import { GiPawPrint } from 'react-icons/gi';
 
 const navItemsBase = [
@@ -8,7 +8,6 @@ const navItemsBase = [
   { key: 'genealogy', icon: <FiGitBranch className="w-5 h-5" /> },
   { key: 'medical', icon: <FiHeart className="w-5 h-5" /> },
   { key: 'community', icon: <FiMessageCircle className="w-5 h-5" /> },
-  { key: 'chat', icon: <FiZap className="w-5 h-5" /> },
   { key: 'settings', icon: <FiSettings className="w-5 h-5" /> },
 ];
 
