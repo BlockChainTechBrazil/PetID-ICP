@@ -80,7 +80,15 @@ export const AuthProvider = ({ children }) => {
         },
         onError: (err) => {
           console.error('[Auth] login error', err);
-          setError(err);
+          
+          // Tratamento específico para diferentes tipos de erro
+          if (err === 'UserInterrupt' || err?.message?.includes('UserInterrupt')) {
+            console.log('[Auth] Login cancelado pelo usuário');
+            // Não definir como erro para UserInterrupt, é ação normal do usuário
+          } else {
+            setError(err);
+          }
+          
           setLoginLoading(false);
         }
       });

@@ -144,6 +144,60 @@ persistent actor PetID {
         source: Text; // Fonte da informação (ex: "knowledge_base", "pet_data", "general")
     };
 
+    // ✅ NOVO: Estruturas para Comunidade On-Chain
+    public type PostType = {
+        #Post;      // Post comum
+        #Tip;       // Dica sobre pets
+        #Meetup;    // Encontro da comunidade  
+        #Event;     // Evento com data/local
+    };
+
+    public type CommunityPost = {
+        id: Nat;
+        userId: Principal;
+        username: Text; // Nome do usuário
+        postType: PostType;
+        title: ?Text; // Título (opcional para posts simples)
+        content: Text;
+        tags: [Text]; // Tags para categorização
+        likes: Nat;
+        likedBy: [Principal]; // Usuários que curtiram
+        createdAt: Int;
+        // Para eventos específicos
+        eventDate: ?Text; // Data do evento (formato YYYY-MM-DD)
+        eventTime: ?Text; // Hora do evento (formato HH:MM)
+        location: ?Text; // Local do evento
+    };
+
+    public type PostComment = {
+        id: Nat;
+        postId: Nat;
+        userId: Principal;
+        username: Text;
+        content: Text;
+        createdAt: Int;
+    };
+
+    public type CreatePostRequest = {
+        postType: PostType;
+        title: ?Text;
+        content: Text;
+        tags: [Text];
+        eventDate: ?Text;
+        eventTime: ?Text;
+        location: ?Text;
+    };
+
+    public type UserProfile = {
+        principal: Principal;
+        username: Text;
+        bio: ?Text;
+        avatar: Text; // "user" ou "paw" 
+        joinedAt: Int;
+        postsCount: Nat;
+        likesReceived: Nat;
+    };
+
     // Storage
     private var nextTokenId: Nat = 1;
     private var nextHealthRecordId: Nat = 1;
@@ -184,9 +238,21 @@ persistent actor PetID {
     private var chatMessagesEntries : [(Nat, ChatMessage)] = [];
     private transient var chatMessages = HashMap.HashMap<Nat, ChatMessage>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
     
+    // ✅ NOVO: Comunidade On-Chain Storage
+    private var communityPostsEntries : [(Nat, CommunityPost)] = [];
+    private transient var communityPosts = HashMap.HashMap<Nat, CommunityPost>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    
+    private var postCommentsEntries : [(Nat, PostComment)] = [];
+    private transient var postComments = HashMap.HashMap<Nat, PostComment>(0, Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+    
+    private var userProfilesEntries : [(Principal, UserProfile)] = [];
+    private transient var userProfiles = HashMap.HashMap<Principal, UserProfile>(0, Principal.equal, Principal.hash);
+    
     private var nextAssetId: Nat = 1;
     private var nextRelationshipId: Nat = 1;
     private var nextChatMessageId: Nat = 1;
+    private var nextCommunityPostId: Nat = 1;
+    private var nextCommentId: Nat = 1;
 
     // ==========================================
     // DIP721 Interface Implementation
@@ -1322,6 +1388,401 @@ persistent actor PetID {
     };
 
     // ==========================================
+    // ✅ NOVO: Sistema de Comunidade On-Chain
+    // ==========================================
+
+    // Criar ou atualizar perfil do usuário
+    public shared(msg) func createUserProfile(username: Text, bio: ?Text, avatar: Text) : async Result.Result<UserProfile, Text> {
+        let caller = msg.caller;
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        // Verificar se username já existe
+        for ((principal, profile) in userProfiles.entries()) {
+            if (profile.username == username and not Principal.equal(principal, caller)) {
+                return #err("Username já existe");
+            };
+        };
+
+        let profile: UserProfile = {
+            principal = caller;
+            username = username;
+            bio = bio;
+            avatar = avatar;
+            joinedAt = Time.now();
+            postsCount = 0;
+            likesReceived = 0;
+        };
+
+        userProfiles.put(caller, profile);
+        #ok(profile)
+    };
+
+    // Obter perfil do usuário
+    public query func getUserProfile(userId: Principal) : async Result.Result<UserProfile, Text> {
+        switch (userProfiles.get(userId)) {
+            case (?profile) { #ok(profile) };
+            case null { #err("Perfil não encontrado") };
+        };
+    };
+
+    // Criar novo post na comunidade
+    public shared(msg) func createCommunityPost(request: CreatePostRequest) : async Result.Result<CommunityPost, Text> {
+        let caller = msg.caller;
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        // Obter username do perfil ou usar padrão
+        let username = switch (userProfiles.get(caller)) {
+            case (?profile) { profile.username };
+            case null { 
+                let principalText = Principal.toText(caller);
+                let chars = Text.toIter(principalText);
+                var shortId = "";
+                var count = 0;
+                for (c in chars) {
+                    if (count < 8) {
+                        shortId #= Text.fromChar(c);
+                        count += 1;
+                    };
+                };
+                "Usuário#" # shortId
+            };
+        };
+
+        let post: CommunityPost = {
+            id = nextCommunityPostId;
+            userId = caller;
+            username = username;
+            postType = request.postType;
+            title = request.title;
+            content = request.content;
+            tags = request.tags;
+            likes = 0;
+            likedBy = [];
+            createdAt = Time.now();
+            eventDate = request.eventDate;
+            eventTime = request.eventTime;
+            location = request.location;
+        };
+
+        communityPosts.put(nextCommunityPostId, post);
+        nextCommunityPostId += 1;
+
+        // Atualizar contador de posts do usuário
+        switch (userProfiles.get(caller)) {
+            case (?profile) {
+                let updatedProfile = {
+                    profile with postsCount = profile.postsCount + 1
+                };
+                userProfiles.put(caller, updatedProfile);
+            };
+            case null {};
+        };
+
+        #ok(post)
+    };
+
+    // Obter todos os posts da comunidade
+    public query func getCommunityPosts(limit: ?Nat, offset: ?Nat) : async [CommunityPost] {
+        let maxLimit = switch(limit) {
+            case (?l) { if (l > 100) 100 else l };
+            case null { 50 };
+        };
+        
+        let startOffset = switch(offset) {
+            case (?o) { o };
+            case null { 0 };
+        };
+
+        let buffer = Buffer.Buffer<CommunityPost>(0);
+        
+        for ((_, post) in communityPosts.entries()) {
+            buffer.add(post);
+        };
+        
+        // Ordenar por data (mais recentes primeiro)
+        let posts = Buffer.toArray(buffer);
+        let sorted = Array.sort(posts, func(a: CommunityPost, b: CommunityPost) : { #less; #equal; #greater } {
+            if (a.createdAt > b.createdAt) #less
+            else if (a.createdAt < b.createdAt) #greater
+            else #equal
+        });
+        
+        // Aplicar paginação
+        let totalPosts = sorted.size();
+        if (startOffset >= totalPosts) {
+            []
+        } else {
+            let endIndex = Nat.min(startOffset + maxLimit, totalPosts);
+            Array.tabulate<CommunityPost>(endIndex - startOffset, func(i) = sorted[startOffset + i])
+        };
+    };
+
+    // Obter posts por tipo
+    public query func getPostsByType(postType: PostType, limit: ?Nat) : async [CommunityPost] {
+        let maxLimit = switch(limit) {
+            case (?l) { if (l > 100) 100 else l };
+            case null { 20 };
+        };
+
+        let buffer = Buffer.Buffer<CommunityPost>(0);
+        
+        for ((_, post) in communityPosts.entries()) {
+            switch (postType, post.postType) {
+                case (#Post, #Post) { buffer.add(post); };
+                case (#Tip, #Tip) { buffer.add(post); };
+                case (#Meetup, #Meetup) { buffer.add(post); };
+                case (#Event, #Event) { buffer.add(post); };
+                case (_, _) {};
+            };
+        };
+        
+        // Ordenar por data
+        let posts = Buffer.toArray(buffer);
+        let sorted = Array.sort(posts, func(a: CommunityPost, b: CommunityPost) : { #less; #equal; #greater } {
+            if (a.createdAt > b.createdAt) #less
+            else if (a.createdAt < b.createdAt) #greater
+            else #equal
+        });
+        
+        // Aplicar limite
+        if (sorted.size() <= maxLimit) {
+            sorted
+        } else {
+            Array.tabulate<CommunityPost>(maxLimit, func(i) = sorted[i])
+        };
+    };
+
+    // Curtir/descurtir post
+    public shared(msg) func togglePostLike(postId: Nat) : async Result.Result<CommunityPost, Text> {
+        let caller = msg.caller;
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        switch (communityPosts.get(postId)) {
+            case (?post) {
+                // Verificar se usuário já curtiu
+                let alreadyLiked = Array.find(post.likedBy, func(p: Principal) : Bool { Principal.equal(p, caller) });
+                
+                let (newLikes, newLikedBy) = switch (alreadyLiked) {
+                    case (?_) {
+                        // Remover curtida
+                        let filtered = Array.filter(post.likedBy, func(p: Principal) : Bool { not Principal.equal(p, caller) });
+                        let newLikesCount = if (post.likes > 0) post.likes - 1 else 0;
+                        (newLikesCount, filtered)
+                    };
+                    case null {
+                        // Adicionar curtida
+                        let updated = Array.append(post.likedBy, [caller]);
+                        (post.likes + 1, updated)
+                    };
+                };
+
+                let updatedPost = {
+                    post with 
+                    likes = newLikes;
+                    likedBy = newLikedBy;
+                };
+
+                communityPosts.put(postId, updatedPost);
+                #ok(updatedPost)
+            };
+            case null { #err("Post não encontrado") };
+        };
+    };
+
+    // Adicionar comentário a um post
+    public shared(msg) func addComment(postId: Nat, content: Text) : async Result.Result<PostComment, Text> {
+        let caller = msg.caller;
+        if (Principal.isAnonymous(caller)) {
+            return #err("Usuário não autenticado");
+        };
+
+        // Verificar se post existe
+        switch (communityPosts.get(postId)) {
+            case (?_) {
+                // Obter username
+                let username = switch (userProfiles.get(caller)) {
+                    case (?profile) { profile.username };
+                    case null { 
+                        let principalText = Principal.toText(caller);
+                        let chars = Text.toIter(principalText);
+                        var shortId = "";
+                        var count = 0;
+                        for (c in chars) {
+                            if (count < 8) {
+                                shortId #= Text.fromChar(c);
+                                count += 1;
+                            };
+                        };
+                        "Usuário#" # shortId
+                    };
+                };
+
+                let comment: PostComment = {
+                    id = nextCommentId;
+                    postId = postId;
+                    userId = caller;
+                    username = username;
+                    content = content;
+                    createdAt = Time.now();
+                };
+
+                postComments.put(nextCommentId, comment);
+                nextCommentId += 1;
+
+                #ok(comment)
+            };
+            case null { #err("Post não encontrado") };
+        };
+    };
+
+    // Obter comentários de um post
+    public query func getPostComments(postId: Nat, limit: ?Nat) : async [PostComment] {
+        let maxLimit = switch(limit) {
+            case (?l) { if (l > 50) 50 else l };
+            case null { 20 };
+        };
+
+        let buffer = Buffer.Buffer<PostComment>(0);
+        
+        for ((_, comment) in postComments.entries()) {
+            if (comment.postId == postId) {
+                buffer.add(comment);
+            };
+        };
+        
+        // Ordenar por data (mais antigos primeiro)
+        let comments = Buffer.toArray(buffer);
+        let sorted = Array.sort(comments, func(a: PostComment, b: PostComment) : { #less; #equal; #greater } {
+            if (a.createdAt < b.createdAt) #less
+            else if (a.createdAt > b.createdAt) #greater
+            else #equal
+        });
+        
+        // Aplicar limite
+        if (sorted.size() <= maxLimit) {
+            sorted
+        } else {
+            Array.tabulate<PostComment>(maxLimit, func(i) = sorted[i])
+        };
+    };
+
+    // Buscar posts por tags
+    public query func searchPostsByTag(tag: Text, limit: ?Nat) : async [CommunityPost] {
+        let maxLimit = switch(limit) {
+            case (?l) { if (l > 50) 50 else l };
+            case null { 20 };
+        };
+
+        let searchTag = Text.toLowercase(tag);
+        let buffer = Buffer.Buffer<CommunityPost>(0);
+        
+        for ((_, post) in communityPosts.entries()) {
+            let hasTag = Array.find(post.tags, func(t: Text) : Bool { 
+                Text.toLowercase(t) == searchTag 
+            });
+            switch (hasTag) {
+                case (?_) { buffer.add(post); };
+                case null {};
+            };
+        };
+        
+        // Ordenar por data
+        let posts = Buffer.toArray(buffer);
+        let sorted = Array.sort(posts, func(a: CommunityPost, b: CommunityPost) : { #less; #equal; #greater } {
+            if (a.createdAt > b.createdAt) #less
+            else if (a.createdAt < b.createdAt) #greater
+            else #equal
+        });
+        
+        // Aplicar limite
+        if (sorted.size() <= maxLimit) {
+            sorted
+        } else {
+            Array.tabulate<CommunityPost>(maxLimit, func(i) = sorted[i])
+        };
+    };
+
+    // Obter eventos futuros
+    public query func getUpcomingEvents(limit: ?Nat) : async [CommunityPost] {
+        let maxLimit = switch(limit) {
+            case (?l) { if (l > 50) 50 else l };
+            case null { 10 };
+        };
+
+        let buffer = Buffer.Buffer<CommunityPost>(0);
+        
+        for ((_, post) in communityPosts.entries()) {
+            switch (post.postType) {
+                case (#Event) { buffer.add(post); };
+                case (_) {};
+            };
+        };
+        
+        // Ordenar por data do evento (se disponível) ou data de criação
+        let events = Buffer.toArray(buffer);
+        let sorted = Array.sort(events, func(a: CommunityPost, b: CommunityPost) : { #less; #equal; #greater } {
+            switch (a.eventDate, b.eventDate) {
+                case (?dateA, ?dateB) {
+                    if (dateA < dateB) #less
+                    else if (dateA > dateB) #greater
+                    else #equal
+                };
+                case (?_, null) { #less };
+                case (null, ?_) { #greater };
+                case (null, null) {
+                    if (a.createdAt > b.createdAt) #less
+                    else if (a.createdAt < b.createdAt) #greater
+                    else #equal
+                };
+            };
+        });
+        
+        // Aplicar limite
+        if (sorted.size() <= maxLimit) {
+            sorted
+        } else {
+            Array.tabulate<CommunityPost>(maxLimit, func(i) = sorted[i])
+        };
+    };
+
+    // Obter posts de um usuário específico
+    public query func getUserPosts(userId: Principal, limit: ?Nat) : async [CommunityPost] {
+        let maxLimit = switch(limit) {
+            case (?l) { if (l > 50) 50 else l };
+            case null { 20 };
+        };
+
+        let buffer = Buffer.Buffer<CommunityPost>(0);
+        
+        for ((_, post) in communityPosts.entries()) {
+            if (Principal.equal(post.userId, userId)) {
+                buffer.add(post);
+            };
+        };
+        
+        // Ordenar por data
+        let posts = Buffer.toArray(buffer);
+        let sorted = Array.sort(posts, func(a: CommunityPost, b: CommunityPost) : { #less; #equal; #greater } {
+            if (a.createdAt > b.createdAt) #less
+            else if (a.createdAt < b.createdAt) #greater
+            else #equal
+        });
+        
+        // Aplicar limite
+        if (sorted.size() <= maxLimit) {
+            sorted
+        } else {
+            Array.tabulate<CommunityPost>(maxLimit, func(i) = sorted[i])
+        };
+    };
+
+    // ==========================================
     // Upgrade Functions
     // ==========================================
 
@@ -1339,6 +1800,10 @@ persistent actor PetID {
         relationshipsEntries := Iter.toArray(relationships.entries());
         // ✅ NOVO: Preservar mensagens de chat durante upgrade
         chatMessagesEntries := Iter.toArray(chatMessages.entries());
+        // ✅ NOVO: Preservar dados da comunidade durante upgrade
+        communityPostsEntries := Iter.toArray(communityPosts.entries());
+        postCommentsEntries := Iter.toArray(postComments.entries());
+        userProfilesEntries := Iter.toArray(userProfiles.entries());
     };
 
     system func postupgrade() {
@@ -1374,5 +1839,15 @@ persistent actor PetID {
         // ✅ NOVO: Restaurar mensagens de chat após upgrade
         chatMessages := HashMap.fromIter<Nat, ChatMessage>(chatMessagesEntries.vals(), chatMessagesEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
         chatMessagesEntries := [];
+
+        // ✅ NOVO: Restaurar dados da comunidade após upgrade
+        communityPosts := HashMap.fromIter<Nat, CommunityPost>(communityPostsEntries.vals(), communityPostsEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+        communityPostsEntries := [];
+
+        postComments := HashMap.fromIter<Nat, PostComment>(postCommentsEntries.vals(), postCommentsEntries.size(), Nat.equal, func(n: Nat): Nat32 { Nat32.fromNat(n % (2**32 - 1)) });
+        postCommentsEntries := [];
+
+        userProfiles := HashMap.fromIter<Principal, UserProfile>(userProfilesEntries.vals(), userProfilesEntries.size(), Principal.equal, Principal.hash);
+        userProfilesEntries := [];
     };
 }
