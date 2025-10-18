@@ -151,8 +151,8 @@ const HealthFormCompact = ({ onSuccess }) => {
       const fileData = new Uint8Array(arrayBuffer);
 
       const uploadRequest = {
-        name: file.name,
-        content_type: file.type,
+        filename: file.name,
+        contentType: file.type,
         data: fileData
       };
 
@@ -203,9 +203,9 @@ const HealthFormCompact = ({ onSuccess }) => {
         date: formData.date,
         serviceType: formData.serviceType,
         veterinarianName: formData.veterinarianName,
-        local: formData.local && formData.local.trim() !== '' ? [formData.local] : null,
+        local: formData.local && formData.local.trim() !== '' ? [formData.local] : [],
         status: formData.status,
-        description: formData.description && formData.description.trim() !== '' ? [formData.description] : null,
+        description: formData.description && formData.description.trim() !== '' ? [formData.description] : [],
         attachments: uploadedAssetIds // Asset IDs dos arquivos ICP
       };
 
