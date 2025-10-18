@@ -8,6 +8,37 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
+  "community": {
+    "futureNote": "Future: create, comment and like posts, plus a real-time feed.",
+    "titlePlaceholder": "Title (e.g., Meetup, Tip, Adoption)",
+    "contentPlaceholder": "Write something helpful or invite others...",
+    "tagsPlaceholder": "Tags (comma-separated): walk, adoption, health",
+    "post": "Post",
+    "like": "Like",
+    "comment": "Comment",
+    "comments": "comments",
+    "commentPlaceholder": "Write a comment...",
+    "new": "New",
+    "newPost": "New Post",
+    "newEvent": "New Event",
+    "calendar": "Events Calendar",
+    "location": "Location (optional)",
+    "create": "Create",
+    "searchPlaceholder": "Search posts and events...",
+    "filter": {
+      "all": "All"
+    },
+    "eventsList": "Scheduled Events",
+    "noEvents": "No events found for the selected filters.",
+    "eventDetails": "Event Details",
+    "date": "Date",
+    "types": {
+      "event": "Event",
+      "tip": "Tip",
+      "meetup": "Meetup",
+      "post": "Post"
+    }
+  },
   "login": {
     "title": "Access your account",
     "subtitle": "Authenticate with your Internet Identity to access your dashboard and manage your pets.",
@@ -20,7 +51,6 @@
   },
   "hero": {
     "title": "Decentralized registry for your pets",
-    "description": "PetID uses blockchain technology to create immutable and secure records for your pets, ensuring that their information is always accessible and protected.",
     "registerButton": "Register your Pet",
     "learnMoreButton": "Learn More",
     "stats": {
@@ -198,12 +228,17 @@
       "genealogy": "Genealogy",
       "medical": "Health & Vaccines",
       "community": "Community",
+      "chat": "AI Chat",
       "settings": "Settings"
     },
     "map": {
       "petLocation": "Pet Location",
       "partnerClinics": "Partner Clinics",
-      "staticNote": "Static visualization (add API key for real map)"
+      "staticNote": "Static visualization (add API key for real map)",
+      "routes": "Routes",
+      "viewDetails": "Details",
+      "services": "Services",
+      "openDirections": "Open in Google Maps (Routes)"
     },
     "settings": {
       "title": "Settings",
@@ -230,6 +265,21 @@
       "apiKeyHint": "Add your Google Maps API key in a .env file (VITE_GOOGLE_MAPS_API_KEY) to enable interactive map."
     }
   },
+  "chat": {
+    "title": "AI Chat",
+    "placeholder": "Type your question...",
+    "send": "Send",
+    "welcome": "Ask me anything about your PetID, NFTs, Internet Identity or community.",
+    "noKey": "OpenAI key not set. Add OPENAI_API_KEY in your .env to enable the assistant.",
+    "noResponse": "No response.",
+    "error": "Error contacting the AI service.",
+    "loading": "Thinking…",
+    "you": "You",
+    "rateLimited": "Rate limit hit. Please wait {{seconds}}s and try again.",
+    "cooldown": "Please wait {{seconds}}s before sending another message.",
+    "cooldownPlaceholder": "Wait {{seconds}}s…",
+    "noCredits": "Insufficient quota/credits. Please check your plan and billing in the provider."
+  },
   "petPanel": {
     "image": "Image",
     "nickname": "Nickname",
@@ -251,7 +301,25 @@
     "fillAll": "Fill all required fields",
     "imgSent": "Image uploaded",
     "unsupportedType": "Unsupported file type",
-    "max5mb": "Max 5MB"
+    "max5mb": "Max 5MB",
+    "createPetNft": "Create Pet NFT",
+    "createNewNftTitle": "Create New Pet NFT",
+    "creatingNft": "Creating NFT...",
+    "createFirstHint": "Click \"Create Pet NFT\" to start!",
+    "saveToICP": "Upload to ICP Asset Storage",
+    "nftCreated": "Pet NFT created successfully! Token ID: {{id}}"
+  },
+  "errors": {
+    "initActor": "Error initializing actor",
+    "uploadICP": "Error uploading to ICP",
+    "createPet": "An error occurred while registering the pet.",
+    "loadPets": "Error loading pets",
+    "createNft": "Error creating Pet NFT: {{err}}",
+    "generic": "Error: {{message}}"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "loading": "Loading..."
   },
   "document": {
     "title": "Pet Document",
@@ -260,10 +328,14 @@
     "species": "Species",
     "gender": "Gender",
     "color": "Color",
+    "status": "Status",
     "verification": "Verification",
     "issuedOn": "Issued on",
     "digitalIdentityVerified": "Verified digital identity",
-    "petId": "PetID"
+    "petId": "PetID",
+    "blockchainId": "Blockchain Identifier",
+    "print": "Print Document",
+    "close": "Close"
   },
   "genealogy": {
     "title": "Interactive Family Tree",

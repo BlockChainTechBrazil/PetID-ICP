@@ -8,6 +8,21 @@
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú"
   },
+  "document": {
+    "title": "Documento de la Mascota",
+    "digitalIdentity": "Tarjeta de Identidad Digital",
+    "birthDate": "Fecha de Nacimiento",
+    "species": "Especie",
+    "gender": "Género",
+    "color": "Color",
+    "verification": "Verificación",
+    "issuedOn": "Emitido el",
+    "digitalIdentityVerified": "Identidad digital verificada",
+    "petId": "PetID",
+    "blockchainId": "Identificador Blockchain",
+    "print": "Imprimir Documento",
+    "close": "Cerrar"
+  },
   "login": {
     "title": "Accede a tu cuenta",
     "subtitle": "Autentícate con tu Internet Identity para acceder a tu panel y gestionar tus mascotas.",
@@ -167,6 +182,38 @@
     "partnerships": "Alianzas",
     "rights": "Todos los derechos reservados."
   },
+  "community": {
+    "futureNote": "Futuro: crear, comentar y dar me gusta a publicaciones, además de feed en tiempo real.",
+    "composeTitle": "Comparte con la comunidad",
+    "titlePlaceholder": "Título (p. ej., Encuentro, Consejo, Adopción)",
+    "contentPlaceholder": "Escribe algo útil o invita a otros...",
+    "tagsPlaceholder": "Tags (separadas por coma): paseo, adopción, salud",
+    "post": "Publicar",
+    "like": "Me gusta",
+    "comment": "Comentar",
+    "comments": "comentarios",
+    "commentPlaceholder": "Escribe un comentario...",
+    "new": "Nuevo",
+    "newPost": "Nuevo Post",
+    "newEvent": "Nuevo Evento",
+    "calendar": "Calendario de Eventos",
+    "location": "Lugar (opcional)",
+    "create": "Crear",
+    "searchPlaceholder": "Busca publicaciones y eventos...",
+    "filter": {
+      "all": "Todos"
+    },
+    "eventsList": "Eventos Programados",
+    "noEvents": "No se encontraron eventos para los filtros seleccionados.",
+    "eventDetails": "Detalles del Evento",
+    "date": "Fecha",
+    "types": {
+      "event": "Evento",
+      "tip": "Consejo",
+      "meetup": "Encuentro",
+      "post": "Post"
+    }
+  },
   "gallery": {
     "title": "Historias de Conexión",
     "subtitle": "Mascotas y familias protegidas con identidad digital e historial seguro."
@@ -198,12 +245,17 @@
       "genealogy": "Genealogía",
       "medical": "Salud & Vacunas",
       "community": "Comunidad",
+      "chat": "Chat con IA",
       "settings": "Configuración"
     },
     "map": {
       "petLocation": "Ubicación de la Mascota",
       "partnerClinics": "Clínicas Aliadas",
-      "staticNote": "Visualización estática (añade API key para mapa real)"
+      "staticNote": "Visualización estática (añade API key para mapa real)",
+      "routes": "Rutas",
+      "viewDetails": "Detalles",
+      "services": "Servicios",
+      "openDirections": "Abrir en Google Maps (Rutas)"
     },
     "settings": {
       "title": "Configuración",
@@ -230,6 +282,21 @@
       "apiKeyHint": "Añade tu Google Maps API key en un archivo .env (VITE_GOOGLE_MAPS_API_KEY) para habilitar el mapa interactivo."
     }
   },
+  "chat": {
+    "title": "Chat con IA",
+    "placeholder": "Escribe tu pregunta...",
+    "send": "Enviar",
+    "welcome": "Pregúntame sobre tu PetID, NFTs, Internet Identity o comunidad.",
+    "noKey": "Clave de OpenAI no definida. Agrega OPENAI_API_KEY a tu .env para activar el asistente.",
+    "noResponse": "Sin respuesta.",
+    "error": "Error al contactar el servicio de IA.",
+    "loading": "Pensando...",
+    "you": "Tú",
+    "rateLimited": "Se alcanzó el límite de tasa. Espera {{seconds}}s y vuelve a intentarlo.",
+    "cooldown": "Espera {{seconds}}s antes de enviar otro mensaje.",
+    "cooldownPlaceholder": "Espera {{seconds}}s...",
+    "noCredits": "Cuota/créditos insuficientes. Revisa tu plan y facturación en el proveedor."
+  },
   "petPanel": {
     "image": "Imagen",
     "nickname": "Apodo",
@@ -251,6 +318,24 @@
     "fillAll": "Completa todos los campos",
     "imgSent": "Imagen subida",
     "unsupportedType": "Tipo de archivo no soportado",
-    "max5mb": "Máx 5MB"
+    "max5mb": "Máx 5MB",
+    "createPetNft": "Crear Pet NFT",
+    "createNewNftTitle": "Crear Nuevo Pet NFT",
+    "creatingNft": "Creando NFT...",
+    "createFirstHint": "Haz clic en \"Crear Pet NFT\" para comenzar!",
+    "saveToICP": "Subir a ICP Asset Storage",
+    "nftCreated": "¡Pet NFT creado con éxito! Token ID: {{id}}"
+  },
+  "errors": {
+    "initActor": "Error al inicializar el actor",
+    "uploadICP": "Error al subir a ICP",
+    "createPet": "Ocurrió un error al registrar la mascota.",
+    "loadPets": "Error al cargar mascotas",
+    "createNft": "Error al crear Pet NFT: {{err}}",
+    "generic": "Error: {{message}}"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "loading": "Cargando..."
   }
 }

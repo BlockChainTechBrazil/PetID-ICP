@@ -5,6 +5,7 @@ import MapPanel from '../componentes/profile/MapPanel';
 import GenealogyPanel from '../componentes/profile/GenealogyPanel';
 import MedicalPanel from '../componentes/profile/MedicalPanel';
 import CommunityPanel from '../componentes/profile/CommunityPanel';
+import ChatIAPanel from '../componentes/profile/ChatIAPanel';
 import SettingsPanel from '../componentes/profile/SettingsPanel';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,7 @@ const ProfilePage = () => {
       case 'genealogy': return <GenealogyPanel />;
       case 'medical': return <MedicalPanel />;
       case 'community': return <CommunityPanel />;
+      case 'chat': return <ChatIAPanel />;
       case 'settings': return <SettingsPanel />;
       default: return null;
     }
@@ -49,14 +51,15 @@ const ProfilePage = () => {
       {/* Mobile bottom nav */}
       <div className="fixed bottom-3 left-0 right-0 px-2 sm:px-3 flex justify-center lg:hidden z-40">
         <div className="flex w-full max-w-md gap-0.5 bg-white/90 dark:bg-surface-75/90 backdrop-blur-xl border border-gray-200 dark:border-surface-100 rounded-2xl p-1.5 shadow-lg">
-          {['nfts', 'map', 'genealogy', 'medical', 'community', 'settings'].map(key => {
-            const iconMap = { 
-              nfts: <GiPawPrint className="w-5 h-5" />, 
-              map: <FiMapPin className="w-5 h-5" />, 
-              genealogy: <FiGitBranch className="w-5 h-5" />, 
-              medical: <FiHeart className="w-5 h-5" />, 
-              community: <FiMessageCircle className="w-5 h-5" />, 
-              settings: <FiSettings className="w-5 h-5" /> 
+          {['nfts', 'map', 'genealogy', 'medical', 'community', 'chat', 'settings'].map(key => {
+            const iconMap = {
+              nfts: <GiPawPrint className="w-5 h-5" />,
+              map: <FiMapPin className="w-5 h-5" />,
+              genealogy: <FiGitBranch className="w-5 h-5" />,
+              medical: <FiHeart className="w-5 h-5" />,
+              community: <FiMessageCircle className="w-5 h-5" />,
+              chat: <FiMessageCircle className="w-5 h-5" />,
+              settings: <FiSettings className="w-5 h-5" />
             };
             const active = activeTab === key;
             return (

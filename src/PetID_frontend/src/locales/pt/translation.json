@@ -9,6 +9,32 @@
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu"
   },
+  "community": {
+    "futureNote": "Futuro: criar, comentar e curtir posts, além de feed em tempo real.",
+    "composeTitle": "Compartilhe com a comunidade",
+    "titlePlaceholder": "Título (ex.: Encontro, Dica, Adoção)",
+    "contentPlaceholder": "Escreva algo útil ou convide outros...",
+    "tagsPlaceholder": "Tags (separadas por vírgula): passeio, adoção, saúde",
+    "post": "Publicar",
+    "like": "Curtir",
+    "comment": "Comentar",
+    "comments": "comentários",
+    "commentPlaceholder": "Escreva um comentário...",
+    "searchPlaceholder": "Busque posts e eventos...",
+    "filter": {
+      "all": "Todos"
+    },
+    "eventsList": "Eventos Marcados",
+    "noEvents": "Nenhum evento encontrado para os filtros selecionados.",
+    "eventDetails": "Detalhes do Evento",
+    "date": "Data",
+    "types": {
+      "event": "Evento",
+      "tip": "Dica",
+      "meetup": "Encontro",
+      "post": "Post"
+    }
+  },
   "login": {
     "title": "Acesse sua conta",
     "subtitle": "Autentique-se com sua Internet Identity para acessar seu dashboard e gerenciar seus pets.",
@@ -199,12 +225,17 @@
       "genealogy": "Genealogia",
       "medical": "Saúde & Vacinas",
       "community": "Comunidade",
+      "chat": "Chat com IA",
       "settings": "Configurações"
     },
     "map": {
       "petLocation": "Localização do Pet",
       "partnerClinics": "Clínicas Parceiras",
-      "staticNote": "Visualização estática (adicione API key para mapa real)"
+      "staticNote": "Visualização estática (adicione API key para mapa real)",
+      "routes": "Rotas",
+      "viewDetails": "Detalhes",
+      "services": "Serviços",
+      "openDirections": "Abrir no Google Maps (Rotas)"
     },
     "settings": {
       "title": "Configurações",
@@ -231,6 +262,42 @@
       "apiKeyHint": "Adicione sua Google Maps API key em um arquivo .env (VITE_GOOGLE_MAPS_API_KEY) para habilitar o mapa interativo."
     }
   },
+  "chat": {
+    "title": "Chat com IA",
+    "placeholder": "Digite sua pergunta...",
+    "send": "Enviar",
+    "welcome": "Pergunte qualquer coisa sobre seu PetID, NFTs, Internet Identity ou comunidade.",
+    "noKey": "Chave da OpenAI não definida. Adicione OPENAI_API_KEY no seu .env para ativar o assistente.",
+    "noResponse": "Sem resposta.",
+    "error": "Erro ao contatar o serviço de IA.",
+    "loading": "Pensando...",
+    "you": "Você",
+    "rateLimited": "Limite de taxa atingido. Aguarde {{seconds}}s e tente novamente.",
+    "cooldown": "Aguarde {{seconds}}s antes de enviar outra mensagem.",
+    "cooldownPlaceholder": "Aguarde {{seconds}}s...",
+    "noCredits": "Cota/créditos insuficientes. Verifique seu plano e faturamento no provedor."
+  },
+  "document": {
+    "digitalIdentity": "Cartão de Identidade Digital",
+    "birthDate": "Data de Nascimento",
+    "species": "Espécie",
+    "gender": "Gênero",
+    "color": "Cor",
+    "blockchainId": "Identificador Blockchain",
+    "petId": "PetID",
+    "status": "Status",
+    "verification": "Verificação",
+    "issuedOn": "Documento gerado em",
+    "new": "Novo",
+    "newPost": "Novo Post",
+    "newEvent": "Novo Evento",
+    "calendar": "Calendário de Eventos",
+    "location": "Local (opcional)",
+    "create": "Criar",
+    "tagline": "Identidade digital segura e descentralizada para pets",
+    "print": "Imprimir Documento",
+    "close": "Fechar"
+  },
   "petPanel": {
     "image": "Imagem",
     "nickname": "Apelido",
@@ -252,7 +319,24 @@
     "fillAll": "Preencha todos os campos",
     "imgSent": "Imagem enviada",
     "unsupportedType": "Tipo de arquivo não suportado",
-    "max5mb": "Máx 5MB"
+    "max5mb": "Máx 5MB",
+    "createPetNft": "Criar Pet NFT",
+    "createNewNftTitle": "Criar Novo Pet NFT",
+    "creatingNft": "Criando NFT...",
+    "createFirstHint": "Clique em \"Criar Pet NFT\" para começar!",
+    "saveToICP": "Enviar para ICP Asset Storage"
+  },
+  "errors": {
+    "initActor": "Erro ao inicializar ator",
+    "uploadICP": "Erro ao enviar para ICP",
+    "createPet": "Ocorreu um erro ao registrar o pet.",
+    "loadPets": "Erro ao carregar pets",
+    "createNft": "Erro ao criar Pet NFT: {{err}}",
+    "generic": "Erro: {{message}}"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "loading": "Carregando..."
   },
   "healthForm": {
     "title": "Registro de Saúde e Vacinas",

@@ -1,28 +1,29 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
+import QRCode from 'qrcode';
 import ICPImage from './ICPImage';
-import Logo from "../assets/logo/logo.jpg"
+import Logo from "../assets/logo/logo.jpg";
 
 const PetIDCard = ({ pet, onClose, actor }) => {
   const { t } = useTranslation();
-  
+  const [qrDataUrl, setQrDataUrl] = useState(null);
+
   // Função para formatar data
   const formatDate = (dateString) => {
-    try { 
-      return new Date(dateString).toLocaleDateString('pt-BR'); 
-    } catch { 
-      return dateString; 
+    try {
+      return new Date(dateString).toLocaleDateString('pt-BR');
+    } catch {
+      return dateString;
     }
   };
 
   // Função para formatar timestamp  
-  const formatTimestamp = (ts) => { 
-    try { 
-      return new Date(Number(ts) / 1_000_000).toLocaleString('pt-BR'); 
-    } catch { 
-      return '—'; 
-    } 
+  const formatTimestamp = (ts) => {
+    try {
+      return new Date(Number(ts) / 1_000_000).toLocaleString('pt-BR');
+    } catch {
+      return '—';
+    }
   };
 
   // Função para gerar hash fictício simplificado
@@ -33,13 +34,33 @@ const PetIDCard = ({ pet, onClose, actor }) => {
   // Data atual para rodapé
   const currentDate = new Date().toLocaleDateString('pt-BR');
 
+  // URL de verificação simples
+  const verifyUrl = (typeof window !== 'undefined')
+    ? `${window.location.origin}/?pet=${encodeURIComponent(pet?.id ?? '')}`
+    : `https://petid.local/?pet=${encodeURIComponent(pet?.id ?? '')}`;
+
+  // Gerar QR Code ao montar/alterar ID
+  useEffect(() => {
+    let alive = true;
+    const gen = async () => {
+      try {
+        const url = await QRCode.toDataURL(verifyUrl, { width: 160, margin: 1 });
+        if (alive) setQrDataUrl(url);
+      } catch (e) {
+        console.warn('[PetIDCard] QR falhou:', e);
+      }
+    };
+    if (pet?.id != null) gen();
+    return () => { alive = false; };
+  }, [pet?.id, verifyUrl]);
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header com botão fechar */}
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-900">PetID - Cartão Digital</h1>
-          <button 
+          <h1 className="text-2xl font-bold text-gray-900">{t('document.digitalIdentity', 'Cartão de Identidade Digital')}</h1>
+          <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
           >
@@ -53,17 +74,17 @@ const PetIDCard = ({ pet, onClose, actor }) => {
         <div className="p-8">
           {/* Cartão de identidade */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-gray-200 shadow-lg">
-            
+
             {/* Seção principal com foto e nome */}
             <div className="flex flex-col lg:flex-row gap-8 mb-8">
-              
+
               {/* Coluna esquerda - Foto e nome */}
               <div className="flex flex-col items-center lg:items-start">
                 {/* Nome do pet em destaque acima da foto */}
                 <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center lg:text-left">
                   {pet.nickname}
                 </h2>
-                
+
                 {/* Foto do pet */}
                 <div className="relative">
                   {pet.photo ? (
@@ -80,7 +101,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                       </svg>
                     </div>
                   )}
-                  
+
                   {/* ID simplificado abaixo da foto */}
                   <div className="mt-4 text-center">
                     <span className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-xl font-mono text-sm font-semibold shadow-md">
@@ -92,11 +113,11 @@ const PetIDCard = ({ pet, onClose, actor }) => {
 
               {/* Coluna direita - Informações */}
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                
+
                 {/* Data de nascimento */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Data de nascimento
+                    {t('document.birthDate', 'Data de Nascimento')}
                   </div>
                   <div className="text-lg font-medium text-gray-800">
                     {formatDate(pet.birthDate)}
@@ -106,7 +127,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                 {/* Espécie */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Espécie
+                    {t('document.species', 'Espécie')}
                   </div>
                   <div className="text-lg font-medium text-gray-800">
                     {t(`petForm.${pet.species}`, pet.species)}
@@ -116,7 +137,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                 {/* Gênero */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Gênero
+                    {t('document.gender', 'Gênero')}
                   </div>
                   <div className="text-lg font-medium text-gray-800">
                     {t(`petForm.${pet.gender}`, pet.gender)}
@@ -126,7 +147,7 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                 {/* Cor */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Cor
+                    {t('document.color', 'Cor')}
                   </div>
                   <div className="text-lg font-medium text-gray-800">
                     {t(`petForm.${pet.color}`, pet.color)}
@@ -138,10 +159,10 @@ const PetIDCard = ({ pet, onClose, actor }) => {
             {/* Identificador da blockchain */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mb-6">
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Identificador Blockchain
+                {t('document.blockchainId', 'Identificador Blockchain')}
               </div>
               <div className="font-mono text-lg font-bold text-indigo-600 break-all">
-                ICP-PETID-{pet.id.toString().padStart(8, '0')}
+                {t('document.petId', 'PetID')}-ICP-{pet.id.toString().padStart(8, '0')}
               </div>
             </div>
 
@@ -150,25 +171,41 @@ const PetIDCard = ({ pet, onClose, actor }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Status
+                    {t('document.status', 'Status')}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      pet.isLost 
-                        ? 'bg-red-100 text-red-800' 
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pet.isLost
+                        ? 'bg-red-100 text-red-800'
                         : 'bg-green-100 text-green-800'
-                    }`}>
+                      }`}>
                       {pet.isLost ? t('petForm.lost', 'Perdido') : t('petForm.notLost', 'Seguro')}
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Hash verificação
+                    {t('document.verification', 'Verificação')}
                   </div>
                   <div className="font-mono text-sm text-gray-600">
                     {generateSimplifiedHash(pet.id)}
                   </div>
+                  {qrDataUrl && (
+                    <div className="mt-3 flex flex-col items-end">
+                      <img
+                        src={qrDataUrl}
+                        alt={t('document.verification', 'Verificação')}
+                        className="w-28 h-28 rounded-md border border-gray-200 bg-white p-1"
+                      />
+                      <a
+                        href={verifyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 text-xs text-indigo-600 hover:underline"
+                      >
+                        {t('document.verification', 'Verificação')}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -183,12 +220,12 @@ const PetIDCard = ({ pet, onClose, actor }) => {
                     <div className="font-bold text-indigo-600 text-lg">PetID</div>
                   </div>
                 </div>
-                
+
                 {/* Informações do documento */}
                 <div className="text-right text-sm text-gray-600">
-                  <div className="font-medium">Documento gerado em {currentDate}</div>
+                  <div className="font-medium">{t('document.issuedOn', 'Documento gerado em')} {currentDate}</div>
                   <div className="text-xs mt-1">
-                    Identidade digital segura e descentralizada para pets
+                    {t('document.tagline', 'Identidade digital segura e descentralizada para pets')}
                   </div>
                 </div>
               </div>
@@ -204,14 +241,14 @@ const PetIDCard = ({ pet, onClose, actor }) => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Imprimir Documento
+              {t('document.print', 'Imprimir Documento')}
             </button>
-            
+
             <button
               onClick={onClose}
               className="flex items-center gap-2 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition-colors"
             >
-              Fechar
+              {t('document.close', 'Fechar')}
             </button>
           </div>
         </div>
