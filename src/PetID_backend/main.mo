@@ -1209,27 +1209,89 @@ persistent actor PetID {
         #ok(Buffer.toArray(userPets))
     };
 
+    // Detectar idioma baseado no input do usuário
+    private func detectLanguage(input: Text) : Text {
+        let lowerInput = Text.toLowercase(input);
+        
+        // Palavras chave em inglês
+        let englishKeywords = ["my", "the", "how", "what", "where", "when", "can", "will", "would", "should", "hello", "hi", "help", "pet", "animal", "dog", "cat", "nft", "blockchain"];
+        
+        // Palavras chave em português
+        let portugueseKeywords = ["meu", "minha", "como", "que", "onde", "quando", "posso", "consigo", "olá", "oi", "ajuda", "pet", "animal", "cachorro", "gato", "nft", "blockchain"];
+        
+        // Contar palavras em inglês
+        var englishCount = 0;
+        for (keyword in englishKeywords.vals()) {
+            if (Text.contains(lowerInput, #text keyword)) {
+                englishCount += 1;
+            };
+        };
+        
+        // Contar palavras em português
+        var portugueseCount = 0;
+        for (keyword in portugueseKeywords.vals()) {
+            if (Text.contains(lowerInput, #text keyword)) {
+                portugueseCount += 1;
+            };
+        };
+        
+        // Retornar idioma detectado
+        if (englishCount > portugueseCount) {
+            "en"
+        } else {
+            "pt"
+        };
+    };
+
     // Gerar resposta contextual baseada nos dados do usuário
     private func generateContextualResponse(userInput: Text, userId: Principal) : async AIResponse {
         let input = Text.toLowercase(userInput);
+        let language = detectLanguage(input);
         
         // 1. Respostas sobre pets do usuário
-        if (Text.contains(input, #text "meu") and (Text.contains(input, #text "pet") or Text.contains(input, #text "animal"))) {
+        if ((Text.contains(input, #text "meu") or Text.contains(input, #text "my")) and (Text.contains(input, #text "pet") or Text.contains(input, #text "animal"))) {
             let userPets = await getUserPets(userId);
             switch (userPets) {
                 case (#ok(pets)) {
                     if (pets.size() == 0) {
+                        let response = switch (language) {
+                            case ("en") {
+                                "You don't have any pets registered on PetID yet! How about creating your first pet NFT? Go to the NFTs tab and click 'Create Pet' to get started."
+                            };
+                            case (_) {
+                                "Você ainda não tem nenhum pet registrado no PetID! Que tal criar seu primeiro NFT de pet? Vá para a aba NFTs e clique em 'Criar Pet' para começar."
+                            };
+                        };
                         return {
-                            content = "Você ainda não tem nenhum pet registrado no PetID! Que tal criar seu primeiro NFT de pet? Vá para a aba NFTs e clique em 'Criar Pet' para começar.";
+                            content = response;
                             confidence = 0.95;
                             source = "pet_data";
                         };
                     } else {
-                        var response = "Você tem " # Nat.toText(pets.size()) # " pet(s) registrado(s):\n\n";
+                        let baseText = switch (language) {
+                            case ("en") {
+                                "You have " # Nat.toText(pets.size()) # " registered pet(s):\n\n"
+                            };
+                            case (_) {
+                                "Você tem " # Nat.toText(pets.size()) # " pet(s) registrado(s):\n\n"
+                            };
+                        };
+                        
+                        var response = baseText;
                         for (pet in pets.vals()) {
                             response #= "🐾 " # pet.nickname # " (" # pet.species # ")\n";
                         };
-                        response #= "\nTodos são NFTs únicos na blockchain Internet Computer!";
+                        
+                        let finalText = switch (language) {
+                            case ("en") {
+                                "\nAll are unique NFTs on the Internet Computer blockchain!"
+                            };
+                            case (_) {
+                                "\nTodos são NFTs únicos na blockchain Internet Computer!"
+                            };
+                        };
+                        response #= finalText;
+                        
                         return {
                             content = response;
                             confidence = 1.0;
@@ -1238,8 +1300,16 @@ persistent actor PetID {
                     };
                 };
                 case (#err(_)) {
+                    let response = switch (language) {
+                        case ("en") {
+                            "I couldn't access your pet data at the moment. Please try again."
+                        };
+                        case (_) {
+                            "Não consegui acessar seus dados de pets no momento. Tente novamente."
+                        };
+                    };
                     return {
-                        content = "Não consegui acessar seus dados de pets no momento. Tente novamente.";
+                        content = response;
                         confidence = 0.3;
                         source = "error";
                     };
@@ -1249,35 +1319,69 @@ persistent actor PetID {
 
         // 2. Informações sobre NFTs e blockchain
         if (Text.contains(input, #text "nft") or Text.contains(input, #text "blockchain") or Text.contains(input, #text "token")) {
+            let response = switch (language) {
+                case ("en") {
+                    "🔗 On PetID, each pet is a unique NFT on the Internet Computer blockchain!\n\n✨ This means:\n• Verifiable digital ownership\n• Immutable medical history\n• Secure transfer between owners\n• DIP721 standard (equivalent to ERC-721)\n• Decentralized storage\n\nYour pet isn't just a record - it's a real digital asset!"
+                };
+                case (_) {
+                    "🔗 No PetID, cada pet é um NFT único na blockchain Internet Computer!\n\n✨ Isso significa:\n• Propriedade digital verificável\n• Histórico médico imutável\n• Transferência segura entre donos\n• Padrão DIP721 (equivalente ao ERC-721)\n• Armazenamento descentralizado\n\nSeu pet não é apenas um registro - é um ativo digital real!"
+                };
+            };
             return {
-                content = "🔗 No PetID, cada pet é um NFT único na blockchain Internet Computer!\n\n✨ Isso significa:\n• Propriedade digital verificável\n• Histórico médico imutável\n• Transferência segura entre donos\n• Padrão DIP721 (equivalente ao ERC-721)\n• Armazenamento descentralizado\n\nSeu pet não é apenas um registro - é um ativo digital real!";
+                content = response;
                 confidence = 1.0;
                 source = "knowledge_base";
             };
         };
 
         // 3. Sobre saúde e registros médicos
-        if (Text.contains(input, #text "saúde") or Text.contains(input, #text "vacina") or Text.contains(input, #text "veterinário") or Text.contains(input, #text "médico")) {
+        if (Text.contains(input, #text "saúde") or Text.contains(input, #text "vacina") or Text.contains(input, #text "veterinário") or Text.contains(input, #text "médico") or 
+            Text.contains(input, #text "health") or Text.contains(input, #text "vaccine") or Text.contains(input, #text "veterinary") or Text.contains(input, #text "medical")) {
+            let response = switch (language) {
+                case ("en") {
+                    "🏥 PetID keeps your pet's complete medical history on-chain!\n\n📋 You can register:\n• Veterinary consultations\n• Vaccinations and treatments\n• Surgeries and exams\n• Medical emergencies\n• Attach photos and documents\n\n💾 All data is permanently stored on the blockchain, ensuring it's never lost and can be verified by any veterinarian."
+                };
+                case (_) {
+                    "🏥 O PetID mantém todo histórico médico do seu pet on-chain!\n\n📋 Você pode registrar:\n• Consultas veterinárias\n• Vacinações e tratamentos\n• Cirurgias e exames\n• Emergências médicas\n• Anexar fotos e documentos\n\n💾 Todos os dados ficam permanentemente na blockchain, garantindo que nunca se percam e possam ser verificados por qualquer veterinário."
+                };
+            };
             return {
-                content = "🏥 O PetID mantém todo histórico médico do seu pet on-chain!\n\n📋 Você pode registrar:\n• Consultas veterinárias\n• Vacinações e tratamentos\n• Cirurgias e exames\n• Emergências médicas\n• Anexar fotos e documentos\n\n💾 Todos os dados ficam permanentemente na blockchain, garantindo que nunca se percam e possam ser verificados por qualquer veterinário.";
+                content = response;
                 confidence = 0.98;
                 source = "knowledge_base";
             };
         };
 
         // 4. Sobre genealogia e relacionamentos
-        if (Text.contains(input, #text "genealogia") or Text.contains(input, #text "família") or Text.contains(input, #text "pai") or Text.contains(input, #text "mãe") or Text.contains(input, #text "filho")) {
+        if (Text.contains(input, #text "genealogia") or Text.contains(input, #text "família") or Text.contains(input, #text "pai") or Text.contains(input, #text "mãe") or Text.contains(input, #text "filho") or
+            Text.contains(input, #text "genealogy") or Text.contains(input, #text "family") or Text.contains(input, #text "father") or Text.contains(input, #text "mother") or Text.contains(input, #text "child")) {
+            let response = switch (language) {
+                case ("en") {
+                    "🌳 PetID's digital genealogy connects pet families!\n\n👥 You can:\n• Register fathers, mothers and puppies\n• Create family trees\n• Connect siblings and partners\n• Verify lineages\n\n🧬 Each relationship is recorded on-chain, creating a verifiable genealogical network that helps breeders and owners understand genetic inheritance."
+                };
+                case (_) {
+                    "🌳 A genealogia digital do PetID conecta famílias de pets!\n\n👥 Você pode:\n• Registrar pais, mães e filhotes\n• Criar árvores genealógicas\n• Conectar irmãos e parceiros\n• Verificar linhagens\n\n🧬 Cada relacionamento é registrado on-chain, criando uma rede genealógica verificável que ajuda criadores e donos a entender a herança genética."
+                };
+            };
             return {
-                content = "🌳 A genealogia digital do PetID conecta famílias de pets!\n\n👥 Você pode:\n• Registrar pais, mães e filhotes\n• Criar árvores genealógicas\n• Conectar irmãos e parceiros\n• Verificar linhagens\n\n🧬 Cada relacionamento é registrado on-chain, criando uma rede genealógica verificável que ajuda criadores e donos a entender a herança genética.";
+                content = response;
                 confidence = 0.97;
                 source = "knowledge_base";
             };
         };
 
         // 5. Sobre o projeto PetID
-        if (Text.contains(input, #text "petid") or Text.contains(input, #text "projeto")) {
+        if (Text.contains(input, #text "petid") or Text.contains(input, #text "projeto") or Text.contains(input, #text "project")) {
+            let response = switch (language) {
+                case ("en") {
+                    "🐾 PetID is the first pet NFT platform on Internet Computer!\n\n🎯 Our mission:\n• Create unique digital identity for pets\n• Register immutable medical history\n• Facilitate responsible adoption\n• Connect pet community\n• Combat abandonment and mistreatment\n\n🌐 100% decentralized, secure and permanent. Your pet deserves a digital identity!"
+                };
+                case (_) {
+                    "🐾 PetID é a primeira plataforma de NFTs para pets na Internet Computer!\n\n🎯 Nossa missão:\n• Criar identidade digital única para pets\n• Registrar histórico médico imutável\n• Facilitar adoção responsável\n• Conectar comunidade pet\n• Combater abandono e maus-tratos\n\n🌐 100% descentralizado, seguro e permanente. Seu pet merece uma identidade digital!"
+                };
+            };
             return {
-                content = "🐾 PetID é a primeira plataforma de NFTs para pets na Internet Computer!\n\n🎯 Nossa missão:\n• Criar identidade digital única para pets\n• Registrar histórico médico imutável\n• Facilitar adoção responsável\n• Conectar comunidade pet\n• Combater abandono e maus-tratos\n\n🌐 100% descentralizado, seguro e permanente. Seu pet merece uma identidade digital!";
+                content = response;
                 confidence = 1.0;
                 source = "knowledge_base";
             };
@@ -1285,25 +1389,49 @@ persistent actor PetID {
 
         // 6. Sobre Internet Computer
         if (Text.contains(input, #text "internet computer") or Text.contains(input, #text "icp") or Text.contains(input, #text "dfinity")) {
+            let response = switch (language) {
+                case ("en") {
+                    "⚡ Internet Computer is the next-generation blockchain!\n\n🔥 Advantages:\n• Traditional web speed\n• Ultra-low costs\n• Native on-chain storage\n• Smart contracts in Motoko\n• Environmental sustainability\n\n🚀 That's why we chose ICP for PetID - real performance and decentralization!"
+                };
+                case (_) {
+                    "⚡ Internet Computer é a blockchain de nova geração!\n\n🔥 Vantagens:\n• Velocidade web tradicional\n• Custos ultra-baixos\n• Armazenamento on-chain nativo\n• Smart contracts em Motoko\n• Sustentabilidade ambiental\n\n🚀 Por isso escolhemos ICP para o PetID - performance e descentralização real!"
+                };
+            };
             return {
-                content = "⚡ Internet Computer é a blockchain de nova geração!\n\n🔥 Vantagens:\n• Velocidade web tradicional\n• Custos ultra-baixos\n• Armazenamento on-chain nativo\n• Smart contracts em Motoko\n• Sustentabilidade ambiental\n\n🚀 Por isso escolhemos ICP para o PetID - performance e descentralização real!";
+                content = response;
                 confidence = 0.95;
                 source = "knowledge_base";
             };
         };
 
         // 7. Respostas de saudação
-        if (Text.contains(input, #text "olá") or Text.contains(input, #text "oi") or Text.contains(input, #text "hello") or Text.contains(input, #text "help")) {
+        if (Text.contains(input, #text "olá") or Text.contains(input, #text "oi") or Text.contains(input, #text "hello") or Text.contains(input, #text "hi") or Text.contains(input, #text "help")) {
+            let response = switch (language) {
+                case ("en") {
+                    "👋 Hello! I'm PetID's AI, completely on-chain!\n\n💬 I can help with:\n• Information about your pets\n• How to use the platform\n• Details about NFTs and blockchain\n• Medical records and genealogy\n• Questions about the project\n\nWhat would you like to know? 🐾"
+                };
+                case (_) {
+                    "👋 Olá! Sou a IA do PetID, totalmente on-chain!\n\n💬 Posso ajudar com:\n• Informações sobre seus pets\n• Como usar a plataforma\n• Detalhes sobre NFTs e blockchain\n• Registros médicos e genealogia\n• Dúvidas sobre o projeto\n\nO que você gostaria de saber? 🐾"
+                };
+            };
             return {
-                content = "👋 Olá! Sou a IA do PetID, totalmente on-chain!\n\n💬 Posso ajudar com:\n• Informações sobre seus pets\n• Como usar a plataforma\n• Detalhes sobre NFTs e blockchain\n• Registros médicos e genealogia\n• Dúvidas sobre o projeto\n\nO que você gostaria de saber? 🐾";
+                content = response;
                 confidence = 1.0;
                 source = "general";
             };
         };
 
         // 8. Resposta padrão para outras perguntas
+        let response = switch (language) {
+            case ("en") {
+                "🤔 I'm still learning about that question!\n\nℹ️ For now, I can help with:\n• Information about your pet NFTs\n• Platform features\n• Blockchain and Internet Computer\n• Medical records and genealogy\n\n💡 Tip: Try questions like 'my pets', 'how it works', 'what is NFT' or 'medical records'."
+            };
+            case (_) {
+                "🤔 Ainda estou aprendendo sobre essa questão!\n\nℹ️ Por enquanto, posso ajudar com:\n• Informações sobre seus pets NFT\n• Funcionalidades da plataforma\n• Blockchain e Internet Computer\n• Registros médicos e genealogia\n\n💡 Dica: Tente perguntas como 'meus pets', 'como funciona', 'o que é NFT' ou 'registros médicos'."
+            };
+        };
         return {
-            content = "🤔 Ainda estou aprendendo sobre essa questão!\n\nℹ️ Por enquanto, posso ajudar com:\n• Informações sobre seus pets NFT\n• Funcionalidades da plataforma\n• Blockchain e Internet Computer\n• Registros médicos e genealogia\n\n💡 Dica: Tente perguntas como 'meus pets', 'como funciona', 'o que é NFT' ou 'registros médicos'.";
+            content = response;
             confidence = 0.6;
             source = "general";
         };
