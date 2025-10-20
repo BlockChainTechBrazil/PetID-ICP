@@ -343,9 +343,9 @@ const NFTPetsPanel = () => {
         }
         return;
       }
-      
+
       if (initializedRef.current && actor) return; // Já inicializado
-      
+
       initializedRef.current = true;
       try {
         const a = await createBackendActor();
@@ -634,13 +634,13 @@ const NFTPetsPanel = () => {
   // Submeter formulário para criar novo pet NFT
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Verificação dupla de autenticação
     if (!isAuthenticated || !actor || !authClient) {
       setError(t('petForm.loginPrompt', 'To register your pet, you need to connect with your Internet Identity'));
       return;
     }
-    
+
     // Verificar se ainda está autenticado no momento do submit
     try {
       const stillAuthenticated = await authClient.isAuthenticated();
@@ -766,25 +766,25 @@ const NFTPetsPanel = () => {
       <div className="nft-header">
         <h2>{t('petForm.myPets', 'My Pets')}</h2>
         <div className="dip721-info">
-          <div className="info-badge" title="DIP721 balance" style={{maxWidth:'180px'}}>
+          <div className="info-badge" title="DIP721 balance" style={{ maxWidth: '180px' }}>
             <span className="info-label">Your NFTs:</span>
             <span className="info-value">{nftBalance}</span>
           </div>
-          
+
           {/* 💻 BOTÃO DESKTOP */}
-          <button 
-            className="btn btn-transfer hidden md:flex" 
-            style={{minHeight:38}} 
+          <button
+            className="btn btn-transfer hidden md:flex"
+            style={{ minHeight: 38 }}
             onClick={() => setFormOpen(!formOpen)}
           >
             <GiPawPrint style={{ marginRight: '8px' }} />
             {formOpen ? t('common.cancel', 'Cancel') : t('petPanel.createPetNft', 'Create Pet NFT')}
           </button>
         </div>
-        
+
         {/* 📱 BOTÃO MOBILE SEGURO */}
         <div className="md:hidden mt-4">
-          <div 
+          <div
             className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-4 shadow-lg"
             style={{ touchAction: 'manipulation' }}
           >
@@ -799,7 +799,7 @@ const NFTPetsPanel = () => {
             </div>
             <button
               className="w-full py-4 px-6 bg-white text-blue-600 font-bold rounded-lg shadow-md mobile-safe-btn"
-              style={{ 
+              style={{
                 minHeight: '56px'
               }}
               onTouchStart={(e) => {
@@ -853,11 +853,8 @@ const NFTPetsPanel = () => {
       {/* Formulário de criação */}
       {formOpen && (
         <div style={{
-          background: '#f9fafb',
           padding: '20px',
-          borderRadius: '8px',
           marginBottom: '20px',
-          border: '1px solid #e5e7eb'
         }}>
           <h3 style={{ marginBottom: '16px' }}>{t('petPanel.createNewNftTitle', 'Create New Pet NFT')}</h3>
           <form onSubmit={handleSubmit}>
@@ -893,7 +890,7 @@ const NFTPetsPanel = () => {
                   onChange={handleChange}
                   required
                   placeholder={t('petForm.nicknamePlaceholder', "Your pet's nickname (optional)")}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', color: 'black' }}
                 />
               </div>
 
@@ -907,7 +904,7 @@ const NFTPetsPanel = () => {
                   value={formData.birthDate}
                   onChange={handleChange}
                   required
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', color: 'black' }}
                 />
               </div>
 
@@ -922,7 +919,7 @@ const NFTPetsPanel = () => {
                   onChange={handleChange}
                   required
                   placeholder={t('petForm.selectSpecies', 'Select species')}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', color: 'black' }}
                 />
               </div>
 
@@ -935,7 +932,7 @@ const NFTPetsPanel = () => {
                   value={formData.gender}
                   onChange={handleChange}
                   required
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', color: 'black' }}
                 >
                   <option value="">{t('petForm.selectGender', 'Select gender')}</option>
                   <option value="male">{t('petForm.male', 'Male')}</option>
@@ -953,7 +950,7 @@ const NFTPetsPanel = () => {
                   value={formData.color}
                   onChange={handleChange}
                   required
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', color: 'black' }}
                 />
               </div>
 
@@ -1017,7 +1014,7 @@ const NFTPetsPanel = () => {
       <div className="md:hidden fixed bottom-20 right-4 z-50">
         <button
           className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full shadow-2xl flex items-center justify-center text-white mobile-safe-btn"
-          style={{ 
+          style={{
             border: '3px solid white'
           }}
           onTouchStart={(e) => {
