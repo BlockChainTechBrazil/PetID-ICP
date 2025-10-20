@@ -145,7 +145,7 @@ const CommunityPanel = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t('community.searchPlaceholder', 'Search posts and events...')}
-          className="flex-1 rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm"
+          className="flex-1 rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300"
         />
         <select
           value={typeFilter}
@@ -162,7 +162,7 @@ const CommunityPanel = () => {
           value={tagFilter}
           onChange={(e) => setTagFilter(e.target.value)}
           placeholder={t('community.tagPlaceholder', '#tag or multiple, separated')}
-          className="w-full md:w-64 rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm"
+          className="w-full md:w-64 rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300"
         />
       </div>
 
@@ -189,10 +189,10 @@ const CommunityPanel = () => {
             <button type="button" onClick={() => { setComposer(null); setFabOpen(false); }} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-100"><FiX /></button>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <input value={newPost.title} onChange={(e) => setNewPost(p => ({ ...p, title: e.target.value }))} placeholder={t('community.titlePlaceholder', 'Title (e.g., Meetup, Tip, Adoption)')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm" />
-            <input value={newPost.tags} onChange={(e) => setNewPost(p => ({ ...p, tags: e.target.value }))} placeholder={t('community.tagsPlaceholder', 'Tags (comma-separated): walk, adoption, health')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm" />
+            <input value={newPost.title} onChange={(e) => setNewPost(p => ({ ...p, title: e.target.value }))} placeholder={t('community.titlePlaceholder', 'Title (e.g., Meetup, Tip, Adoption)')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300" />
+            <input value={newPost.tags} onChange={(e) => setNewPost(p => ({ ...p, tags: e.target.value }))} placeholder={t('community.tagsPlaceholder', 'Tags (comma-separated): walk, adoption, health')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300" />
           </div>
-          <textarea value={newPost.content} onChange={(e) => setNewPost(p => ({ ...p, content: e.target.value }))} placeholder={t('community.contentPlaceholder', 'Write something helpful or invite others...')} rows={4} className="mt-3 w-full rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm" />
+          <textarea value={newPost.content} onChange={(e) => setNewPost(p => ({ ...p, content: e.target.value }))} placeholder={t('community.contentPlaceholder', 'Write something helpful or invite others...')} rows={4} className="mt-3 w-full rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300" />
           <div className="flex justify-end mt-3 gap-2">
             <button type="button" onClick={() => { setComposer(null); setFabOpen(false); }} className="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm">{t('common.cancel', 'Cancel')}</button>
             <button type="submit" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-petPurple-500 text-white text-sm shadow"><FiSend className="w-4 h-4" />{t('community.post', 'Post')}</button>
@@ -207,13 +207,13 @@ const CommunityPanel = () => {
             <button type="button" onClick={() => { setComposer(null); setFabOpen(false); }} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-100"><FiX /></button>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <input value={newEvent.title} onChange={(e) => setNewEvent(p => ({ ...p, title: e.target.value }))} placeholder={t('community.titlePlaceholder', 'Title (e.g., Meetup, Tip, Adoption)')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm" />
-            <input type="date" value={newEvent.date} onChange={(e) => setNewEvent(p => ({ ...p, date: e.target.value }))} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm" />
-            <input type="time" value={newEvent.time} onChange={(e) => setNewEvent(p => ({ ...p, time: e.target.value }))} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm" />
-            <input value={newEvent.location} onChange={(e) => setNewEvent(p => ({ ...p, location: e.target.value }))} placeholder={t('community.location', 'Location (optional)')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm md:col-span-2" />
-            <input value={newEvent.tags} onChange={(e) => setNewEvent(p => ({ ...p, tags: e.target.value }))} placeholder={t('community.tagsPlaceholder', 'Tags (comma-separated): walk, adoption, health')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm md:col-span-2" />
+            <input value={newEvent.title} onChange={(e) => setNewEvent(p => ({ ...p, title: e.target.value }))} placeholder={t('community.titlePlaceholder', 'Title (e.g., Meetup, Tip, Adoption)')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300" />
+            <input type="date" value={newEvent.date} onChange={(e) => setNewEvent(p => ({ ...p, date: e.target.value }))} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white" />
+            <input type="time" value={newEvent.time} onChange={(e) => setNewEvent(p => ({ ...p, time: e.target.value }))} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white" />
+            <input value={newEvent.location} onChange={(e) => setNewEvent(p => ({ ...p, location: e.target.value }))} placeholder={t('community.location', 'Location (optional)')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm md:col-span-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300" />
+            <input value={newEvent.tags} onChange={(e) => setNewEvent(p => ({ ...p, tags: e.target.value }))} placeholder={t('community.tagsPlaceholder', 'Tags (comma-separated): walk, adoption, health')} className="rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm md:col-span-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300" />
           </div>
-          <textarea value={newEvent.content} onChange={(e) => setNewEvent(p => ({ ...p, content: e.target.value }))} placeholder={t('community.contentPlaceholder', 'Write something helpful or invite others...')} rows={4} className="mt-3 w-full rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm" />
+          <textarea value={newEvent.content} onChange={(e) => setNewEvent(p => ({ ...p, content: e.target.value }))} placeholder={t('community.contentPlaceholder', 'Write something helpful or invite others...')} rows={4} className="mt-3 w-full rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300" />
           <div className="flex justify-end mt-3 gap-2">
             <button type="button" onClick={() => { setComposer(null); setFabOpen(false); }} className="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm">{t('common.cancel', 'Cancel')}</button>
             <button type="submit" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-petPurple-500 text-white text-sm shadow"><FiSend className="w-4 h-4" />{t('community.create', 'Create')}</button>
@@ -243,11 +243,11 @@ const CommunityPanel = () => {
                   <div className="text-[11px] text-gray-500 dark:text-slate-400">{date.getDate()}</div>
                   <div className="mt-1 flex flex-col gap-1">
                     {dayEvents.slice(0, 2).map(ev => (
-                      <button key={ev.id} onClick={() => setSelectedEvent(ev)} className="text-left text-[9px] px-1 py-0.5 rounded bg-petPink-400/20 text-petPink-200 hover:bg-petPink-400/30 truncate" title={ev.title}>
+                      <button key={ev.id} onClick={() => setSelectedEvent(ev)} className="text-left text-[9px] px-1 py-0.5 rounded bg-petPink-400/20 text-white dark:text-white hover:bg-petPink-400/30 truncate" title={ev.title}>
                         {ev.time ? `${ev.time} • ` : ''}{ev.title}
                       </button>
                     ))}
-                    {dayEvents.length > 2 && <span className="text-[9px] text-gray-400">+{dayEvents.length - 2}</span>}
+                    {dayEvents.length > 2 && <span className="text-[9px] text-white dark:text-white">+{dayEvents.length - 2}</span>}
                   </div>
                 </div>
               );
@@ -262,9 +262,9 @@ const CommunityPanel = () => {
                 .slice()
                 .sort((a, b) => `${a.date} ${a.time || '00:00'}`.localeCompare(`${b.date} ${b.time || '00:00'}`))
                 .map(ev => (
-                  <button key={ev.id} onClick={() => setSelectedEvent(ev)} className="w-full text-left px-3 py-2 rounded-lg bg-gray-50 dark:bg-surface-100 text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-surface-100/80">
-                    <div className="text-xs font-medium">{ev.title}</div>
-                    <div className="text-[11px] text-gray-500 dark:text-slate-400">{ev.date} {ev.time ? `• ${ev.time}` : ''}{ev.location ? ` • 📍 ${ev.location}` : ''}</div>
+                  <button key={ev.id} onClick={() => setSelectedEvent(ev)} className="w-full text-left px-3 py-2 rounded-lg bg-gray-50 dark:bg-surface-100 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-surface-100/80">
+                    <div className="text-xs font-medium text-gray-800 dark:text-white">{ev.title}</div>
+                    <div className="text-[11px] text-gray-500 dark:text-gray-300">{ev.date} {ev.time ? `• ${ev.time}` : ''}{ev.location ? ` • 📍 ${ev.location}` : ''}</div>
                   </button>
                 ))}
               {events.length === 0 && (
@@ -313,8 +313,8 @@ const CommunityPanel = () => {
                         <FiUser className="w-4 h-4" />
                       </div>
                       <div className="text-xs bg-gray-50 dark:bg-surface-100 px-3 py-2 rounded-lg">
-                        <span className="font-medium mr-1">{c.user}:</span>
-                        <span className="text-gray-700 dark:text-slate-300">{c.text}</span>
+                        <span className="font-medium mr-1 text-gray-800 dark:text-white">{c.user}:</span>
+                        <span className="text-gray-700 dark:text-white">{c.text}</span>
                       </div>
                     </div>
                   ))}
@@ -326,7 +326,7 @@ const CommunityPanel = () => {
                   value={commentInputs[p.id] || ''}
                   onChange={(e) => setCommentInputs(prev => ({ ...prev, [p.id]: e.target.value }))}
                   placeholder={t('community.commentPlaceholder', 'Write a comment...')}
-                  className="flex-1 rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-xs"
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-surface-100 bg-white dark:bg-surface-75 px-3 py-2 text-xs text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300"
                 />
                 <button onClick={() => addComment(p.id)} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-900 text-white text-xs">
                   <FiMessageCircle className="w-4 h-4" /> {t('community.comment', 'Comment')}

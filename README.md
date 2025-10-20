@@ -1,7 +1,7 @@
 # PetID - Blockchain Pet Registry
 
 <p align="center">
-  <img src="./src/PetID_frontend/src/assets/logo/logo.jpg" alt="PetID Logo" width="320"/>
+  <img src="./src/PetID_frontend/src/assets/logo/logo-readme.png" alt="PetID Logo" width="320"/>
 </p>
 
 ---
@@ -60,6 +60,15 @@
 - Pet Document (option to download as PDF)
 - Medical Records Document and Interface
 - Vaccination Records Document and Interface
+
+### IV - Final Rounnd
+- Frontend (UI/UX improvements)
+- DIP 721 Standard ICP NFT
+- Location & Clinics
+- Pet Documentation UI/UX improvements
+- Community and events fully on-chain
+- AI Assistant on-chain
+- Complete migration from IPFS to ICP Asset  Storage
 
 
 ## 🏗️ Project architecture

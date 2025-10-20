@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { createActor } from 'declarations/PetID_backend';
-import { canisterId as backendCanisterId } from 'declarations/PetID_backend/index';
-import { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { useTranslation } from 'react-i18next';
 import { GiPawPrint } from 'react-icons/gi';
@@ -29,8 +26,25 @@ const nftStyles = `
                 linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
     border: 1px solid rgba(148,163,184,0.18);
     border-radius: 16px;
-  padding: 18px 18px 20px 18px;
+    padding: 18px 18px 20px 18px;
     display: grid;
+  }
+
+  /* 📱 MOBILE SAFE BUTTONS - Prevent accidental touches */
+  .mobile-safe-btn {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+  
+  .mobile-safe-btn:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s ease !important;
     grid-template-columns: 160px 1fr;
     gap: 16px;
     align-items: center;
@@ -262,7 +276,7 @@ if (typeof document !== 'undefined') {
 }
 
 const NFTPetsPanel = () => {
-  const { isAuthenticated, authClient } = useAuth();
+  const { isAuthenticated, authClient, createBackendActor } = useAuth();
   const { t, i18n } = useTranslation();
 
   // Estados principais
@@ -315,28 +329,46 @@ const NFTPetsPanel = () => {
     }
   };
 
-  // Create actor when authenticated
+  // Create actor when authenticated using shared context
   useEffect(() => {
+    let mounted = true;
     const init = async () => {
-      if (!isAuthenticated || !authClient || initializedRef.current) return;
+      if (!isAuthenticated) {
+        // Limpar actor se não está autenticado
+        if (actor) {
+          console.log('[NFTPetsPanel] Clearing actor due to authentication loss');
+          setActor(null);
+          setPets([]);
+          initializedRef.current = false;
+        }
+        return;
+      }
+      
+      if (initializedRef.current && actor) return; // Já inicializado
+      
       initializedRef.current = true;
       try {
-        const identity = authClient.getIdentity();
-        const network = import.meta.env.DFX_NETWORK || 'local';
-        const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
-        const agent = new HttpAgent({ identity, host });
-        if (network !== 'ic') {
-          try { await agent.fetchRootKey(); } catch { }
+        const a = await createBackendActor();
+        if (!mounted) return;
+        if (a) {
+          setActor(a);
+          console.log('[NFTPetsPanel] Backend actor created successfully');
+        } else {
+          setError(t('errors.initActor', 'Error initializing actor. Please try logging out and in again.'));
+          // Reset para permitir nova tentativa
+          initializedRef.current = false;
         }
-        const a = await createActor(backendCanisterId, { agent });
-        setActor(a);
       } catch (e) {
         console.error('[NFTPetsPanel] actor error', e);
-        setError(t('errors.initActor', 'Error initializing actor'));
+        if (mounted) {
+          setError(t('errors.initActor', 'Error initializing actor. Please try logging out and in again.'));
+          initializedRef.current = false;
+        }
       }
     };
     init();
-  }, [isAuthenticated, authClient]);
+    return () => { mounted = false; };
+  }, [isAuthenticated, createBackendActor, actor]);
 
   // ✅ FUNÇÃO AUXILIAR: Upload para ICP Asset Storage
   const uploadToICP = async (file) => {
@@ -602,8 +634,23 @@ const NFTPetsPanel = () => {
   // Submeter formulário para criar novo pet NFT
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated || !actor) {
+    
+    // Verificação dupla de autenticação
+    if (!isAuthenticated || !actor || !authClient) {
       setError(t('petForm.loginPrompt', 'To register your pet, you need to connect with your Internet Identity'));
+      return;
+    }
+    
+    // Verificar se ainda está autenticado no momento do submit
+    try {
+      const stillAuthenticated = await authClient.isAuthenticated();
+      if (!stillAuthenticated) {
+        setError(t('errors.sessionExpired', 'Session expired. Please log in again.'));
+        return;
+      }
+    } catch (e) {
+      console.error('[NFTPetsPanel] Auth check error:', e);
+      setError(t('errors.authCheck', 'Authentication error. Please log in again.'));
       return;
     }
 
@@ -723,10 +770,58 @@ const NFTPetsPanel = () => {
             <span className="info-label">Your NFTs:</span>
             <span className="info-value">{nftBalance}</span>
           </div>
-          <button className="btn btn-transfer" style={{minHeight:38}} onClick={() => setFormOpen(!formOpen)}>
+          
+          {/* 💻 BOTÃO DESKTOP */}
+          <button 
+            className="btn btn-transfer hidden md:flex" 
+            style={{minHeight:38}} 
+            onClick={() => setFormOpen(!formOpen)}
+          >
             <GiPawPrint style={{ marginRight: '8px' }} />
             {formOpen ? t('common.cancel', 'Cancel') : t('petPanel.createPetNft', 'Create Pet NFT')}
           </button>
+        </div>
+        
+        {/* 📱 BOTÃO MOBILE SEGURO */}
+        <div className="md:hidden mt-4">
+          <div 
+            className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-4 shadow-lg"
+            style={{ touchAction: 'manipulation' }}
+          >
+            <div className="text-center text-white mb-3">
+              <GiPawPrint className="text-3xl mx-auto mb-2" />
+              <h3 className="font-bold text-lg">
+                {t('petPanel.createYourPet', 'Create Your Pet NFT')}
+              </h3>
+              <p className="text-sm opacity-90">
+                {t('petPanel.mobileCreateDescription', 'Tap below to create your pet NFT safely')}
+              </p>
+            </div>
+            <button
+              className="w-full py-4 px-6 bg-white text-blue-600 font-bold rounded-lg shadow-md mobile-safe-btn"
+              style={{ 
+                minHeight: '56px'
+              }}
+              onTouchStart={(e) => {
+                console.log('[Mobile NFT] 📱 Touch start detected');
+                e.currentTarget.style.transform = 'scale(0.98)';
+              }}
+              onTouchEnd={(e) => {
+                console.log('[Mobile NFT] 📱 Touch end detected');
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[Mobile NFT] 📱 SAFE MOBILE CLICK - Opening form');
+                setFormOpen(!formOpen);
+              }}
+            >
+              <span className="text-lg">
+                {formOpen ? '❌ ' + t('common.cancel', 'Cancel') : '🐾 ' + t('petPanel.createPetNft', 'Create Pet NFT')}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -916,6 +1011,35 @@ const NFTPetsPanel = () => {
         ) : (
           renderNFTs()
         )}
+      </div>
+
+      {/* 🚀 BOTÃO FLUTUANTE MOBILE - Sempre visível */}
+      <div className="md:hidden fixed bottom-20 right-4 z-50">
+        <button
+          className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full shadow-2xl flex items-center justify-center text-white mobile-safe-btn"
+          style={{ 
+            border: '3px solid white'
+          }}
+          onTouchStart={(e) => {
+            console.log('[FAB] 🎯 FAB Touch start');
+            e.currentTarget.style.transform = 'scale(0.85)';
+          }}
+          onTouchEnd={(e) => {
+            console.log('[FAB] 🎯 FAB Touch end');
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[FAB] 🎯 FAB CLICKED - Opening NFT form');
+            setFormOpen(true);
+            // Scroll to top para mostrar o form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          title={t('petPanel.createPetNft', 'Create Pet NFT')}
+        >
+          <GiPawPrint className="text-2xl" />
+        </button>
       </div>
 
       {/* Modal de Transfer */}

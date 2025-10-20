@@ -36,8 +36,37 @@ const NavBar = () => {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
+  // 🛡️ FECHAR MENU MOBILE automaticamente quando usuário está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Dar um pequeno delay e fechar o menu para evitar cliques acidentais
+      const timer = setTimeout(() => {
+        setMobileOpen(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
+
   const goLogin = () => navigate('/login');
-  const handleLogout = async () => { await logout?.(); };
+  
+  // 🛡️ PROTEÇÃO CONTRA LOGOUT ACIDENTAL 
+  const handleLogout = async (event) => { 
+    // Verificar se não foi um touch/click acidental
+    if (event && event.isTrusted === false) {
+      console.log('[NavBar] 🚫 BLOCKED - Untrusted logout event');
+      return;
+    }
+    
+    // Adicionar delay para evitar cliques duplos acidentais
+    const confirmLogout = window.confirm('Tem certeza que deseja sair?');
+    if (!confirmLogout) {
+      console.log('[NavBar] 🚫 BLOCKED - User cancelled logout');
+      return;
+    }
+    
+    console.log('[NavBar] ✅ CONFIRMED - User logout confirmed');
+    await logout?.(); 
+  };
 
   return (
     <nav className="sticky top-0 z-50 py-2 md:py-3 bg-white/80 dark:bg-surface-75/90 backdrop-blur-xl border-b border-gray-200 dark:border-surface-100 shadow-sm">
@@ -73,7 +102,7 @@ const NavBar = () => {
                   {t('navbar.profile', 'Perfil')}
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={(e) => handleLogout(e)}
                   className="px-5 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
                 >
                   {t('navbar.logout', 'Logout')}
@@ -138,7 +167,7 @@ const NavBar = () => {
                     {t('navbar.profile', 'Perfil')}
                   </Link>
                   <button
-                    onClick={() => { handleLogout(); setMobileOpen(false); }}
+                    onClick={(e) => { handleLogout(e); setMobileOpen(false); }}
                     className="w-full px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-surface-100 dark:hover:bg-surface-200 text-gray-800 dark:text-slate-100 font-semibold transition-all duration-200"
                   >
                     {t('navbar.logout', 'Logout')}

@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 
 // Carregar .env da raiz do projeto
 dotenv.config({ path: '../../.env' });
+dotenv.config({ path: './.env' }); // fallback para .env local
 
 // Determine if we're in development mode
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -42,10 +43,33 @@ export default defineConfig({
           // Adicionar tratamento de erro para evitar falhas quando o dfx não estiver rodando
           proxy.on('error', (err, req, res) => {
             console.warn('Proxy error:', err);
-            res.writeHead(500, {
-              'Content-Type': 'text/plain',
-            });
-            res.end('Backend service is unavailable. Run dfx start in a separate terminal.');
+            if (!res.headersSent) {
+              res.writeHead(500, {
+                'Content-Type': 'text/plain',
+              });
+              res.end('Backend service is unavailable. Run dfx start in a separate terminal.');
+            }
+          });
+          
+          // Interceptar requests problemáticos ANTES de enviar
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Bloquear /api/v2/status completamente
+            if (req.url && req.url.includes('/api/v2/status')) {
+              proxyReq.destroy();
+              if (!res.headersSent) {
+                res.writeHead(200, { 
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*'
+                });
+                res.end('{"status":"ok"}');
+              }
+              return;
+            }
+            
+            // Adicionar headers necessários para ICP
+            proxyReq.setHeader('Access-Control-Allow-Origin', '*');
+            proxyReq.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+            proxyReq.setHeader('Access-Control-Allow-Headers', 'Content-Type');
           });
         }
       },

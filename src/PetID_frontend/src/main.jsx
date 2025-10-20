@@ -11,19 +11,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 );
 
 // Registro do Service Worker (PWA)
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', async () => {
     const swUrl = '/sw.js';
     try {
-      // Em dev, o plugin cria um SW virtual; habilitamos devOptions.enabled no vite.config.
-      // Ainda assim, validamos para evitar log de erro 404 ruidoso.
-      const headResp = await fetch(swUrl, { method: 'HEAD' });
-      if (!headResp.ok) {
-        console.info('[PWA] SW ainda não disponível (status ' + headResp.status + ').');
-        return; // evita tentativa de registro quebrada
-      }
       const reg = await navigator.serviceWorker.register(swUrl);
       console.log('[PWA] SW registrado', reg.scope);
+      
+      // Listen for updates
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated') {
+            console.log('[PWA] Nova versão ativa.');
+          }
+        });
+      });
     } catch (err) {
       console.warn('[PWA] Falha ao registrar SW', err);
     }
