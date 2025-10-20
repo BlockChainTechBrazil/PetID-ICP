@@ -302,8 +302,16 @@ const NFTPetsPanel = () => {
   const [transferTokenId, setTransferTokenId] = useState('');
   const [transferToAddress, setTransferToAddress] = useState('');
   const [transferLoading, setTransferLoading] = useState(false);
+  const [previewPet, setPreviewPet] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewQR, setPreviewQR] = useState('');
+  const [previewImageURL, setPreviewImageURL] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [previewRaster, setPreviewRaster] = useState('');
 
   const initializedRef = useRef(false);
+  const lastToggleRef = useRef(0);
 
   // Formatar timestamp ICP (nanosegundos) em data legível
   const formatIcTimestamp = (value) => {
@@ -410,21 +418,29 @@ const NFTPetsPanel = () => {
     }
   };
 
+  // Função para obter Data URL (base64) da imagem ICP - melhor para usar dentro de iframe srcDoc
+  const getICPImageDataURL = async (assetId) => {
+    try {
+      if (!actor || !assetId) return '';
+      const result = await actor.getAssetData(assetId);
+      if ('ok' in result) {
+        const blob = new Blob([result.ok]);
+        return await new Promise((res, rej) => {
+          const fr = new FileReader();
+          fr.onload = () => res(fr.result);
+          fr.onerror = (e) => rej(e);
+          fr.readAsDataURL(blob);
+        });
+      }
+      return '';
+    } catch (e) {
+      console.error('Error getting ICP image data URL:', e);
+      return '';
+    }
+  };
+
   // ✅ FUNÇÃO: Gerar cartão de identidade digital do pet
-  const generatePetDocument = async (pet) => {
-    const imageURL = await getICPImageURL(pet.photo);
-    const printWindow = window.open('', '_blank');
-    const doc = printWindow.document;
-    const currentLanguage = i18n.language;
-    const isEnglish = currentLanguage.startsWith('en');
-
-    const ownerAddress = (pet.owner && String(pet.owner)) || (authClient?.getIdentity()?.getPrincipal()?.toString() || '');
-
-    const formatDate = (dateString) => {
-      try { return new Date(dateString).toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR'); } catch { return dateString || ''; }
-    };
-
-    // Mapear status -> ícone e rótulo
+  const buildPetCardHTML = (pet, imageURL, ownerAddress, isEnglish, qrDataUrl, formatDateFn) => {
     const status = pet.status || (pet.isLost ? 'lost' : 'home');
     const statusConfig = {
       home: { icon: '🏠', color: '#10b981', label: isEnglish ? 'Home' : 'Em casa' },
@@ -432,13 +448,7 @@ const NFTPetsPanel = () => {
       hospital: { icon: '🏥', color: '#ef4444', label: isEnglish ? 'Red Cross' : 'Cruz Vermelha' }
     }[status] || { icon: '🏠', color: '#10b981', label: isEnglish ? 'Home' : 'Em casa' };
 
-    const qrPayload = JSON.stringify({ id: pet.id, nickname: pet.nickname, owner: ownerAddress, url: `${window.location.origin}/?pet=${encodeURIComponent(pet.id)}` });
-    let qrDataUrl = '';
-    try {
-      qrDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 112 });
-    } catch (e) { console.warn('QR generation failed', e); }
-    const htmlContent = `
-      <!DOCTYPE html>
+    return `<!DOCTYPE html>
       <html lang="${isEnglish ? 'en' : 'pt-BR'}">
       <head>
         <meta charset="UTF-8" />
@@ -447,11 +457,12 @@ const NFTPetsPanel = () => {
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
           *{box-sizing:border-box;margin:0;padding:0}
-          html,body{height:100%}
+          html,body{height:100%;margin:0;padding:0;overflow:hidden}
           @page { size: auto; margin: 0; }
-          /* Página em branco, apenas o card ficará azul */
-          body{font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:36px;color:#0b1220; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
-          .card{width:820px;max-width:100%;background:#264766;border-radius:16px;box-shadow:0 18px 40px rgba(2,6,23,0.25);padding:28px;border:1px solid rgba(255,255,255,0.04);position:relative; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+          /* preview-friendly body: smaller padding so card fits in iframe */
+          body{font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;padding:12px;color:#0b1220; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+          /* make the card responsive inside the iframe */
+          .card{width:90%;max-width:820px;background:#264766;border-radius:16px;box-shadow:0 18px 40px rgba(2,6,23,0.25);padding:20px;border:1px solid rgba(255,255,255,0.04);position:relative;box-sizing:border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
           .topbar{height:56px;border-radius:10px;margin-bottom:18px;display:flex;align-items:center;padding:0 6px;justify-content:flex-start}
           .brand{display:flex;align-items:center;gap:10px;color:#93c5fd;font-weight:700;letter-spacing:.2px}
           .brand img{width:26px;height:26px;border-radius:6px}
@@ -462,22 +473,19 @@ const NFTPetsPanel = () => {
           .pill .value{font-weight:700;color:#f8fafc;letter-spacing:.2px;padding-left:6px}
           .photoWrap{position:relative;display:flex;align-items:center;justify-content:center}
           .photo{width:320px;height:320px;border-radius:16px;object-fit:cover;border:10px solid rgba(255,255,255,0.06);background:#0b1220}
+          /* responsive photo: scale down on narrow containers */
+          @media (max-width:700px){ .photo{width:100%;height:auto;max-width:320px;border-width:8px} .grid{grid-template-columns:1fr;gap:12px} }
           .status{position:absolute;top:12px;right:12px;background:${statusConfig.color};color:#fff;padding:6px 12px;border-radius:999px;font-weight:700;display:flex;gap:8px;align-items:center;box-shadow:0 6px 18px rgba(2,6,23,0.2)}
-          /* Owner Ribbon em branco para contraste dentro do card azul */
           .ownerRibbon{position:absolute;right:18px;bottom:18px;background:#ffffff;color:#0b1220;padding:12px 14px;border-radius:12px;border:1px solid rgba(2,6,23,0.06);box-shadow:0 10px 22px rgba(2,6,23,0.12);max-width:54%; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
           .ownerRibbon .title{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#2b6cb0;font-weight:800;margin-bottom:6px}
           .ownerRibbon .address{font-family:'JetBrains Mono','Courier New',monospace;font-size:12px;word-break:break-all;color:#334155}
           .qr{position:absolute;left:20px;bottom:20px;background:#ffffff;border:1px solid rgba(2,6,23,0.06);border-radius:12px;padding:8px;box-shadow:0 10px 20px rgba(2,6,23,0.12); -webkit-print-color-adjust: exact; print-color-adjust: exact;}
-          @media print{ 
-            /* Mantém a página branca, e forçar o cartão com cor de fundo ainda visível quando possível */
-            body{padding:0; background: #ffffff}
-            .card{box-shadow:none;border-radius:8px;width:100%;padding:18px}
-          }
+          @media print{ body{padding:0; background: #ffffff} .card{box-shadow:none;border-radius:8px;width:100%;padding:18px} }
         </style>
       </head>
       <body>
         <div class="card">
-          <div class="topbar">
+              <div class="topbar">
             <div class="brand"><img src="${petidLogo}" alt="PetID"/> PetID</div>
           </div>
           <div class="grid">
@@ -486,7 +494,7 @@ const NFTPetsPanel = () => {
               <div class="pill"><div class="label">${isEnglish ? 'Pet ID' : 'ID do Pet'}</div><div class="value">${pet.id || '-'}</div></div>
               <div class="pill"><div class="label">${isEnglish ? 'Breed' : 'Raça'}</div><div class="value">${pet.species || '-'}</div></div>
               <div class="pill"><div class="label">${isEnglish ? 'Coat' : 'Cor'}</div><div class="value">${pet.color || '-'}</div></div>
-              <div class="pill"><div class="label">${isEnglish ? 'DOB' : 'Nascimento'}</div><div class="value">${formatDate(pet.birthDate) || '-'}</div></div>
+              <div class="pill"><div class="label">${isEnglish ? 'DOB' : 'Nascimento'}</div><div class="value">${formatDateFn ? formatDateFn(pet.birthDate) : (pet.birthDate || '-')}</div></div>
               <div class="pill"><div class="label">${isEnglish ? 'Sex' : 'Sexo'}</div><div class="value">${pet.gender === 'male' ? (isEnglish ? 'Male' : 'Macho') : (isEnglish ? 'Female' : 'Fêmea')}</div></div>
             </div>
             <div class="photoWrap">
@@ -502,8 +510,27 @@ const NFTPetsPanel = () => {
         </div>
       </body>
       </html>`;
+  };
 
-    // legacy: open printable window (kept for browsers that prefer print dialog)
+  const generatePetDocument = async (pet) => {
+    const imageURL = await getICPImageURL(pet.photo);
+    const printWindow = window.open('', '_blank');
+    const doc = printWindow.document;
+    const currentLanguage = i18n.language;
+    const isEnglish = currentLanguage.startsWith('en');
+
+    const ownerAddress = (pet.owner && String(pet.owner)) || (authClient?.getIdentity()?.getPrincipal()?.toString() || '');
+
+    const formatDate = (dateString) => {
+      try { return new Date(dateString).toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR'); } catch { return dateString || ''; }
+    };
+
+    // gerar QR pequeno para o template
+    let qrDataUrl = '';
+    try { qrDataUrl = await QRCode.toDataURL(JSON.stringify({ id: pet.id, nickname: pet.nickname, owner: ownerAddress, url: `${window.location.origin}/?pet=${encodeURIComponent(pet.id)}` }), { margin: 1, width: 112 }); } catch (e) { console.warn('QR generation failed', e); }
+
+    const htmlContent = buildPetCardHTML(pet, imageURL, ownerAddress, isEnglish, qrDataUrl, formatDate);
+
     try {
       doc.write(htmlContent);
       doc.close();
@@ -516,6 +543,8 @@ const NFTPetsPanel = () => {
   // Exporta o cartão como PDF rasterizado (html2canvas -> jsPDF) no tamanho de cartão CPF (85.6 x 53.98 mm)
   const exportPetCardAsPDF = async (pet) => {
     try {
+      const currentLanguage = i18n.language;
+      const isEnglish = currentLanguage?.startsWith('en');
       // dimensões em mm
       const widthMM = 85.6;
       const heightMM = 53.98;
@@ -833,6 +862,51 @@ const NFTPetsPanel = () => {
     }
   }, [actor]);
 
+  // Gerar preview (QR + imagem) quando previewPet for definido
+  useEffect(() => {
+    let mounted = true;
+    const makePreview = async () => {
+      if (!previewPet) return;
+      setPreviewLoading(true);
+      try {
+        const ownerAddress = (previewPet.owner && String(previewPet.owner)) || (authClient?.getIdentity()?.getPrincipal()?.toString() || '');
+        const qrPayload = JSON.stringify({ id: previewPet.id, nickname: previewPet.nickname, owner: ownerAddress, url: `${window.location.origin}/?pet=${encodeURIComponent(previewPet.id)}` });
+        try {
+          const q = await QRCode.toDataURL(qrPayload, { margin: 1, width: 256 }); if (mounted) setPreviewQR(q);
+        } catch (e) { console.warn('QR preview failed', e); }
+        try { const img = await getICPImageURL(previewPet.photo); if (mounted) setPreviewImageURL(img || ''); } catch (e) { console.warn('image preview failed', e); }
+        try {
+          const currentLanguage = i18n.language;
+          const isEnglish = currentLanguage?.startsWith('en');
+          const formatDate = (dateString) => { try { return new Date(dateString).toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR'); } catch { return dateString || ''; } };
+          // usar data URL para iframe (srcDoc) — object URLs às vezes não funcionam no srcDoc
+          const dataImg = await getICPImageDataURL(previewPet.photo);
+          const html = buildPetCardHTML(previewPet, dataImg || '', ownerAddress, isEnglish, (mounted ? previewQR : ''), formatDate);
+          if (mounted) setPreviewHtml(html);
+          // generate raster preview using html2canvas for 1:1 fidelity (preferred)
+          try {
+            const off = document.createElement('div');
+            off.style.position = 'fixed'; off.style.left = '-99999px'; off.style.top = '0'; off.style.width = '900px'; off.style.height = 'auto'; off.style.overflow = 'visible';
+            off.innerHTML = html;
+            document.body.appendChild(off);
+            // target the card element inside
+            const cardEl = off.querySelector('.card') || off;
+            const canvas = await html2canvas(cardEl, { scale: 2, useCORS: true, backgroundColor: null });
+            const data = canvas.toDataURL('image/png');
+            if (mounted) setPreviewRaster(data);
+            document.body.removeChild(off);
+          } catch (e) {
+            console.warn('raster preview failed', e);
+          }
+        } catch (e) { console.warn('preview html failed', e); }
+      } finally {
+        if (mounted) setPreviewLoading(false);
+      }
+    };
+    makePreview();
+    return () => { mounted = false; };
+  }, [previewPet]);
+
   // Função para renderizar NFTs com informações DIP721
   const renderNFTs = () => {
     return pets.map((pet) => {
@@ -849,6 +923,7 @@ const NFTPetsPanel = () => {
             <div className="nft-actions-under-image">
               <button
                 className="btn btn-transfer"
+                type="button"
                 onClick={() => {
                   setTransferTokenId(pet.id);
                   setShowTransferModal(true);
@@ -857,8 +932,12 @@ const NFTPetsPanel = () => {
                 🔄 Transfer NFT
               </button>
               <button
+                type="button"
                 className="btn btn-primary"
-                onClick={() => exportPetCardAsPDF(pet)}
+                onClick={() => {
+                  setPreviewPet(pet);
+                  setShowPreviewModal(true);
+                }}
               >
                 <FiFileText />
                 {t('identityCard', 'Cartão ID')}
@@ -896,7 +975,19 @@ const NFTPetsPanel = () => {
             <span className="info-label">NFTs:</span>
             <span className="info-value">{nftBalance}</span>
           </div>
-          <button className="btn btn-transfer" style={{ minHeight: 38 }} onClick={() => setFormOpen(!formOpen)}>
+          <button
+            type="button"
+            className="btn btn-transfer"
+            style={{ minHeight: 38, position: 'relative', zIndex: 1200, pointerEvents: 'auto' }}
+            onPointerDown={(e) => {
+              // debounce quick duplicate events (touch -> click)
+              const now = Date.now();
+              if (now - lastToggleRef.current < 350) return;
+              lastToggleRef.current = now;
+              setFormOpen(prev => !prev);
+            }}
+            aria-expanded={formOpen}
+          >
             <GiPawPrint style={{ marginRight: '8px' }} />
             {formOpen ? t('common.cancel', 'Cancel') : t('petPanel.createPetNft', 'Create Pet NFT')}
           </button>
@@ -1122,6 +1213,7 @@ const NFTPetsPanel = () => {
 
             <div className="modal-actions">
               <button
+                type="button"
                 className="btn-cancel"
                 onClick={() => setShowTransferModal(false)}
                 disabled={transferLoading}
@@ -1129,12 +1221,72 @@ const NFTPetsPanel = () => {
                 Cancel
               </button>
               <button
+                type="button"
                 className="btn-transfer"
                 onClick={transferNFT}
                 disabled={transferLoading || !transferToAddress}
               >
                 {transferLoading ? 'Transferring...' : 'Transfer NFT'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Preview do Cartão ID */}
+      {showPreviewModal && previewPet && (
+        <div className="transfer-modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="transfer-modal" style={{ width: 860, maxWidth: '95%' }}>
+            <div className="modal-header">{t('identityCardPreviewTitle', 'Preview - Cartão ID')} - {previewPet.nickname}</div>
+
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginTop: 12 }}>
+              <div style={{ flex: 1 }}>
+                {previewLoading ? (
+                  <div>{t('common.loading', 'Loading...')}</div>
+                ) : (
+                  (previewRaster && previewRaster.length > 0) ? (
+                    <div style={{ width: '100%', maxHeight: '520px', overflow: 'auto', padding: 6, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={previewRaster} alt="preview" style={{ width: '100%', height: 'auto', maxHeight: 460, borderRadius: 8, boxShadow: '0 8px 20px rgba(2,6,23,0.12)', background: '#fff' }} />
+                    </div>
+                  ) : (previewHtml && previewHtml.length > 0) ? (
+                    <div style={{ width: '100%', maxHeight: '520px', overflow: 'auto', padding: 6, boxSizing: 'border-box' }}>
+                      <iframe title="PetID Preview" srcDoc={previewHtml} style={{ width: '100%', height: 460, borderRadius: 8, border: 'none', boxShadow: '0 8px 20px rgba(2,6,23,0.12)' }} />
+                    </div>
+                  ) : (
+                    <div style={{ background: '#264766', borderRadius: 8, padding: 12, color: '#e5e7eb' }}>
+                      <div style={{ display: 'flex', gap: 12 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, color: '#93c5fd', fontWeight: 700, textTransform: 'uppercase' }}>{t('identityCard', 'Cartão ID')}</div>
+                          <div style={{ marginTop: 8 }}><strong>{previewPet.nickname}</strong></div>
+                          <div style={{ marginTop: 8, fontSize: 12 }}>{t('document.species', 'Species')}: {previewPet.species}</div>
+                        </div>
+                        <div style={{ width: 220 }}>
+                          {previewImageURL ? <img src={previewImageURL} alt="photo" style={{ width: '100%', borderRadius: 8 }} /> : (
+                            <div style={{ width: '100%', height: 160, background: '#0b1220', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>{t('petPanel.noPhoto', 'No photo')}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+                        {previewQR && <img src={previewQR} alt="qr" width={96} height={96} style={{ borderRadius: 8, background: '#fff', padding: 6 }} />}
+                        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#fff' }}>{(previewPet.owner && String(previewPet.owner)) || authClient?.getIdentity()?.getPrincipal()?.toString()}</div>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+
+              <div style={{ width: 200, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button type="button" className="btn btn-primary" onClick={() => generatePetDocument(previewPet)}>
+                  🖨️ {t('print', 'Print')}
+                </button>
+                <button type="button" className="btn btn-transfer" onClick={() => exportPetCardAsPDF(previewPet)}>
+                  {t('exportPdf', 'Export PDF')}
+                </button>
+                <button type="button" className="btn btn-cancel" onClick={() => setShowPreviewModal(false)}>
+                  {t('common.close', 'Close')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

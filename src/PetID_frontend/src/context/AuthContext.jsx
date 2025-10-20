@@ -94,6 +94,8 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     if (!authClient) return;
     try {
+      // Instrumentação temporária: log + stack trace para identificar quem está chamando logout
+      try { console.trace('[Auth] logout called'); } catch (e) { console.log('[Auth] logout called (trace unavailable)'); }
       await authClient.logout();
       setIsAuthenticated(false);
       setPrincipal(null);

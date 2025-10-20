@@ -102,13 +102,51 @@ const MapPanel = () => {
             icon: svgPin
           });
           // Clique no marcador abre modal de detalhes
-          marker.addListener('click', () => { setSelected(c.id); setShowDetails(true); });
+          marker.addListener('click', () => { console.log('[Map] marker click', c.id, c.name); setSelected(c.id); setShowDetails(true); });
           markersRef.current[c.id] = marker;
         });
         setLoading(false);
+        // Quando o container mudar de tamanho, redimensionar o mapa para evitar corte (mobile/tab switches)
+        try {
+          const ro = new ResizeObserver(() => {
+            try {
+              maps.event.trigger(mapInstance.current, 'resize');
+              mapInstance.current.setCenter(petLocation);
+            } catch (e) { /* noop */ }
+          });
+          if (mapRef.current) {
+            ro.observe(mapRef.current);
+            // Adiciona listener para pointer events no container do mapa (diagnóstico)
+            const el = mapRef.current;
+            const onPointerDown = (ev) => { console.log('[Map] pointerdown on map container', ev.type, ev.pointerType); };
+            const onClick = (ev) => { console.log('[Map] click on map container', ev.type); };
+            el.addEventListener('pointerdown', onPointerDown, { passive: true });
+            el.addEventListener('click', onClick, { passive: true });
+            el.__diagnostics = { onPointerDown, onClick };
+          }
+          // também garantir resize em resize da janela
+          const onWin = () => { try { maps.event.trigger(mapInstance.current, 'resize'); mapInstance.current.setCenter(petLocation); } catch (e) { } };
+          window.addEventListener('resize', onWin);
+          // salvar referências para cleanup
+          mapRef.current.__ro = ro; mapRef.current.__onWin = onWin;
+        } catch (e) { /* ResizeObserver pode não estar disponível em alguns browsers */ }
       })
       .catch(e => { setError('Falha ao carregar Google Maps'); setLoading(false); console.error(e); });
-    return () => { disposed = true; };
+    return () => {
+      disposed = true;
+      try {
+        if (mapRef.current) {
+          const ro = mapRef.current.__ro; if (ro) ro.disconnect();
+          const onWin = mapRef.current.__onWin; if (onWin) window.removeEventListener('resize', onWin);
+          // cleanup diagnostics listeners
+          const diag = mapRef.current.__diagnostics;
+          if (diag) {
+            try { mapRef.current.removeEventListener('pointerdown', diag.onPointerDown); } catch (e) { }
+            try { mapRef.current.removeEventListener('click', diag.onClick); } catch (e) { }
+          }
+        }
+      } catch (e) { }
+    };
   }, []);
 
   // Atualiza estilo quando muda dark mode
@@ -135,7 +173,8 @@ const MapPanel = () => {
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 rounded-2xl h-[44rem] border border-gray-200 dark:border-surface-100 bg-white/60 dark:bg-surface-75/60 backdrop-blur relative overflow-hidden">
+      <div className="lg:col-span-2 rounded-2xl border border-gray-200 dark:border-surface-100 bg-white/60 dark:bg-surface-75/60 backdrop-blur relative overflow-hidden"
+        style={{ minHeight: '18rem' }}>
         {useStatic ? (
           <div className="absolute inset-0 select-none">
             <div className="absolute inset-0 bg-gradient-to-br from-surface-50 to-gray-200 dark:from-[#101826] dark:to-[#1a2533]" />
