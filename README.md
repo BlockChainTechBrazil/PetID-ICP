@@ -70,69 +70,99 @@
 
 ## 🏗️ Project Architecture
 
-### **📁 Directory Structure**
+### **📁 Architecture Overview**
 ```
 PetID-ICP/
-├── src/                              # Core source code
-│   ├── PetID_backend/               # Motoko backend (canister logic)
-│   │   ├── main.mo                  # Main Motoko source file with DIP721 NFT logic
-│   │   └── PetID_backend.did        # Candid interface definition
-│   ├── PetID_frontend/              # Frontend application (React + Vite)
-│   │   ├── public/                  # Static public assets
-│   │   │   ├── .ic-assets.json5     # IC asset configuration and CSP
-│   │   │   └── ...                  # Icons, manifest, favicon
-│   │   ├── src/
-│   │   │   ├── componentes/         # Reusable UI components
-│   │   │   │   ├── profile/         # Profile dashboard components
-│   │   │   │   │   ├── ChatIAPanel.jsx          # AI Assistant on-chain
-│   │   │   │   │   ├── CommunityPanel.jsx       # Community & Events
-│   │   │   │   │   ├── GenealogyPanel.jsx       # Pet family tree
-│   │   │   │   │   ├── MapPanel.jsx             # Location services
-│   │   │   │   │   ├── MedicalPanel.jsx         # Health records
-│   │   │   │   │   └── NFTPetsPanel.jsx         # NFT management
-│   │   │   │   ├── ICPImage.jsx                 # ICP Asset loader
-│   │   │   │   └── ...                          # Other UI components
-│   │   │   ├── context/             # React contexts
-│   │   │   │   └── AuthContext.jsx  # Authentication & ICP integration
-│   │   │   ├── locales/             # i18n translation files
-│   │   │   │   ├── en/, es/, pt/    # Language-specific translations
-│   │   │   └── ...                  # Pages, hooks, routes
-│   │   └── ...                      # Config files (Vite, Tailwind, etc.)
-│   └── declarations/                # Generated canister interfaces
-│       ├── internet_identity/       # Internet Identity type declarations
-│       ├── PetID_backend/           # Backend canister declarations  
-│       └── PetID_frontend/          # Frontend canister declarations
-├── deps/                            # Project dependencies
-│   ├── candid/                      # External candid interface files
-│   └── ...                          # Dependency management files
-├── dfx.json                         # DFINITY project configuration
-├── canister_ids.json                # Canister IDs for different networks
-└── ...                              # Root config files
+├── 🛠️ dfx.json                      # ICP project configuration
+├── 📦 canister_ids.json             # Canister deployment IDs
+├── 📄 package.json                  # Root project dependencies
+│
+├── src/                             # 🎯 Core Application
+│   ├── PetID_backend/               # ⚡ Motoko Smart Contracts
+│   │   ├── main.mo                  # 🧠 DIP721 NFT + AI + Storage logic
+│   │   └── PetID_backend.did        # 🔗 Candid interface
+│   │
+│   ├── PetID_frontend/              # 🎨 React Application
+│   │   ├── 🌐 public/
+│   │   │   ├── .ic-assets.json5     # 🔧 ICP asset config + CSP
+│   │   │   ├── manifest.json        # 📱 PWA manifest
+│   │   │   └── sw.js                # ⚙️ Service worker
+│   │   │
+│   │   ├── src/                     # 💻 Frontend Source
+│   │   │   ├── 🎯 App.jsx           # Main application component
+│   │   │   ├── 🔐 context/
+│   │   │   │   └── AuthContext.jsx  # Internet Identity + Session
+│   │   │   │
+│   │   │   ├── 📱 componentes/
+│   │   │   │   ├── NavBar.jsx       # Navigation + Auth controls
+│   │   │   │   ├── ICPImage.jsx     # ICP Asset loader
+│   │   │   │   └── profile/         # 🏠 Dashboard Panels:
+│   │   │   │       ├── NFTPetsPanel.jsx    # 🐾 Pet NFT management
+│   │   │   │       ├── MedicalPanel.jsx    # 🏥 Health records
+│   │   │   │       ├── ChatIAPanel.jsx     # 🤖 On-chain AI
+│   │   │   │       ├── CommunityPanel.jsx  # 👥 Social platform
+│   │   │   │       ├── MapPanel.jsx        # 🗺️ Clinic finder
+│   │   │   │       └── GenealogyPanel.jsx  # 🧬 Family trees
+│   │   │   │
+│   │   │   ├── 📄 pages/
+│   │   │   │   ├── HomePage.jsx     # Landing page
+│   │   │   │   ├── LoginPage.jsx    # Authentication
+│   │   │   │   └── ProfilePage.jsx  # Main dashboard
+│   │   │   │
+│   │   │   ├── 🌍 locales/          # Internationalization
+│   │   │   │   ├── pt/translation.json  # Portuguese
+│   │   │   │   ├── en/translation.json  # English
+│   │   │   │   └── es/translation.json  # Spanish
+│   │   │   │
+│   │   │   └── ⚙️ Config Files:
+│   │   │       ├── firebaseConfig.js    # Analytics (optional)
+│   │   │       └── i18n.js             # Language setup
+│   │   │
+│   │   └── 🛠️ Build Config:
+│   │       ├── vite.config.js       # Vite bundler
+│   │       ├── tailwind.config.js   # CSS framework
+│   │       └── tsconfig.json        # TypeScript
+│   │
+│   └── declarations/                # 🤖 Auto-generated interfaces
+│       ├── internet_identity/       # II type definitions
+│       ├── PetID_backend/          # Backend canister types
+│       └── PetID_frontend/         # Frontend canister types
 ```
 
-### **🔧 Technical Architecture**
 
-#### **Backend (Motoko)**
-- **Language**: Motoko → `src/PetID_backend/main.mo`
-- **NFT Standard**: DIP721 compliance with full TokenMetadata implementation
-- **Canister ID**: `uxrrr-q7777-77774-qaaaq-cai` (local development)
-- **Interface**: Candid type definitions → `PetID_backend.did`
 
-#### **Frontend (React + Vite)**
-- **Framework**: React 18 with modern hooks and context API
-- **Build Tool**: Vite for ultra-fast development and optimized production builds
-- **Authentication**: Internet Identity integration via `@dfinity/agent`
-- **Styling**: Tailwind CSS with dark/light theme support
+### **🔧 Core Components**
 
-#### **Storage Architecture**
-- **ICP Asset Storage**: Native blockchain storage (migrated from IPFS)
-- **Image Loading**: Custom `ICPImage` component for on-chain assets
-- **Offline Caching**: LocalStorage for improved performance and offline access
+#### **🧠 Backend (`main.mo`)**
+- **Smart Contract Logic**: DIP721 NFT standard + TokenMetadata structures
+- **AI Integration**: On-chain chat functionality with conversation storage
+- **Asset Management**: Native ICP storage functions for images and documents
+- **Data Persistence**: All pet records, medical data, and user interactions
 
-#### **Deployment**
-- **Development**: Local replica via DFX framework
-- **Asset Canister**: `u6s2n-gx777-77774-qaaba-cai` for frontend deployment
-- **Network**: Internet Computer Protocol mainnet and local development
+#### **🎨 Frontend Key Files**
+- **`AuthContext.jsx`**: Internet Identity integration + session management
+- **`NFTPetsPanel.jsx`**: Core pet registration and NFT management
+- **`ChatIAPanel.jsx`**: On-chain AI assistant interface
+- **`ICPImage.jsx`**: Custom component for ICP asset loading
+- **`NavBar.jsx`**: Navigation with mobile-optimized auth controls
+
+#### **🌐 External Integrations**
+- **Internet Identity**: Decentralized authentication (no passwords)
+- **Google Maps API**: Veterinary clinic finder and location services
+- **ICP Asset Storage**: 100% on-chain image and document storage
+- **PWA Service Worker**: Offline functionality and app installation
+
+#### **📱 Progressive Web App**
+- **Offline-First**: Full functionality without internet connection
+- **Multi-Platform**: Installable on iOS, Android, Desktop
+- **Service Worker**: Intelligent caching and background sync
+- **Push Notifications**: Appointment reminders and community updates
+
+#### **🌍 Internationalization**
+- **3 Languages**: Portuguese (primary), English, Spanish
+- **Dynamic Loading**: Language switching without page reload
+- **Browser Detection**: Automatic language selection
+- **Fallback System**: Graceful handling of missing translations
 
 ## 🎯 About the Project
 
