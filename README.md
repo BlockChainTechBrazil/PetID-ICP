@@ -25,7 +25,7 @@
 
 ## 🔗 Important Links
 
-- 🚀 [Site Deployed]()
+- 🚀 [Site Deployed](https://pbuau-rqaaa-aaaah-qqgga-cai.icp0.io/)
 - 📽️ [Pitch Deck](https://youtu.be/tmdy4uaNCxg?si=440uTCxs1yxxTZNM)
 - 📽️ [Pitch PDF](https://drive.google.com/drive/folders/1Mq_lUkY5O1Bzly3CMVugFU6GfIQWleaf?usp=drive_link)
 - 🚀 [Live Demo](https://youtu.be/S9w6yEFEeU0)
