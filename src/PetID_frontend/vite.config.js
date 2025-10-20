@@ -14,14 +14,14 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
   define: {
-    // Garantir que as variáveis de ambiente estejam disponíveis
-    'import.meta.env.CANISTER_ID_PETID_BACKEND': JSON.stringify(process.env.CANISTER_ID_PETID_BACKEND),
-    'import.meta.env.CANISTER_ID_PETID_FRONTEND': JSON.stringify(process.env.CANISTER_ID_PETID_FRONTEND),
-    'import.meta.env.CANISTER_ID_INTERNET_IDENTITY': JSON.stringify(process.env.CANISTER_ID_INTERNET_IDENTITY),
-    'import.meta.env.DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK),
-    // Expor Google Maps API Key no formato VITE_
-    'import.meta.env.VITE_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.GOOGLE_MAPS_API_KEY),
-    'import.meta.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY),
+    // Garantir que as variáveis de ambiente estejam disponíveis com prefixo VITE_
+    'import.meta.env.CANISTER_ID_PETID_BACKEND': JSON.stringify(process.env.VITE_CANISTER_ID_PETID_BACKEND),
+    'import.meta.env.CANISTER_ID_PETID_FRONTEND': JSON.stringify(process.env.VITE_CANISTER_ID_PETID_FRONTEND),
+    'import.meta.env.CANISTER_ID_INTERNET_IDENTITY': JSON.stringify(process.env.VITE_CANISTER_ID_INTERNET_IDENTITY),
+    'import.meta.env.DFX_NETWORK': JSON.stringify(process.env.VITE_DFX_NETWORK),
+    // Expor Google Maps e OpenAI API Keys
+    'import.meta.env.VITE_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.VITE_GOOGLE_MAPS_API_KEY),
+    'import.meta.env.OPENAI_API_KEY': JSON.stringify(process.env.VITE_OPENAI_API_KEY),
   },
   build: {
     emptyOutDir: true,

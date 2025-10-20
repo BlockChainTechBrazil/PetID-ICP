@@ -28,7 +28,7 @@
 - 🚀 [Site Deployed]()
 - 📽️ [Pitch Deck](https://youtu.be/tmdy4uaNCxg?si=440uTCxs1yxxTZNM)
 - 📽️ [Pitch PDF](https://drive.google.com/drive/folders/1Mq_lUkY5O1Bzly3CMVugFU6GfIQWleaf?usp=drive_link)
-- 🚀 [Live Demo]()
+- 🚀 [Live Demo](https://youtu.be/S9w6yEFEeU0)
 - 🛠️ [Installation Guide](https://github.com/BlockChainTechBrazil/PetID-ICP/install.md)
 - ✉️ [Contact](mailto:contato.blockchaintech.br@gmail.com)
 ---

@@ -250,8 +250,8 @@ export const AuthProvider = ({ children }) => {
   }, [authClient, isAuthenticated]);
 
   const getIdentityProvider = () => {
-    const network = import.meta.env.DFX_NETWORK || 'local';
-    const iiCanister = import.meta.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai';
+    const network = import.meta.env.VITE_DFX_NETWORK || import.meta.env.DFX_NETWORK || 'local';
+    const iiCanister = import.meta.env.VITE_CANISTER_ID_INTERNET_IDENTITY || import.meta.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai';
     
     console.log('[Auth] Network:', network, 'II Canister:', iiCanister);
     
@@ -389,13 +389,13 @@ export const AuthProvider = ({ children }) => {
     
     try {
       const identity = authClient.getIdentity();
-      const network = import.meta.env.DFX_NETWORK || 'local';
+      const network = import.meta.env.VITE_DFX_NETWORK || import.meta.env.DFX_NETWORK || 'local';
       const host = network === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
       
       // Obter canister ID correto baseado na network
-      const envCanisterId = import.meta.env.CANISTER_ID_PETID_BACKEND;
+      const envCanisterId = import.meta.env.VITE_CANISTER_ID_PETID_BACKEND || import.meta.env.CANISTER_ID_PETID_BACKEND;
       const backendCanisterId = network === 'ic' 
-        ? envCanisterId || 'nqavu-fiaaa-aaaaj-qnska-cai'
+        ? envCanisterId || 'qzpyy-baaaa-aaaaj-a2hea-cai'
         : envCanisterId || 'uxrrr-q7777-77774-qaaaq-cai';
         
       console.log('[Auth] 🔍 Environment vars check:');
